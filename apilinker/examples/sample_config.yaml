@@ -1,0 +1,135 @@
+# ApiLinker Sample Configuration
+# This file demonstrates how to configure ApiLinker for connecting two APIs
+
+# Source API configuration
+source:
+  type: rest
+  base_url: https://api.example.com/v1
+  auth:
+    # API Key authentication
+    type: api_key
+    header: X-API-Key
+    key: ${SOURCE_API_KEY}  # Environment variable reference
+  
+  # Source API endpoints
+  endpoints:
+    # Endpoint for listing users
+    list_users:
+      path: /users
+      method: GET
+      params:
+        limit: 100
+        updated_since: "{{last_sync}}"  # Template variable
+      
+      # Pagination configuration
+      pagination:
+        data_path: data
+        next_page_path: meta.next_page
+        page_param: page
+    
+    # Endpoint for listing products
+    list_products:
+      path: /products
+      method: GET
+      params:
+        active: true
+      
+      # Response path to extract data from
+      response_path: products
+
+# Target API configuration
+target:
+  type: rest
+  base_url: https://api.destination.com/v2
+  auth:
+    # Bearer token authentication
+    type: bearer
+    token: ${TARGET_API_TOKEN}  # Environment variable reference
+  
+  # Target API endpoints
+  endpoints:
+    # Endpoint for creating users
+    create_user:
+      path: /users
+      method: POST
+      headers:
+        Content-Type: application/json
+    
+    # Endpoint for updating users
+    update_user:
+      path: /users/{id}  # Path template
+      method: PUT
+    
+    # Endpoint for creating products
+    create_product:
+      path: /products
+      method: POST
+
+# Field mappings
+mapping:
+  # User mapping
+  - source: list_users
+    target: create_user
+    fields:
+      # Simple field mapping
+      - source: id
+        target: external_id
+      
+      # Nested field mapping
+      - source: name
+        target: user.name
+      
+      # Field with transformation
+      - source: email
+        target: user.email
+        transform: lowercase
+      
+      # Multiple transformations
+      - source: created_at
+        target: metadata.created_date
+        transform:
+          - iso_to_timestamp
+          - to_string
+      
+      # Conditional field
+      - source: phone
+        target: contact.phone
+        condition:
+          field: phone
+          operator: exists
+      
+      # Default value for null fields
+      - source: status
+        target: status
+        transform: default_empty_string
+
+  # Product mapping
+  - source: list_products
+    target: create_product
+    fields:
+      - source: product_id
+        target: external_id
+      
+      - source: name
+        target: title
+      
+      - source: description
+        target: body.content
+      
+      - source: price
+        target: pricing.base_price
+        transform: to_float
+      
+      - source: category
+        target: classification.category
+        transform: lowercase
+
+# Schedule configuration
+schedule:
+  type: cron
+  expression: "0 */6 * * *"  # Every 6 hours
+
+# Logging configuration
+logging:
+  level: INFO
+  file: logs/apilinker.log

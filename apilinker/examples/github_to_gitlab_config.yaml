@@ -1,0 +1,73 @@
+source:
+  type: rest
+  base_url: https://api.github.com
+  auth:
+    type: bearer
+    token: ${GITHUB_TOKEN}
+  endpoints:
+    list_issues:
+      path: /repos/yourusername/your-repo/issues
+      method: GET
+      params:
+        state: all
+        per_page: 100
+      pagination:
+        page_param: page
+        max_pages: 10
+      headers:
+        Accept: application/vnd.github.v3+json
+
+target:
+  type: rest
+  base_url: https://gitlab.com/api/v4
+  auth:
+    type: bearer
+    token: ${GITLAB_TOKEN}
+  endpoints:
+    create_issue:
+      path: /projects/12345/issues
+      method: POST
+
+mapping:
+  - source: list_issues
+    target: create_issue
+    fields:
+      - source: title
+        target: title
+      - source: body
+        target: description
+      - source: labels
+        target: labels
+        transform: github_labels_to_gitlab
+      - source: state
+        target: state
+        # GitLab uses "opened" instead of GitHub's "open"
+        transform:
+          - name: lowercase
+          - name: custom
+            params:
+              func: "lambda v: 'opened' if v == 'open' else v"
+      - source: user.login
+        target: custom_fields.github_user
+      # Add created date as a note in the description
+      - source: created_at
+        target: description_suffix
+        transform:
+          - name: custom
+            params:
+              func: "lambda v: f'\n\n*Imported from GitHub. Originally created on {v}*'"
+      # Convert GitHub mentions to GitLab format
+      - source: body
+        target: description_prefix
+        transform:
+          - name: custom
+            params:
+              func: "lambda v: v.replace('@', 'gh:@') if v else ''"
+
+schedule:
+  type: once
+  datetime: "2025-07-14T15:00:00"
+
+logging:
+  level: INFO
+  file: github_to_gitlab.log
