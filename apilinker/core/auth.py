@@ -187,7 +187,10 @@ class AuthManager:
             
         else:
             logger.warning(f"Unknown authentication type: {auth_type}, using base AuthConfig")
-            return AuthConfig(type=auth_type, **auth_config)
+            # Remove type from auth_config to avoid duplicate parameter error
+            auth_config_copy = auth_config.copy()
+            auth_config_copy.pop('type', None)
+            return AuthConfig(type=auth_type, **auth_config_copy)
             
     def refresh_oauth2_token(self, auth_config: OAuth2ClientCredentials) -> OAuth2ClientCredentials:
         """

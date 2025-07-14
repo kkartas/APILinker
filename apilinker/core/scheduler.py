@@ -202,6 +202,9 @@ class Scheduler:
             logger.warning("Scheduler is already running")
             return
         
+        # Set running flag before starting thread
+        self.running = True
+        
         # Start the scheduler in a separate thread
         self.thread = threading.Thread(
             target=self._scheduler_loop,

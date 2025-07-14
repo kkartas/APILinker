@@ -200,31 +200,56 @@ class FieldMapper:
         # Set the value at the leaf node
         current[parts[-1]] = value
     
-    def apply_transform(self, value: Any, transform_name: str, params: Optional[Dict[str, Any]] = None) -> Any:
+    def apply_transform(self, value: Any, transform: Union[str, List[str], Dict[str, Any]]) -> Any:
         """
-        Apply a transformation function to a value.
+        Apply a transformation to a value.
         
         Args:
-            value: Value to transform
-            transform_name: Name of the registered transformer
-            params: Optional parameters for the transformer
+            value: The value to transform
+            transform: The transformation to apply (string name or list of transforms)
             
         Returns:
-            The transformed value
+            Transformed value
         """
-        if transform_name not in self.transformers:
-            logger.warning(f"Transformer '{transform_name}' not found")
+        # Handle None values
+        if value is None:
+            # Special case transformers that handle None
+            if transform == "default_empty_string":
+                return ""
+            elif transform == "default_zero":
+                return 0
+            else:
+                return None
+        
+        # Handle list of transformations
+        if isinstance(transform, list):
+            result = value
+            for t in transform:
+                result = self.apply_transform(result, t)
+            return result
+        
+        # Handle transformation with parameters
+        if isinstance(transform, dict):
+            name = transform.get("name")
+            params = transform.get("params", {})
+            
+            if not name or name not in self.transformers:
+                logger.warning(f"Unknown transformer: {name}")
+                return value
+            
+            return self.transformers[name](value, **params)
+        
+        # Simple string transformer name
+        if transform not in self.transformers:
+            logger.warning(f"Unknown transformer: {transform}")
             return value
         
-        try:
-            transformer = self.transformers[transform_name]
-            if params:
-                return transformer(value, **params)
-            else:
-                return transformer(value)
-        except Exception as e:
-            logger.error(f"Error applying transformer '{transform_name}': {str(e)}")
-            return value
+        # Special handling for list inputs with certain transforms
+        if isinstance(value, list) and transform in ["lowercase", "uppercase", "strip"]:
+            return [self.transformers[transform](item) if isinstance(item, str) else item for item in value]
+            
+        # Apply the transformation
+        return self.transformers[transform](value)
     
     def map_data(
         self, source_endpoint: str, target_endpoint: str, 
