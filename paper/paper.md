@@ -7,20 +7,13 @@ tags:
   - API connector
   - data mapping
 authors:
-  - name: Konstantinos Kartas
-    orcid: 0000-0002-7654-3893
-    affiliation: 1
-  - name: Maria Alexiou
-    orcid: 0000-0001-5432-8921
-    affiliation: 2
-  - name: Thomas Nielsen
-    orcid: 0000-0003-1356-7098
+  - given-names: Kyriakos
+    surname: Kartas
+    orcid: 0009-0001-6477-4676
     affiliation: 1
 affiliations:
-  - name: Department of Computer Science, University of London
+  - name: Independent Researcher
     index: 1
-  - name: Data Integration Systems Laboratory, Technical University of Athens
-    index: 2
 date: 14 July 2025
 bibliography: paper.bib
 ---

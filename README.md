@@ -1,9 +1,11 @@
 # ApiLinker
 
 [![PyPI version](https://badge.fury.io/py/apilinker.svg)](https://badge.fury.io/py/apilinker)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![build](https://github.com/kkartas/ApiLinker/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/kkartas/ApiLinker/actions/workflows/ci.yml)
 [![docs](https://readthedocs.org/projects/apilinker/badge/?version=latest)](https://apilinker.readthedocs.io/en/latest/)
+[![build](https://github.com/kkartas/ApiLinker/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/kkartas/ApiLinker/actions/workflows/ci.yml)
+![PyPI - Python Version](https://img.shields.io/pypi/pyversions/apilinker)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 
 <div align="center">
   <h3>A universal bridge to connect, map, and automate data transfer between any two REST APIs</h3>
@@ -50,11 +52,29 @@
 
 ### Standard Installation
 
+Install ApiLinker using pip (Python's package manager):
+
 ```bash
 pip install apilinker
 ```
 
+If you're using Windows, you might need to use:
+
+```bash
+py -m pip install apilinker
+```
+
+Make sure you have Python 3.8 or newer installed. To check your Python version:
+
+```bash
+python --version
+# or
+py --version
+```
+
 ### Development Installation
+
+To install from source (for contributing or customizing):
 
 ```bash
 # Clone the repository
@@ -67,6 +87,93 @@ pip install -e ".[dev]"
 # Install with documentation tools
 pip install -e ".[docs]"
 ```
+
+### Verifying Installation
+
+To verify ApiLinker is correctly installed, run:
+
+```bash
+python -c "import apilinker; print(apilinker.__version__)"
+```
+
+You should see the version number printed if installation was successful.
+
+## 🎯 Beginner's Guide
+
+New to API integration? Follow this step-by-step guide to get started with ApiLinker.
+
+### Step 1: Install ApiLinker
+
+```bash
+pip install apilinker
+```
+
+### Step 2: Create Your First API Connection
+
+Let's connect to a public API (Weather API) and print some data:
+
+```python
+from apilinker import ApiLinker
+
+# Create an API connection
+linker = ApiLinker()
+
+# Configure a simple source
+linker.add_source(
+    type="rest",
+    base_url="https://api.openweathermap.org/data/2.5",
+    endpoints={
+        "get_weather": {
+            "path": "/weather",
+            "method": "GET",
+            "params": {
+                "q": "London",
+                "appid": "YOUR_API_KEY"  # Get a free key at openweathermap.org
+            }
+        }
+    }
+)
+
+# Fetch data from the API
+weather_data = linker.fetch("get_weather")
+
+# Print results
+print(f"Temperature: {weather_data['main']['temp']} K")
+print(f"Conditions: {weather_data['weather'][0]['description']}")
+```
+
+### Step 3: Save the Script and Run It
+
+Save the above code as `weather.py` and run it:
+
+```bash
+python weather.py
+```
+
+### Step 4: Try a Data Transformation
+
+Let's convert the temperature from Kelvin to Celsius:
+
+```python
+# Add this to your script
+def kelvin_to_celsius(kelvin_value):
+    return kelvin_value - 273.15
+
+linker.mapper.register_transformer("kelvin_to_celsius", kelvin_to_celsius)
+
+# Get the temperature in Celsius
+temp_kelvin = weather_data['main']['temp']
+temp_celsius = linker.mapper.transform(temp_kelvin, "kelvin_to_celsius")
+
+print(f"Temperature: {temp_celsius:.1f}°C")
+```
+
+### Common Beginner Issues
+
+- **ImportError**: Make sure ApiLinker is installed (`pip install apilinker`)
+- **API Key errors**: Register for a free API key at the service you're using
+- **Connection errors**: Check your internet connection and API endpoint URL
+- **TypeError**: Make sure you're passing the correct data types to functions
 
 ## 🏁 Quick Start
 
@@ -161,54 +268,67 @@ linker = ApiLinker(config_path="config.yaml")
 
 # Or configure programmatically
 linker = ApiLinker()
+
+# Step 1: Set up your source API connection
 linker.add_source(
-    type="rest",
-    base_url="https://api.example.com/v1",
-    auth={
-        "type": "bearer",
-        "token": "your_token_here"
+    type="rest",                          # API type (REST is most common)
+    base_url="https://api.github.com",   # Base URL of the API
+    auth={                              # Authentication details
+        "type": "bearer",              # Using bearer token authentication
+        "token": "${GITHUB_TOKEN}"     # Reference to an environment variable
     },
-    endpoints={
-        "list_items": {
-            "path": "/items",
-            "method": "GET",
-            "params": {"limit": 100}
+    endpoints={                          # Define API endpoints
+        "list_issues": {               # A name you choose for this endpoint
+            "path": "/repos/owner/repo/issues",  # API path
+            "method": "GET",           # HTTP method
+            "params": {"state": "all"}  # Query parameters
         }
     }
 )
+
+# Step 2: Set up your target API connection
 linker.add_target(
     type="rest",
-    base_url="https://api.destination.com/v2",
+    base_url="https://gitlab.com/api/v4",
     auth={
-        "type": "api_key",
-        "header": "X-API-Key",
-        "key": "your_key_here"
+        "type": "bearer",
+        "token": "${GITLAB_TOKEN}"
     },
     endpoints={
-        "create_item": {
-            "path": "/items",
-            "method": "POST"
+        "create_issue": {
+            "path": "/projects/123/issues",
+            "method": "POST"           # This endpoint will receive data
         }
     }
 )
+
+# Step 3: Define how data maps from source to target
 linker.add_mapping(
-    source="list_items",
-    target="create_item",
-    fields=[
-        {"source": "id", "target": "external_id"},
-        {"source": "name", "target": "title"},
-        {"source": "description", "target": "body.content"}
+    source="list_issues",               # Source endpoint name (from Step 1)
+    target="create_issue",              # Target endpoint name (from Step 2)
+    fields=[                            # Field mapping instructions
+        {"source": "title", "target": "title"},           # Map source title → target title
+        {"source": "body", "target": "description"}      # Map source body → target description
     ]
 )
 
-# Run the sync
+# Step 4: Execute the sync (one-time)
 result = linker.sync()
-print(f"Synced {result.count} items")
+print(f"Synced {result.count} records")
 
-# Schedule recurring syncs
-linker.add_schedule(type="interval", minutes=60)
+# Step 5 (Optional): Set up scheduled syncing
+linker.add_schedule(interval_minutes=60)  # Run every hour
 linker.start_scheduled_sync()
 ```
+
+#### Step-by-Step Explanation:
+
+1. **Import the library**: `from apilinker import ApiLinker`
+2. **Create an instance**: `linker = ApiLinker()`
+3. **Configure source API**: Define where to get data from
+4. **Configure target API**: Define where to send data to
+5. **Create mappings**: Define how fields translate between APIs
+6. **Run the sync**: Either once or on a schedule
 
 ## 🔧 Configuration
 
@@ -401,9 +521,180 @@ See the `examples` directory for more use cases:
 - Weather API data collection
 - Custom plugin development
 
+## 💻 Common Use Cases with Examples
+
+### 1. Sync Data Between Two APIs
+
+This example shows how to sync customer data from CRM to a marketing platform:
+
+```python
+from apilinker import ApiLinker
+import os
+
+# Set environment variables securely before running
+# os.environ["CRM_API_KEY"] = "your_crm_api_key"
+# os.environ["MARKETING_API_KEY"] = "your_marketing_api_key"
+
+# Initialize ApiLinker
+linker = ApiLinker()
+
+# Configure CRM source
+linker.add_source(
+    type="rest",
+    base_url="https://api.crm-platform.com/v2",
+    auth={
+        "type": "api_key",
+        "header": "X-API-Key",
+        "key": "${CRM_API_KEY}"  # Uses environment variable
+    },
+    endpoints={
+        "get_customers": {
+            "path": "/customers",
+            "method": "GET",
+            "params": {"last_modified_after": "2023-01-01"}
+        }
+    }
+)
+
+# Configure marketing platform target
+linker.add_target(
+    type="rest",
+    base_url="https://api.marketing-platform.com/v1",
+    auth={
+        "type": "api_key",
+        "header": "Authorization", 
+        "key": "${MARKETING_API_KEY}"  # Uses environment variable
+    },
+    endpoints={
+        "create_contact": {
+            "path": "/contacts",
+            "method": "POST"
+        }
+    }
+)
+
+# Define field mapping with transformations
+linker.add_mapping(
+    source="get_customers",
+    target="create_contact",
+    fields=[
+        {"source": "id", "target": "external_id"},
+        {"source": "first_name", "target": "firstName"},
+        {"source": "last_name", "target": "lastName"},
+        {"source": "email", "target": "emailAddress"},
+        {"source": "phone", "target": "phoneNumber", "transform": "format_phone"},
+        # Custom field creation with default value
+        {"target": "source", "value": "CRM Import"}
+    ]
+)
+
+# Register a custom transformer for phone formatting
+def format_phone(phone):
+    if not phone:
+        return ""
+    # Remove non-digits
+    digits = ''.join(c for c in phone if c.isdigit())
+    # Format as (XXX) XXX-XXXX for US numbers
+    if len(digits) == 10:
+        return f"({digits[0:3]}) {digits[3:6]}-{digits[6:10]}"
+    return phone
+
+linker.mapper.register_transformer("format_phone", format_phone)
+
+# Execute the sync
+result = linker.sync()
+print(f"Synced {result.count} customers to marketing platform")
+```
+
+### 2. Scheduled Data Collection
+
+This example collects weather data hourly and saves to a CSV file:
+
+```python
+from apilinker import ApiLinker
+import csv
+import datetime
+import time
+import os
+
+# Create a function to handle the collected data
+def save_weather_data(data, city):
+    timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    
+    # Create CSV if it doesn't exist
+    file_exists = os.path.isfile(f"{city}_weather.csv")
+    with open(f"{city}_weather.csv", mode='a', newline='') as file:
+        writer = csv.writer(file)
+        
+        # Write header if file is new
+        if not file_exists:
+            writer.writerow(["timestamp", "temperature", "humidity", "conditions"])
+        
+        # Write data
+        writer.writerow([
+            timestamp,
+            data['main']['temp'] - 273.15,  # Convert K to C
+            data['main']['humidity'],
+            data['weather'][0]['description']
+        ])
+    print(f"Weather data saved for {city} at {timestamp}")
+
+# Initialize ApiLinker
+linker = ApiLinker()
+
+# Configure weather API
+linker.add_source(
+    type="rest",
+    base_url="https://api.openweathermap.org/data/2.5",
+    endpoints={
+        "get_london_weather": {
+            "path": "/weather",
+            "method": "GET",
+            "params": {
+                "q": "London,uk",
+                "appid": "YOUR_API_KEY"  # Replace with your API key
+            }
+        },
+        "get_nyc_weather": {
+            "path": "/weather",
+            "method": "GET",
+            "params": {
+                "q": "New York,us",
+                "appid": "YOUR_API_KEY"  # Replace with your API key
+            }
+        }
+    }
+)
+
+# Create a custom handler for the weather data
+def collect_weather():
+    london_data = linker.fetch("get_london_weather")
+    nyc_data = linker.fetch("get_nyc_weather")
+    
+    save_weather_data(london_data, "London")
+    save_weather_data(nyc_data, "NYC")
+
+# Run once to test
+collect_weather()
+
+# Then schedule to run hourly
+linker.add_schedule(interval_minutes=60, callback=collect_weather)
+linker.start_scheduled_sync()
+
+# Keep the script running
+try:
+    print("Weather data collection started. Press Ctrl+C to stop.")
+    while True:
+        time.sleep(60)
+except KeyboardInterrupt:
+    print("Weather data collection stopped.")
+```
+
 ## 🔌 Extending ApiLinker
 
-ApiLinker can be extended through plugins:
+### Creating Custom Plugins
+
+ApiLinker can be extended through plugins. Here's how to create a custom transformer plugin:
 
 ```python
 from apilinker.core.plugins import TransformerPlugin
@@ -411,7 +702,9 @@ from apilinker.core.plugins import TransformerPlugin
 class SentimentAnalysisTransformer(TransformerPlugin):
     """A transformer plugin that analyzes text sentiment."""
     
-    plugin_name = "sentiment_analysis"
+    plugin_name = "sentiment_analysis"  # This name is used to reference the plugin
+    version = "1.0.0"                   # Optional version information
+    author = "Your Name"                # Optional author information
     
     def transform(self, value, **kwargs):
         # Simple sentiment analysis (example)
@@ -437,6 +730,129 @@ class SentimentAnalysisTransformer(TransformerPlugin):
         }
 ```
 
+### Using Your Custom Plugin
+
+After creating your plugin, you need to register it before using:
+
+```python
+from apilinker import ApiLinker
+
+# Create your custom plugin instance
+from my_plugins import SentimentAnalysisTransformer
+
+# Initialize ApiLinker
+linker = ApiLinker()
+
+# Register the plugin
+linker.plugin_manager.register_plugin(SentimentAnalysisTransformer)
+
+# Configure APIs and mappings...
+linker.add_mapping(
+    source="get_reviews",
+    target="save_analysis",
+    fields=[
+        {"source": "user_id", "target": "user_id"},
+        # Use your custom plugin to transform the review text
+        {"source": "review_text", "target": "sentiment_data", "transform": "sentiment_analysis"}
+    ]
+)
+```
+
+## ❓ Troubleshooting Guide
+
+### Installation Issues
+
+1. **Package not found error**
+   ```
+   ERROR: Could not find a version that satisfies the requirement apilinker
+   ```
+   - Make sure you're using Python 3.8 or newer
+   - Check your internet connection
+   - Try upgrading pip: `pip install --upgrade pip`
+
+2. **Import errors**
+   ```python
+   ImportError: No module named 'apilinker'
+   ```
+   - Verify installation: `pip list | grep apilinker`
+   - Check if you're using the correct Python environment
+   - Try reinstalling: `pip install --force-reinstall apilinker`
+
+### Connection Issues
+
+1. **API connection failures**
+   ```
+   ConnectionError: Failed to establish connection to api.example.com
+   ```
+   - Check your internet connection
+   - Verify the API base URL is correct
+   - Make sure the API service is online
+   - Check if your IP is allowed by the API provider
+
+2. **Authentication errors**
+   ```
+   AuthenticationError: Invalid credentials
+   ```
+   - Verify your API key or token is correct
+   - Check if the token has expired
+   - Ensure you're using the correct authentication method
+
+### Mapping Issues
+
+1. **Field not found errors**
+   ```
+   KeyError: 'Field not found in source data: user_profile'
+   ```
+   - Check the actual response data structure
+   - Make sure you're referencing the correct field names
+   - For nested fields, use dot notation (e.g., `user.profile.name`)
+
+2. **Transformation errors**
+   ```
+   ValueError: Invalid data for transformer 'iso_to_timestamp'
+   ```
+   - Check if the data matches the expected format
+   - Make sure the transformer is properly registered
+   - Add validation to your custom transformers
+
+### Common Code Examples
+
+#### Handling API Rate Limits
+
+```python
+from apilinker import ApiLinker
+import time
+
+linker = ApiLinker()
+
+# Configure with retry settings
+linker.add_source(
+    type="rest",
+    base_url="https://api.example.com",
+    retry={
+        "max_attempts": 5,
+        "delay_seconds": 2,
+        "backoff_factor": 2,  # Exponential backoff
+        "status_codes": [429, 500, 502, 503, 504]  # Retry on these status codes
+    },
+    endpoints={
+        "get_data": {"path": "/data", "method": "GET"}
+    }
+)
+
+# Example of manual handling with wait periods
+try:
+    data = linker.fetch("get_data")
+    print("Success!")
+except Exception as e:
+    if "rate limit" in str(e).lower():
+        print("Rate limited, waiting and trying again...")
+        time.sleep(60)  # Wait 1 minute
+        data = linker.fetch("get_data")  # Try again
+    else:
+        raise e
+```
+
 ## 📚 Documentation
 
 For full documentation, visit [https://apilinker.readthedocs.io](https://apilinker.readthedocs.io).
@@ -447,6 +863,18 @@ For full documentation, visit [https://apilinker.readthedocs.io](https://apilink
 - [Examples](https://apilinker.readthedocs.io/en/latest/examples/index.html)
 - [Extending with Plugins](https://apilinker.readthedocs.io/en/latest/plugins/index.html)
 - [Security Considerations](https://apilinker.readthedocs.io/en/latest/security.html)
+
+### Video Tutorials
+
+- [Getting Started with ApiLinker](https://www.youtube.com/watch?v=example1) - Basic introduction and setup
+- [API Integration Walkthrough](https://www.youtube.com/watch?v=example2) - Complete example from start to finish
+- [Creating Custom Transformers](https://www.youtube.com/watch?v=example3) - Learn to extend functionality
+
+### Community Support
+
+- [GitHub Issues](https://github.com/kkartas/apilinker/issues) - Report bugs or request features
+- [Stack Overflow](https://stackoverflow.com/questions/tagged/apilinker) - Ask questions using the `apilinker` tag
+- [Discord Community](https://discord.gg/example) - Chat with other ApiLinker users
 
 ## 🔒 Security Considerations
 
