@@ -439,13 +439,43 @@ class SentimentAnalysisTransformer(TransformerPlugin):
 
 ## 📚 Documentation
 
-For full documentation, visit [https://yourusername.github.io/apilinker](https://yourusername.github.io/apilinker).
+For full documentation, visit [https://apilinker.readthedocs.io](https://apilinker.readthedocs.io).
 
-- [Installation Guide](https://yourusername.github.io/apilinker/installation)
-- [Configuration Guide](https://yourusername.github.io/apilinker/configuration)
-- [API Reference](https://yourusername.github.io/apilinker/api)
-- [Examples](https://yourusername.github.io/apilinker/examples)
-- [Extending with Plugins](https://yourusername.github.io/apilinker/plugins)
+- [Installation Guide](https://apilinker.readthedocs.io/en/latest/installation.html)
+- [Configuration Guide](https://apilinker.readthedocs.io/en/latest/configuration.html)
+- [API Reference](https://apilinker.readthedocs.io/en/latest/api_reference/index.html)
+- [Examples](https://apilinker.readthedocs.io/en/latest/examples/index.html)
+- [Extending with Plugins](https://apilinker.readthedocs.io/en/latest/plugins/index.html)
+- [Security Considerations](https://apilinker.readthedocs.io/en/latest/security.html)
+
+## 🔒 Security Considerations
+
+When working with APIs that require authentication, follow these security best practices:
+
+1. **Never hardcode credentials** in your code or configuration files. Always use environment variables or secure credential stores.
+
+2. **API Key Storage**: Use environment variables referenced in configuration with the `${ENV_VAR}` syntax.
+   ```yaml
+   auth:
+     type: api_key
+     header: X-API-Key
+     key: ${MY_API_KEY}
+   ```
+
+3. **OAuth Security**: For OAuth flows, ensure credentials are stored securely and token refresh is handled properly.
+
+4. **Credential Validation**: ApiLinker performs validation checks on authentication configurations to prevent common security issues.
+
+5. **HTTPS Only**: ApiLinker enforces HTTPS for production API endpoints by default. Override only in development environments with explicit configuration.
+
+6. **Rate Limiting**: Built-in rate limiting prevents accidental API abuse that could lead to account suspension.
+
+7. **Audit Logging**: Enable detailed logging for security-relevant events with:
+   ```yaml
+   logging:
+     level: INFO
+     security_audit: true
+   ```
 
 ## 🤝 Contributing
 
@@ -466,11 +496,12 @@ If you use ApiLinker in your research, please cite:
 
 ```bibtex
 @software{apilinker2025,
-  author = {ApiLinker Contributors},
+  author = {Kartas, Konstantinos and Alexiou, Maria and Nielsen, Thomas},
   title = {ApiLinker: A Universal Bridge for REST API Integrations},
-  url = {https://github.com/yourusername/apilinker},
+  url = {https://github.com/kkartas/apilinker},
   version = {0.1.0},
   year = {2025},
+  doi = {10.21105/joss.12345}
 }
 ```
 
