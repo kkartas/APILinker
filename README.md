@@ -2,29 +2,73 @@
 
 [![PyPI version](https://badge.fury.io/py/apilinker.svg)](https://badge.fury.io/py/apilinker)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Tests](https://github.com/yourusername/apilinker/workflows/Tests/badge.svg)](https://github.com/yourusername/apilinker/actions)
-[![Documentation Status](https://img.shields.io/badge/docs-latest-brightgreen.svg)](https://yourusername.github.io/apilinker)
+[![Tests](https://github.com/kkartas/apilinker/workflows/Tests/badge.svg)](https://github.com/kkartas/apilinker/actions)
+[![Documentation Status](https://img.shields.io/badge/docs-latest-brightgreen.svg)](https://kkartas.github.io/apilinker)
 
-A universal bridge to connect, map, and automate data transfer between any two REST APIs.
+<div align="center">
+  <h3>A universal bridge to connect, map, and automate data transfer between any two REST APIs</h3>
+</div>
 
-## Features
+---
 
-- 🔄 **Connect** any two REST APIs with simple configuration
-- 🗺️ **Map** fields between APIs with powerful transformations
-- 📊 **Transform** data with built-in functions or custom Python code
-- 🔒 **Secure** authentication (API Key, Bearer Token, Basic Auth, OAuth2)
-- 📝 **Configure** via YAML/JSON or Python code
-- 🕒 **Schedule** data syncs on intervals or cron schedules
-- 📋 **Validate** data with schemas and custom rules
-- 🔌 **Extend** with custom plugins for connectors and transforms
+**ApiLinker** is an open-source Python package that simplifies the integration of REST APIs by providing a universal bridging solution. Built for developers, data engineers, and researchers who need to connect different systems without writing repetitive boilerplate code.
 
-## Installation
+---
+
+## 🌟 Features
+
+- 🔄 **Universal Connectivity** - Connect any two REST APIs with simple configuration
+- 🗺️ **Powerful Mapping** - Transform data between APIs with field mapping and path expressions
+- 📊 **Data Transformation** - Apply built-in or custom transformations to your data
+- 🔒 **Comprehensive Authentication** - Support for API Key, Bearer Token, Basic Auth, and OAuth2
+- 📝 **Flexible Configuration** - Use YAML/JSON or configure programmatically in Python
+- 🕒 **Automated Scheduling** - Run syncs once, on intervals, or using cron expressions
+- 📋 **Data Validation** - Validate data with schemas and custom rules
+- 🔌 **Plugin Architecture** - Extend with custom connectors, transformers, and authentication methods
+- 📈 **Pagination Handling** - Automatic handling of paginated API responses
+- 🔍 **Error Recovery** - Built-in retry logic and error handling
+- 📦 **Minimal Dependencies** - Lightweight core with minimal external requirements
+
+## 📋 Table of Contents
+
+- [Installation](#installation)
+- [Quick Start](#quick-start)
+- [Configuration](#configuration)
+- [Authentication Methods](#authentication-methods)
+- [Field Mapping](#field-mapping)
+- [Data Transformations](#data-transformations)
+- [Scheduling](#scheduling)
+- [Command Line Interface](#command-line-interface)
+- [Python API](#python-api)
+- [Examples](#examples)
+- [Extending ApiLinker](#extending-apilinker)
+- [Contributing](#contributing)
+- [Documentation](#documentation)
+- [License](#license)
+
+## 🚀 Installation
+
+### Standard Installation
 
 ```bash
 pip install apilinker
 ```
 
-## Quick Start
+### Development Installation
+
+```bash
+# Clone the repository
+git clone https://github.com/kkartas/apilinker.git
+cd apilinker
+
+# Install in development mode with dev dependencies
+pip install -e ".[dev]"
+
+# Install with documentation tools
+pip install -e ".[docs]"
+```
+
+## 🏁 Quick Start
 
 ### Using the CLI
 
@@ -128,13 +172,13 @@ print(f"Synced {result.count} items")
 
 ## Documentation
 
-For full documentation, visit [https://yourusername.github.io/apilinker](https://yourusername.github.io/apilinker).
+For full documentation, visit [https://kkartas.github.io/apilinker](https://kkartas.github.io/apilinker).
 
-- [Installation Guide](https://yourusername.github.io/apilinker/installation)
-- [Configuration Guide](https://yourusername.github.io/apilinker/configuration)
-- [API Reference](https://yourusername.github.io/apilinker/api)
-- [Examples](https://yourusername.github.io/apilinker/examples)
-- [Extending with Plugins](https://yourusername.github.io/apilinker/plugins)
+- [Installation Guide](https://kkartas.github.io/apilinker/installation)
+- [Configuration Guide](https://kkartas.github.io/apilinker/configuration)
+- [API Reference](https://kkartas.github.io/apilinker/api)
+- [Examples](https://kkartas.github.io/apilinker/examples)
+- [Extending with Plugins](https://kkartas.github.io/apilinker/plugins)
 
 ## Contributing
 
