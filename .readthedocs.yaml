@@ -17,7 +17,18 @@ sphinx:
 # Optionally declare the Python requirements required to build your documentation
 python:
    install:
+   - requirements: requirements.txt
+   - method: pip
+     path: .
    - method: pip
      path: .
      extra_requirements:
        - docs
+   # Install explicitly to ensure they're available
+   - method: pip
+     path: null
+     requirements:
+       - sphinx>=7.2.0
+       - sphinx-rtd-theme>=2.0.0
+       - sphinx-autodoc-typehints>=2.0.0
+       - sphinx-autoapi>=3.0.0
