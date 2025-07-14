@@ -200,13 +200,14 @@ class FieldMapper:
         # Set the value at the leaf node
         current[parts[-1]] = value
     
-    def apply_transform(self, value: Any, transform: Union[str, List[str], Dict[str, Any]]) -> Any:
+    def apply_transform(self, value: Any, transform: Union[str, List[str], Dict[str, Any]], params: Dict[str, Any] = None) -> Any:
         """
         Apply a transformation to a value.
         
         Args:
             value: The value to transform
             transform: The transformation to apply (string name or list of transforms)
+            params: Optional parameters for the transformer
             
         Returns:
             Transformed value
@@ -220,6 +221,10 @@ class FieldMapper:
                 return 0
             else:
                 return None
+                
+        # Handle empty params
+        if params is None:
+            params = {}
         
         # Handle list of transformations
         if isinstance(transform, list):
@@ -231,13 +236,13 @@ class FieldMapper:
         # Handle transformation with parameters
         if isinstance(transform, dict):
             name = transform.get("name")
-            params = transform.get("params", {})
+            transform_params = transform.get("params", {})
             
             if not name or name not in self.transformers:
                 logger.warning(f"Unknown transformer: {name}")
                 return value
             
-            return self.transformers[name](value, **params)
+            return self.transformers[name](value, **transform_params)
         
         # Simple string transformer name
         if transform not in self.transformers:
@@ -248,8 +253,11 @@ class FieldMapper:
         if isinstance(value, list) and transform in ["lowercase", "uppercase", "strip"]:
             return [self.transformers[transform](item) if isinstance(item, str) else item for item in value]
             
-        # Apply the transformation
-        return self.transformers[transform](value)
+        # Apply the transformation with parameters if provided
+        if params:
+            return self.transformers[transform](value, **params)
+        else:
+            return self.transformers[transform](value)
     
     def map_data(
         self, source_endpoint: str, target_endpoint: str, 
@@ -309,23 +317,17 @@ class FieldMapper:
             # Apply transformation if specified
             if "transform" in field and field["transform"]:
                 transform = field["transform"]
-                transform_params = field.get("transform_params", {})
-                
-                # Apply transformation
                 if isinstance(transform, str):
                     # Single transformation
-                    source_value = self.apply_transform(source_value, transform, transform_params)
+                    source_value = self.apply_transform(source_value, transform)
                 elif isinstance(transform, list):
-                    # Chain of transformations
+                    # Multiple transformations in sequence
                     for t in transform:
-                        if isinstance(t, str):
-                            source_value = self.apply_transform(source_value, t, transform_params)
-                        elif isinstance(t, dict) and "name" in t:
-                            t_name = t["name"]
-                            t_params = t.get("params", {})
-                            source_value = self.apply_transform(source_value, t_name, t_params)
+                        source_value = self.apply_transform(source_value, t)
+                else:
+                    logger.warning(f"Unknown transform format: {transform}")
             
-            # Skip if condition is specified and not met
+            # Check conditions if specified
             if "condition" in field:
                 condition = field["condition"]
                 if condition.get("field"):
@@ -333,17 +335,21 @@ class FieldMapper:
                     operator = condition.get("operator", "eq")
                     compare_value = condition.get("value")
                     
+                    skip = False
                     if operator == "eq" and condition_value != compare_value:
-                        continue
+                        skip = True
                     elif operator == "ne" and condition_value == compare_value:
-                        continue
+                        skip = True
                     elif operator == "gt" and not (condition_value > compare_value):
-                        continue
+                        skip = True
                     elif operator == "lt" and not (condition_value < compare_value):
-                        continue
+                        skip = True
                     elif operator == "exists" and condition_value is None:
-                        continue
+                        skip = True
                     elif operator == "not_exists" and condition_value is not None:
+                        skip = True
+                        
+                    if skip:
                         continue
             
             # Set value in result
