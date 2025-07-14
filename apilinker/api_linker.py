@@ -57,14 +57,14 @@ class ApiLinker:
         schedule_config: Optional[Dict[str, Any]] = None,
         log_level: str = "INFO",
         log_file: Optional[str] = None,
-    ):
+    ) -> None:
         # Initialize logger
         self.logger = setup_logger(log_level, log_file)
         self.logger.info("Initializing ApiLinker")
         
         # Initialize components
-        self.source = None
-        self.target = None
+        self.source: Optional[ApiConnector] = None
+        self.target: Optional[ApiConnector] = None
         self.mapper = FieldMapper()
         self.scheduler = Scheduler()
         self.auth_manager = AuthManager()
@@ -125,7 +125,7 @@ class ApiLinker:
             self.logger = setup_logger(log_level, log_file)
     
     def add_source(self, type: str, base_url: str, auth: Optional[Dict[str, Any]] = None, 
-                  endpoints: Optional[Dict[str, Any]] = None, **kwargs) -> None:
+                  endpoints: Optional[Dict[str, Any]] = None, **kwargs: Any) -> None:
         """
         Add a source API connector.
         
@@ -154,7 +154,7 @@ class ApiLinker:
         )
     
     def add_target(self, type: str, base_url: str, auth: Optional[Dict[str, Any]] = None,
-                  endpoints: Optional[Dict[str, Any]] = None, **kwargs) -> None:
+                  endpoints: Optional[Dict[str, Any]] = None, **kwargs: Any) -> None:
         """
         Add a target API connector.
         
@@ -194,7 +194,7 @@ class ApiLinker:
         self.logger.info(f"Adding mapping from {source} to {target} with {len(fields)} fields")
         self.mapper.add_mapping(source, target, fields)
     
-    def add_schedule(self, type: str, **kwargs) -> None:
+    def add_schedule(self, type: str, **kwargs: Any) -> None:
         """
         Add a schedule for recurring syncs.
         

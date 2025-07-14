@@ -26,7 +26,7 @@ console = Console()
 
 
 @app.command()
-def version():
+def version() -> None:
     """Show the version of ApiLinker."""
     console.print(f"ApiLinker v{__version__}")
 
@@ -72,7 +72,7 @@ def sync(
         "-t",
         help="Target endpoint to use (overrides config)",
     ),
-):
+) -> None:
     """
     Sync data between source and target APIs based on configuration.
     """
@@ -90,8 +90,10 @@ def sync(
         # If dry run, just report what would happen
         if dry_run:
             console.print("[bold yellow]DRY RUN MODE[/bold yellow] - No data will be transferred")
-            console.print(f"Source: {linker.source.base_url if linker.source else 'Not configured'}")
-            console.print(f"Target: {linker.target.base_url if linker.target else 'Not configured'}")
+            source_url = linker.source.base_url if linker.source is not None else 'Not configured'
+            target_url = linker.target.base_url if linker.target is not None else 'Not configured'
+            console.print(f"Source: {source_url}")
+            console.print(f"Target: {target_url}")
             mappings = linker.mapper.get_mappings()
             
             if mappings:
@@ -162,7 +164,7 @@ def run(
         "-f",
         help="Path to log file",
     ),
-):
+) -> None:
     """
     Run scheduled syncs based on configuration.
     """
@@ -207,7 +209,7 @@ def validate(
         dir_okay=False,
         readable=True,
     ),
-):
+) -> None:
     """
     Validate configuration file without performing any actions.
     """
@@ -237,7 +239,7 @@ def init(
         "-f",
         help="Overwrite existing file if it exists",
     ),
-):
+) -> None:
     """
     Initialize a new configuration file with a template.
     """

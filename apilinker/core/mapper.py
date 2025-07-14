@@ -18,9 +18,9 @@ class FieldMapper:
     including nested fields, transformations, and filtering.
     """
     
-    def __init__(self):
-        self.mappings = []
-        self.transformers = self._register_built_in_transformers()
+    def __init__(self) -> None:
+        self.mappings: List[Dict[str, Any]] = []
+        self.transformers: Dict[str, Callable] = self._register_built_in_transformers()
         logger.debug("Initialized FieldMapper")
     
     def _register_built_in_transformers(self) -> Dict[str, Callable]:
@@ -126,7 +126,7 @@ class FieldMapper:
             return data
         
         # Handle array indexing in path (e.g., "items[0].name")
-        parts = []
+        parts: List[Union[str, int]] = []
         current_part = ""
         i = 0
         while i < len(path):
@@ -159,7 +159,7 @@ class FieldMapper:
             parts.append(current_part)
         
         # Navigate through the path
-        current = data
+        current: Any = data
         for part in parts:
             if isinstance(current, dict) and isinstance(part, str):
                 if part in current:
@@ -272,7 +272,7 @@ class FieldMapper:
         Returns:
             Mapped data item
         """
-        result = {}
+        result: Dict[str, Any] = {}
         
         for field in fields:
             source_path = field["source"]

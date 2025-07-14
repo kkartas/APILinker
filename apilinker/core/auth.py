@@ -66,10 +66,10 @@ class AuthManager:
     It supports API Key, Bearer Token, Basic Auth, and OAuth2 client credentials.
     """
     
-    def __init__(self):
+    def __init__(self) -> None:
         logger.debug("Initialized AuthManager")
     
-    def _resolve_env_vars(self, value: str) -> str:
+    def _resolve_env_vars(self, value: Any) -> Any:
         """
         Resolve environment variables in a string value.
         
@@ -102,7 +102,7 @@ class AuthManager:
         Returns:
             Dictionary with environment variables resolved
         """
-        resolved = {}
+        resolved: Dict[str, Any] = {}
         
         for key, value in config.items():
             if isinstance(value, dict):
@@ -140,14 +140,14 @@ class AuthManager:
             query_param = None
             
             if "in" in auth_config:
-                location = auth_config["in"].lower()
+                location = str(auth_config["in"]).lower()
                 if location == "query":
                     in_header = False
                     in_query = True
                     query_param = auth_config.get("param_name", "api_key")
                     
             return ApiKeyAuth(
-                key=auth_config["key"],
+                key=str(auth_config["key"]),
                 header_name=header_name,
                 in_header=in_header,
                 in_query=in_query,
@@ -158,15 +158,15 @@ class AuthManager:
             if "token" not in auth_config:
                 raise ValueError("Bearer authentication requires 'token' parameter")
                 
-            return BearerAuth(token=auth_config["token"])
+            return BearerAuth(token=str(auth_config["token"]))
             
         elif auth_type == "basic":
             if "username" not in auth_config or "password" not in auth_config:
                 raise ValueError("Basic authentication requires 'username' and 'password' parameters")
                 
             return BasicAuth(
-                username=auth_config["username"],
-                password=auth_config["password"]
+                username=str(auth_config["username"]),
+                password=str(auth_config["password"])
             )
             
         elif auth_type in ["oauth2", "oauth2_client_credentials"]:

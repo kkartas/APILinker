@@ -6,11 +6,15 @@ import logging
 import threading
 import time
 from datetime import datetime, timedelta
-from typing import Any, Callable, Dict, Optional
+from typing import Any, Callable, Dict, Optional, Union, TypeVar, cast
 
 from croniter import croniter
 
 logger = logging.getLogger(__name__)
+
+# Type variables for callbacks
+T = TypeVar('T')
+R = TypeVar('R')
 
 
 class Scheduler:
@@ -23,12 +27,12 @@ class Scheduler:
     - One-time: Run once at a specific time
     """
     
-    def __init__(self):
-        self.schedule_type = None
-        self.schedule_config = {}
-        self.running = False
-        self.thread = None
-        self.last_run = None
+    def __init__(self) -> None:
+        self.schedule_type: Optional[str] = None
+        self.schedule_config: Dict[str, Any] = {}
+        self.running: bool = False
+        self.thread: Optional[threading.Thread] = None
+        self.last_run: Optional[datetime] = None
         logger.debug("Initialized Scheduler")
     
     def add_schedule(self, type: str, **kwargs) -> None:
@@ -108,17 +112,17 @@ class Scheduler:
             else:
                 return now + interval
         
-        elif self.schedule_type == "cron":
+        elif self.schedule_type == "cron" and "expression" in self.schedule_config:
             cron = croniter(self.schedule_config["expression"], now)
-            return cron.get_next(datetime)
+            return cast(datetime, cron.get_next(datetime))
         
-        elif self.schedule_type == "once":
-            return self.schedule_config["datetime"]
+        elif self.schedule_type == "once" and "datetime" in self.schedule_config:
+            return cast(datetime, self.schedule_config["datetime"])
         
         # Default fallback
         return now + timedelta(hours=1)
     
-    def _scheduler_loop(self, callback: Callable[..., Any], *args, **kwargs) -> None:
+    def _scheduler_loop(self, callback: Callable[..., Any], *args: Any, **kwargs: Any) -> None:
         """
         Main scheduler loop that runs the callback at scheduled times.
         
@@ -183,7 +187,7 @@ class Scheduler:
                 except Exception as e:
                     logger.error(f"Error in scheduled sync: {str(e)}")
     
-    def start(self, callback: Callable[..., Any], *args, **kwargs) -> None:
+    def start(self, callback: Callable[..., Any], *args: Any, **kwargs: Any) -> None:
         """
         Start the scheduler with the provided callback function.
         

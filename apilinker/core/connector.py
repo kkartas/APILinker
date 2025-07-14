@@ -25,6 +25,9 @@ class EndpointConfig(BaseModel):
     body_template: Optional[Dict[str, Any]] = None
     pagination: Optional[Dict[str, Any]] = None
     response_path: Optional[str] = None
+    
+    class Config:
+        arbitrary_types_allowed = True
 
 
 class ApiConnector:
@@ -49,12 +52,12 @@ class ApiConnector:
         connector_type: str,
         base_url: str,
         auth_config: Optional[AuthConfig] = None,
-        endpoints: Dict[str, Dict[str, Any]] = None,
+        endpoints: Optional[Dict[str, Dict[str, Any]]] = None,
         timeout: int = 30,
         retry_count: int = 3,
         retry_delay: int = 1,
-        **kwargs,
-    ):
+        **kwargs: Any,
+    ) -> None:
         self.connector_type = connector_type
         self.base_url = base_url
         self.auth_config = auth_config
@@ -69,7 +72,7 @@ class ApiConnector:
                 self.endpoints[name] = EndpointConfig(**config)
         
         # Store additional settings
-        self.settings = kwargs
+        self.settings: Dict[str, Any] = kwargs
         
         # Create HTTP client with default settings
         self.client = self._create_client()
@@ -78,20 +81,20 @@ class ApiConnector:
     
     def _create_client(self) -> httpx.Client:
         """Create an HTTP client with appropriate settings."""
-        client_kwargs = {
-            "base_url": self.base_url,
-            "timeout": self.timeout,
-        }
+        # Initialize with default parameters
+        auth = None
+        if self.auth_config and self.auth_config.type == "basic" and hasattr(self.auth_config, "username") and hasattr(self.auth_config, "password"):
+            auth = httpx.BasicAuth(
+                username=getattr(self.auth_config, "username", ""),
+                password=getattr(self.auth_config, "password", "")
+            )
         
-        # Add auth if configured
-        if self.auth_config:
-            if self.auth_config.type == "basic":
-                client_kwargs["auth"] = (
-                    self.auth_config.username,
-                    self.auth_config.password,
-                )
-            
-        return httpx.Client(**client_kwargs)
+        # Create client with properly structured parameters
+        return httpx.Client(
+            base_url=self.base_url,
+            timeout=self.timeout,
+            auth=auth
+        )
     
     def _prepare_request(
         self, endpoint_name: str, params: Optional[Dict[str, Any]] = None
@@ -124,10 +127,12 @@ class ApiConnector:
         
         # Add auth headers if needed
         if self.auth_config:
-            if self.auth_config.type == "api_key" and self.auth_config.in_header:
-                headers[self.auth_config.header_name] = self.auth_config.key
-            elif self.auth_config.type == "bearer":
-                headers["Authorization"] = f"Bearer {self.auth_config.token}"
+            if self.auth_config.type == "api_key" and hasattr(self.auth_config, "in_header") and getattr(self.auth_config, "in_header", False):
+                header_name = getattr(self.auth_config, "header_name", "X-API-Key")
+                key = getattr(self.auth_config, "key", "")
+                headers[header_name] = key
+            elif self.auth_config.type == "bearer" and hasattr(self.auth_config, "token"):
+                headers["Authorization"] = f"Bearer {getattr(self.auth_config, 'token', '')}"
         
         # Prepare request object
         request = {
@@ -160,20 +165,29 @@ class ApiConnector:
         response.raise_for_status()
         
         # Parse JSON response
-        data = response.json()
+        data: Union[Dict[str, Any], List[Dict[str, Any]]] = response.json()
         
         # Extract data from response path if configured
         endpoint = self.endpoints[endpoint_name]
-        if endpoint.response_path:
+        if endpoint.response_path and isinstance(data, dict):
             path_parts = endpoint.response_path.split(".")
+            current_data: Any = data
             for part in path_parts:
-                if part in data:
-                    data = data[part]
+                if isinstance(current_data, dict) and part in current_data:
+                    current_data = current_data[part]
                 else:
                     logger.warning(f"Response path '{endpoint.response_path}' not found in response")
                     break
+            # Only update data if we successfully navigated through the path
+            if current_data is not data:
+                data = current_data
         
-        return data
+        # Ensure we return a valid type
+        if isinstance(data, (dict, list)):
+            return data
+        else:
+            # If response isn't a dict or list, wrap it in a dict
+            return {"value": data}
     
     def _handle_pagination(
         self, initial_data: Union[Dict[str, Any], List[Dict[str, Any]]],
@@ -196,7 +210,8 @@ class ApiConnector:
         if not endpoint.pagination or not isinstance(initial_data, dict):
             if isinstance(initial_data, list):
                 return initial_data
-            return [initial_data]
+            # Convert non-list data to a single-item list
+            return [initial_data] if isinstance(initial_data, dict) else [{"value": initial_data}]
         
         # Extract the pagination configuration
         pagination = endpoint.pagination
@@ -207,9 +222,9 @@ class ApiConnector:
         # Extract the items from the first response
         if data_path:
             path_parts = data_path.split(".")
-            items = initial_data
+            items: Any = initial_data
             for part in path_parts:
-                if part in items:
+                if isinstance(items, dict) and part in items:
                     items = items[part]
                 else:
                     logger.warning(f"Data path '{data_path}' not found in response")
@@ -220,20 +235,22 @@ class ApiConnector:
         
         # If items is not a list, make it a list
         if not isinstance(items, list):
-            items = [items]
+            items = [items] if isinstance(items, dict) else [{"value": items}]
         
         # Extract next page token/URL if available
+        next_page: Optional[Union[str, int]] = None
         if next_page_path:
             path_parts = next_page_path.split(".")
-            next_page = initial_data
+            temp_next_page: Any = initial_data
             for part in path_parts:
-                if part in next_page:
-                    next_page = next_page[part]
+                if isinstance(temp_next_page, dict) and part in temp_next_page:
+                    temp_next_page = temp_next_page[part]
                 else:
-                    next_page = None
+                    temp_next_page = None
                     break
-        else:
-            next_page = None
+            # Only assign if it's a valid type for pagination
+            if isinstance(temp_next_page, (str, int)):
+                next_page = temp_next_page
         
         # Return the items if there's no next page
         if not next_page:
@@ -245,7 +262,7 @@ class ApiConnector:
         
         while next_page:
             # Update params for next page
-            next_params = params.copy() if params else {}
+            next_params: Dict[str, Any] = params.copy() if params else {}
             
             # Use either page number or next page token
             if isinstance(next_page, (str, int)):
@@ -268,11 +285,12 @@ class ApiConnector:
                 page_data = response.json()
                 
                 # Extract items from this page
+                page_items: Any
                 if data_path:
                     path_parts = data_path.split(".")
                     page_items = page_data
                     for part in path_parts:
-                        if part in page_items:
+                        if isinstance(page_items, dict) and part in page_items:
                             page_items = page_items[part]
                         else:
                             page_items = []
@@ -284,18 +302,23 @@ class ApiConnector:
                 if isinstance(page_items, list):
                     all_items.extend(page_items)
                 else:
-                    all_items.append(page_items)
+                    all_items.append(page_items if isinstance(page_items, dict) else {"value": page_items})
                 
                 # Extract next page token
                 if next_page_path:
                     path_parts = next_page_path.split(".")
-                    next_page = page_data
+                    temp_next_page = page_data
                     for part in path_parts:
-                        if part in next_page:
-                            next_page = next_page[part]
+                        if isinstance(temp_next_page, dict) and part in temp_next_page:
+                            temp_next_page = temp_next_page[part]
                         else:
-                            next_page = None
+                            temp_next_page = None
                             break
+                    # Only assign if it's a valid type for pagination
+                    if isinstance(temp_next_page, (str, int)):
+                        next_page = temp_next_page
+                    else:
+                        next_page = None
                 else:
                     # If no next page path, just increment the page number
                     page += 1

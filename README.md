@@ -80,14 +80,17 @@ source:
   base_url: https://api.example.com/v1
   auth:
     type: bearer
-    token: ${SOURCE_API_TOKEN}
+    token: ${SOURCE_API_TOKEN}  # Reference environment variable
   endpoints:
     list_items:
       path: /items
       method: GET
       params:
-        updated_since: "{{last_sync}}"
-
+        updated_since: "{{last_sync}}"  # Template variable
+      pagination:
+        data_path: data
+        next_page_path: meta.next_page
+        page_param: page
 target:
   type: rest
   base_url: https://api.destination.com/v2
@@ -101,7 +104,7 @@ target:
       method: POST
 
 mapping:
-  - source: items
+  - source: list_items
     target: create_item
     fields:
       - source: id
@@ -113,6 +116,13 @@ mapping:
       - source: created_at
         target: metadata.created
         transform: iso_to_timestamp
+      # Conditional field mapping
+      - source: tags
+        target: labels
+        condition:
+          field: tags
+          operator: exists
+        transform: lowercase
 
 schedule:
   type: interval
@@ -127,6 +137,18 @@ Run a sync with:
 
 ```bash
 apilinker sync --config config.yaml
+```
+
+Run a dry run to see what would happen without making changes:
+
+```bash
+apilinker sync --config config.yaml --dry-run
+```
+
+Run a scheduled sync based on the configuration:
+
+```bash
+apilinker run --config config.yaml
 ```
 
 ### Using as a Python Library
@@ -145,6 +167,13 @@ linker.add_source(
     auth={
         "type": "bearer",
         "token": "your_token_here"
+    },
+    endpoints={
+        "list_items": {
+            "path": "/items",
+            "method": "GET",
+            "params": {"limit": 100}
+        }
     }
 )
 linker.add_target(
@@ -154,33 +183,271 @@ linker.add_target(
         "type": "api_key",
         "header": "X-API-Key",
         "key": "your_key_here"
+    },
+    endpoints={
+        "create_item": {
+            "path": "/items",
+            "method": "POST"
+        }
     }
 )
 linker.add_mapping(
-    source="items",
+    source="list_items",
     target="create_item",
     fields=[
         {"source": "id", "target": "external_id"},
-        {"source": "name", "target": "title"}
+        {"source": "name", "target": "title"},
+        {"source": "description", "target": "body.content"}
     ]
 )
 
 # Run the sync
 result = linker.sync()
 print(f"Synced {result.count} items")
+
+# Schedule recurring syncs
+linker.add_schedule(type="interval", minutes=60)
+linker.start_scheduled_sync()
 ```
 
-## Documentation
+## 🔧 Configuration
 
-For full documentation, visit [https://kkartas.github.io/apilinker](https://kkartas.github.io/apilinker).
+ApiLinker uses a YAML configuration format with these main sections:
 
-- [Installation Guide](https://kkartas.github.io/apilinker/installation)
-- [Configuration Guide](https://kkartas.github.io/apilinker/configuration)
-- [API Reference](https://kkartas.github.io/apilinker/api)
-- [Examples](https://kkartas.github.io/apilinker/examples)
-- [Extending with Plugins](https://kkartas.github.io/apilinker/plugins)
+### Source and Target API Configuration
 
-## Contributing
+Both `source` and `target` sections follow the same format:
+
+```yaml
+source:  # or target:
+  type: rest  # API type
+  base_url: https://api.example.com/v1  # Base URL
+  auth:  # Authentication details
+    # ...
+  endpoints:  # API endpoints
+    # ...
+  timeout: 30  # Request timeout in seconds (optional)
+  retry_count: 3  # Number of retries (optional)
+```
+
+### Authentication Methods
+
+ApiLinker supports multiple authentication methods:
+
+```yaml
+# API Key Authentication
+auth:
+  type: api_key
+  key: your_api_key  # Or ${API_KEY_ENV_VAR}
+  header: X-API-Key  # Header name
+
+# Bearer Token Authentication
+auth:
+  type: bearer
+  token: your_token  # Or ${TOKEN_ENV_VAR}
+
+# Basic Authentication
+auth:
+  type: basic
+  username: your_username  # Or ${USERNAME_ENV_VAR}
+  password: your_password  # Or ${PASSWORD_ENV_VAR}
+
+# OAuth2 Client Credentials
+auth:
+  type: oauth2_client_credentials
+  client_id: your_client_id  # Or ${CLIENT_ID_ENV_VAR}
+  client_secret: your_client_secret  # Or ${CLIENT_SECRET_ENV_VAR}
+  token_url: https://auth.example.com/token
+  scope: read write  # Optional
+```
+
+### Field Mapping
+
+Mappings define how data is transformed between source and target:
+
+```yaml
+mapping:
+  - source: source_endpoint_name
+    target: target_endpoint_name
+    fields:
+      # Simple field mapping
+      - source: id
+        target: external_id
+      
+      # Nested field mapping
+      - source: user.profile.name
+        target: user_name
+      
+      # With transformation
+      - source: created_at
+        target: timestamp
+        transform: iso_to_timestamp
+      
+      # Multiple transformations
+      - source: description
+        target: summary
+        transform:
+          - strip
+          - lowercase
+      
+      # Conditional mapping
+      - source: status
+        target: active_status
+        condition:
+          field: status
+          operator: eq  # eq, ne, exists, not_exists, gt, lt
+          value: active
+```
+
+## 🔄 Data Transformations
+
+ApiLinker provides built-in transformers for common operations:
+
+| Transformer | Description |
+|-------------|-------------|
+| `iso_to_timestamp` | Convert ISO date to Unix timestamp |
+| `timestamp_to_iso` | Convert Unix timestamp to ISO date |
+| `lowercase` | Convert string to lowercase |
+| `uppercase` | Convert string to uppercase |
+| `strip` | Remove whitespace from start/end |
+| `to_string` | Convert value to string |
+| `to_int` | Convert value to integer |
+| `to_float` | Convert value to float |
+| `to_bool` | Convert value to boolean |
+| `default_empty_string` | Return empty string if null |
+| `default_zero` | Return 0 if null |
+| `none_if_empty` | Return null if empty string |
+
+You can also create custom transformers:
+
+```python
+def phone_formatter(value):
+    """Format phone numbers to E.164 format."""
+    if not value:
+        return None
+    digits = re.sub(r'\D', '', value)
+    if len(digits) == 10:
+        return f"+1{digits}"
+    return f"+{digits}"
+
+# Register with ApiLinker
+linker.mapper.register_transformer("phone_formatter", phone_formatter)
+```
+
+## 📊 Examples
+
+### GitHub to GitLab Issue Migration
+
+```python
+from apilinker import ApiLinker
+
+# Configure ApiLinker
+linker = ApiLinker(
+    source_config={
+        "type": "rest",
+        "base_url": "https://api.github.com",
+        "auth": {"type": "bearer", "token": github_token},
+        "endpoints": {
+            "list_issues": {
+                "path": f"/repos/{owner}/{repo}/issues",
+                "method": "GET",
+                "params": {"state": "all"},
+                "headers": {"Accept": "application/vnd.github.v3+json"}
+            }
+        }
+    },
+    target_config={
+        "type": "rest",
+        "base_url": "https://gitlab.com/api/v4",
+        "auth": {"type": "bearer", "token": gitlab_token},
+        "endpoints": {
+            "create_issue": {
+                "path": f"/projects/{project_id}/issues",
+                "method": "POST"
+            }
+        }
+    }
+)
+
+# Custom transformer for labels
+linker.mapper.register_transformer(
+    "github_labels_to_gitlab",
+    lambda labels: [label["name"] for label in labels] if labels else []
+)
+
+# Add mapping
+linker.add_mapping(
+    source="list_issues",
+    target="create_issue",
+    fields=[
+        {"source": "title", "target": "title"},
+        {"source": "body", "target": "description"},
+        {"source": "labels", "target": "labels", "transform": "github_labels_to_gitlab"},
+        {"source": "state", "target": "state"}
+    ]
+)
+
+# Run the migration
+result = linker.sync()
+print(f"Migrated {result.count} issues from GitHub to GitLab")
+```
+
+### More Examples
+
+See the `examples` directory for more use cases:
+
+- Salesforce to HubSpot contact sync
+- CSV file to REST API import
+- Weather API data collection
+- Custom plugin development
+
+## 🔌 Extending ApiLinker
+
+ApiLinker can be extended through plugins:
+
+```python
+from apilinker.core.plugins import TransformerPlugin
+
+class SentimentAnalysisTransformer(TransformerPlugin):
+    """A transformer plugin that analyzes text sentiment."""
+    
+    plugin_name = "sentiment_analysis"
+    
+    def transform(self, value, **kwargs):
+        # Simple sentiment analysis (example)
+        if not value or not isinstance(value, str):
+            return {"sentiment": "neutral", "score": 0.0}
+        
+        # Add your sentiment analysis logic here
+        positive_words = ["good", "great", "excellent"]
+        negative_words = ["bad", "poor", "terrible"]
+        
+        # Count positive and negative words
+        text = value.lower()
+        positive_count = sum(1 for word in positive_words if word in text)
+        negative_count = sum(1 for word in negative_words if word in text)
+        
+        # Calculate sentiment score
+        total = positive_count + negative_count
+        score = 0.0 if total == 0 else (positive_count - negative_count) / total
+        
+        return {
+            "sentiment": "positive" if score > 0 else "negative" if score < 0 else "neutral",
+            "score": score
+        }
+```
+
+## 📚 Documentation
+
+For full documentation, visit [https://yourusername.github.io/apilinker](https://yourusername.github.io/apilinker).
+
+- [Installation Guide](https://yourusername.github.io/apilinker/installation)
+- [Configuration Guide](https://yourusername.github.io/apilinker/configuration)
+- [API Reference](https://yourusername.github.io/apilinker/api)
+- [Examples](https://yourusername.github.io/apilinker/examples)
+- [Extending with Plugins](https://yourusername.github.io/apilinker/plugins)
+
+## 🤝 Contributing
 
 Contributions are welcome! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
 
@@ -193,6 +460,20 @@ Contributions are welcome! Please see our [Contributing Guide](CONTRIBUTING.md) 
 7. Push to the branch (`git push origin feature/amazing-feature`)
 8. Open a Pull Request
 
-## License
+## 📄 Citation
+
+If you use ApiLinker in your research, please cite:
+
+```bibtex
+@software{apilinker2025,
+  author = {ApiLinker Contributors},
+  title = {ApiLinker: A Universal Bridge for REST API Integrations},
+  url = {https://github.com/yourusername/apilinker},
+  version = {0.1.0},
+  year = {2025},
+}
+```
+
+## 📃 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
