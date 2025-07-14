@@ -47,8 +47,6 @@ plugins:
           options:
             docstring_style: google
             show_source: true
-  - git-revision-date-localized:
-      type: date
 
 nav:
   - Home: index.md
