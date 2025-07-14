@@ -8,7 +8,7 @@ version = "0.1.0"
 description = "A universal bridge to connect, map, and automate data transfer between any two REST APIs"
 readme = "README.md"
 authors = [
-    {name = "Your Name", email = "your.email@example.com"}
+    {name = "K. Kartas", email = "kkartas@users.noreply.github.com"}
 ]
 license = {text = "MIT"}
 classifiers = [
@@ -43,21 +43,22 @@ dev = [
     "pre-commit>=2.20.0",
 ]
 docs = [
-    "mkdocs>=1.4.0",
-    "mkdocs-material>=8.5.6",
-    "mkdocstrings[python]>=0.19.0",
+    "sphinx>=7.2.0",
+    "sphinx-rtd-theme>=2.0.0",
+    "sphinx-autodoc-typehints>=2.0.0",
+    "sphinx-autoapi>=3.0.0",
 ]
 
 [project.urls]
-"Homepage" = "https://github.com/yourusername/apilinker"
-"Bug Tracker" = "https://github.com/yourusername/apilinker/issues"
-"Documentation" = "https://yourusername.github.io/apilinker"
+"Homepage" = "https://github.com/kkartas/APILinker"
+"Bug Tracker" = "https://github.com/kkartas/APILinker/issues"
+"Documentation" = "https://apilinker.readthedocs.io/"
 
 [project.scripts]
 apilinker = "apilinker.cli:app"
 
 [tool.setuptools]
-packages = ["apilinker", "apilinker.core"]
+packages = ["apilinker", "apilinker.core", "apilinker.plugins"]
 
 [tool.black]
 line-length = 88

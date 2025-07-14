@@ -2,8 +2,8 @@
 
 [![PyPI version](https://badge.fury.io/py/apilinker.svg)](https://badge.fury.io/py/apilinker)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Tests](https://github.com/kkartas/apilinker/workflows/Tests/badge.svg)](https://github.com/kkartas/apilinker/actions)
-[![Documentation Status](https://img.shields.io/badge/docs-latest-brightgreen.svg)](https://kkartas.github.io/apilinker)
+[![build](https://github.com/kkartas/ApiLinker/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/kkartas/ApiLinker/actions/workflows/ci.yml)
+[![docs](https://readthedocs.org/projects/apilinker/badge/?version=latest)](https://apilinker.readthedocs.io/en/latest/)
 
 <div align="center">
   <h3>A universal bridge to connect, map, and automate data transfer between any two REST APIs</h3>

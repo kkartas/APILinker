@@ -1,12 +1,40 @@
-apilinker.egg-info/PKG-INFO
-apilinker/__pycache__/api_linker.cpython-311.pyc
-apilinker/__pycache__/api_linker.cpython-311.pyc
-apilinker/core/__pycache__/auth.cpython-311.pyc
-apilinker/core/__pycache__/plugins.cpython-311.pyc
-apilinker/core/__pycache__/connector.cpython-311.pyc
-apilinker/core/__pycache__/auth.cpython-311.pyc
-apilinker/core/__pycache__/scheduler.cpython-311.pyc
-apilinker/core/__pycache__/connector.cpython-311.pyc
-apilinker/core/__pycache__/auth.cpython-311.pyc
-apilinker/__pycache__/api_linker.cpython-311.pyc
-apilinker/core/__pycache__/auth.cpython-311.pyc
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Distribution / packaging
+dist/
+build/
+*.egg-info/
+
+# Unit test / coverage reports
+.coverage
+htmlcov/
+.pytest_cache/
+
+# Documentation
+docs/_build/
+site/
+
+# Environment
+.env
+.venv
+env/
+venv/
+ENV/
+
+# IDE files
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Project specific
+*.log
+*.config.yaml
+*.config.yml
+
+# OS specific
+.DS_Store
+Thumbs.db
