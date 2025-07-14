@@ -18,7 +18,7 @@ If you're planning to contribute to ApiLinker or want to install the package wit
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/apilinker.git
+git clone https://github.com/kkartas/apilinker.git
 cd apilinker
 
 # Install in development mode with dev dependencies

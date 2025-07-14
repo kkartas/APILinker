@@ -855,26 +855,22 @@ except Exception as e:
 
 ## 📚 Documentation
 
-For full documentation, visit [https://apilinker.readthedocs.io](https://apilinker.readthedocs.io).
+Documentation is available in the `/docs` directory and will be hosted online soon.
 
-- [Installation Guide](https://apilinker.readthedocs.io/en/latest/installation.html)
-- [Configuration Guide](https://apilinker.readthedocs.io/en/latest/configuration.html)
-- [API Reference](https://apilinker.readthedocs.io/en/latest/api_reference/index.html)
-- [Examples](https://apilinker.readthedocs.io/en/latest/examples/index.html)
-- [Extending with Plugins](https://apilinker.readthedocs.io/en/latest/plugins/index.html)
-- [Security Considerations](https://apilinker.readthedocs.io/en/latest/security.html)
+### Core Documentation
 
-### Video Tutorials
-
-- [Getting Started with ApiLinker](https://www.youtube.com/watch?v=example1) - Basic introduction and setup
-- [API Integration Walkthrough](https://www.youtube.com/watch?v=example2) - Complete example from start to finish
-- [Creating Custom Transformers](https://www.youtube.com/watch?v=example3) - Learn to extend functionality
+- [Getting Started](docs/getting_started.md) - A beginner-friendly introduction
+- [Installation Guide](docs/installation.md) - Detailed installation instructions
+- [Configuration Guide](docs/configuration.md) - Configuration options and formats
+- [API Reference](docs/api_reference/index.md) - Detailed API reference
+- [Examples](docs/examples/index.md) - Example use cases and code
+- [Extending with Plugins](docs/plugins/index.md) - Creating and using plugins
+- [Security Considerations](docs/security.md) - Security best practices
 
 ### Community Support
 
 - [GitHub Issues](https://github.com/kkartas/apilinker/issues) - Report bugs or request features
 - [Stack Overflow](https://stackoverflow.com/questions/tagged/apilinker) - Ask questions using the `apilinker` tag
-- [Discord Community](https://discord.gg/example) - Chat with other ApiLinker users
 
 ## 🔒 Security Considerations
 
