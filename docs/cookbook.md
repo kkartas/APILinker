@@ -16,12 +16,11 @@ linker.add_source(
         "get_users": {
             "path": "/users",
             "method": "GET",
+            # Pagination configuration based on the API response format
             "pagination": {
-                "data_path": "data",                # Path to items array
+                "data_path": "data",                # Path to items array in response
                 "next_page_path": "meta.next_page", # Path to next page URL/token
-                "page_param": "page",               # Query param name for page number
-                "limit_param": "limit",             # Query param for page size
-                "limit": 100                        # Number of items per page
+                "page_param": "page"                # Query param name for page number
             }
         }
     }
@@ -31,13 +30,32 @@ linker.add_source(
 all_users = linker.fetch("get_users")
 ```
 
-### Explanation
-The pagination configuration tells ApiLinker how to:
-1. Find the data items in each response
-2. Find the link to the next page
-3. Construct the pagination parameters
+### Common Pagination Patterns
 
-## Handling Rate Limits
+#### Page Number Pagination
+```python
+"pagination": {
+    "data_path": "data",
+    "page_param": "page"  # Will increment: page=1, page=2, etc.
+}
+```
+
+#### Next URL Pagination
+```python
+"pagination": {
+    "data_path": "data",
+    "next_page_path": "links.next"  # Response contains full next URL
+}
+```
+
+### Explanation
+The ApiConnector's _handle_pagination method automatically:
+1. Extracts data items from each response using the data_path
+2. Determines the next page using next_page_path if available
+3. Increments page parameters for subsequent requests
+4. Combines results from all pages
+
+## Handling API Rate Limits
 
 ### Problem
 Your API requests are getting rate limited.
@@ -47,28 +65,42 @@ Your API requests are getting rate limited.
 linker.add_source(
     type="rest",
     base_url="https://api.example.com",
-    # Add rate limiting
-    rate_limit={
-        "requests_per_second": 5,  # Max 5 requests per second
-        "burst": 10                # Allow bursts up to 10 requests
-    },
-    # Add retry configuration
-    retry={
-        "max_attempts": 3,         # Try 3 times before failing
-        "delay_seconds": 2,        # Wait 2 seconds between retries
-        "backoff_factor": 1.5,     # Exponential backoff
-        "status_codes": [429, 500, 502, 503, 504]  # Retry these status codes
-    },
+    # Configure retry settings
+    retry_count=3,         # Try 3 times before failing
+    retry_delay=2,         # Wait 2 seconds between retries
+    # Add longer timeout for slow APIs
+    timeout=30,            # 30 second timeout
     endpoints={
         # Your endpoints here
     }
 )
+
+# For manual rate limit handling
+def handle_rate_limits(func):
+    def wrapper(*args, **kwargs):
+        max_attempts = 3
+        for attempt in range(max_attempts):
+            try:
+                return func(*args, **kwargs)
+            except Exception as e:
+                if "rate limit" in str(e).lower() and attempt < max_attempts - 1:
+                    wait_time = (attempt + 1) * 5  # 5, 10, 15 seconds
+                    print(f"Rate limited. Waiting {wait_time} seconds...")
+                    time.sleep(wait_time)
+                else:
+                    raise
+    return wrapper
+
+# Apply to your function
+@handle_rate_limits
+def fetch_data():
+    return linker.fetch("get_data")
 ```
 
 ### Explanation
-- The rate limiter prevents sending too many requests too quickly
-- The retry mechanism automatically handles temporary failures
-- Exponential backoff increases wait time between retries
+- The retry mechanism is built into ApiConnector for temporary failures
+- For specific rate limit handling, you can implement a decorator or wrapper function
+- The connector will automatically use exponential backoff between retries
 
 ## Transforming Nested JSON Structures
 
@@ -483,7 +515,7 @@ linker.add_source_processor("get_customers", validate_customer_data)
 - Source processors can validate and normalize data
 - Validators can filter out invalid records
 
-## Logging and Monitoring
+## Logging and Debugging
 
 ### Problem
 You need to track API operations and diagnose issues.
@@ -491,12 +523,11 @@ You need to track API operations and diagnose issues.
 ### Solution
 ```python
 import logging
-import json
-from datetime import datetime
+import time
 
-# Configure logging
+# Configure logging for ApiLinker
 logging.basicConfig(
-    level=logging.INFO,
+    level=logging.DEBUG,  # Set to DEBUG for detailed logs
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     handlers=[
         logging.FileHandler("apilinker.log"),
@@ -504,133 +535,76 @@ logging.basicConfig(
     ]
 )
 
-# Create custom logger
-logger = logging.getLogger("apilinker")
+# Initialize ApiLinker with log level
+linker = ApiLinker(log_level="DEBUG", log_file="apilinker.log")
 
-# Add custom logging for API operations
-class APILogger:
-    def __init__(self, log_file="api_operations.log"):
-        self.log_file = log_file
-        
-    def log_operation(self, operation_type, details):
-        timestamp = datetime.now().isoformat()
-        log_entry = {
-            "timestamp": timestamp,
-            "operation": operation_type,
-            **details
-        }
-        
-        with open(self.log_file, "a") as f:
-            f.write(json.dumps(log_entry) + "\n")
-
-# Create logger instance
-api_logger = APILogger()
-
-# Log requests and responses
-def log_request(request_data, **kwargs):
-    # Log the request (excluding sensitive data)
-    safe_data = request_data.copy()
-    if "auth" in safe_data:
-        safe_data["auth"] = "[REDACTED]"
-        
-    api_logger.log_operation(
-        "request",
-        {
-            "endpoint": kwargs.get("endpoint", "unknown"),
-            "method": kwargs.get("method", "GET"),
-            "data": safe_data
-        }
-    )
-    return request_data  # Return unmodified data
-
-def log_response(response_data, **kwargs):
-    # Log summary of response
-    summary = {
-        "status": kwargs.get("status", 200),
-        "size": len(str(response_data)),
-        "record_count": len(response_data) if isinstance(response_data, list) else 1
-    }
-    
-    api_logger.log_operation(
-        "response",
-        {
-            "endpoint": kwargs.get("endpoint", "unknown"),
-            "summary": summary
-        }
-    )
-    return response_data  # Return unmodified data
-
-# Register processors
-linker.add_request_processor(log_request)
-linker.add_response_processor(log_response)
-
-# Create a performance monitor
-class PerformanceMonitor:
+# Add custom timing measurement
+class SimpleTimer:
     def __init__(self):
-        self.operations = {}
-        
+        self.start_times = {}
+        self.results = {}
+    
     def start(self, operation_name):
-        import time
-        self.operations[operation_name] = {
-            "start": time.time(),
-            "status": "running"
-        }
+        self.start_times[operation_name] = time.time()
         
     def end(self, operation_name):
-        import time
-        if operation_name in self.operations:
-            self.operations[operation_name]["end"] = time.time()
-            self.operations[operation_name]["duration"] = (
-                self.operations[operation_name]["end"] - 
-                self.operations[operation_name]["start"]
-            )
-            self.operations[operation_name]["status"] = "completed"
-            
-            # Log if slow (>5 seconds)
-            if self.operations[operation_name]["duration"] > 5:
-                logger.warning(
-                    f"Slow operation: {operation_name} took "
-                    f"{self.operations[operation_name]['duration']:.2f} seconds"
-                )
-                
-        return self.operations.get(operation_name)
-    
-    def report(self):
-        return {k: v for k, v in self.operations.items() if v.get("status") == "completed"}
+        if operation_name in self.start_times:
+            duration = time.time() - self.start_times[operation_name]
+            self.results[operation_name] = duration
+            logging.info(f"{operation_name} completed in {duration:.2f} seconds")
+            return duration
+        return None
 
-# Create monitor instance
-monitor = PerformanceMonitor()
+# Use the timer in your code
+timer = SimpleTimer()
 
-# Use in your code
-def sync_with_monitoring():
-    monitor.start("full_sync")
+# Create a wrapper for timing operations
+def timed_operation(func):
+    def wrapper(*args, **kwargs):
+        operation_name = func.__name__
+        timer.start(operation_name)
+        try:
+            result = func(*args, **kwargs)
+            timer.end(operation_name)
+            return result
+        except Exception as e:
+            logging.error(f"Error in {operation_name}: {e}")
+            timer.end(operation_name)
+            raise
+    return wrapper
+
+# Use the decorator for operations you want to time
+@timed_operation
+def fetch_and_process():
+    # Fetch data
+    logging.info("Fetching data from source")
+    source_data = linker.fetch("get_data")
     
-    try:
-        # Source fetch
-        monitor.start("fetch_source")
-        source_data = linker.fetch("get_data")
-        fetch_timing = monitor.end("fetch_source")
+    # Log response summary (without sensitive data)
+    logging.info(f"Fetched {len(source_data) if isinstance(source_data, list) else 1} records")
+    
+    # Process data
+    logging.info("Processing data")
+    result = linker.sync()
+    
+    # Log processing results
+    logging.info(f"Processed {result.count} records")
+    if result.errors:
+        logging.warning(f"Encountered {len(result.errors)} errors")
         
-        # Process and map
-        monitor.start("transform_data") 
-        result = linker.sync()
-        transform_timing = monitor.end("transform_data")
-        
-        # Overall completion
-        sync_timing = monitor.end("full_sync")
-        
-        logger.info(f"Sync completed in {sync_timing['duration']:.2f} seconds")
-        logger.info(f"  Fetch: {fetch_timing['duration']:.2f}s, Transform: {transform_timing['duration']:.2f}s")
-        
-        return result
-    except Exception as e:
-        logger.error(f"Sync failed: {e}")
-        monitor.end("full_sync")
-        raise
+    return result
+
+# Execute with debug logging
+try:
+    result = fetch_and_process()
+    print(f"Sync completed successfully: {result.count} records")
+    print(f"Operation times: {timer.results}")
+except Exception as e:
+    print(f"Sync failed: {e}")
 ```
 
 ### Explanation
-- Structured logging helps with troubleshooting
-- Request/response processors track API interactions
-- Performance monitoring identifies bottlenecks
-- Redacting sensitive information improves security
+- ApiLinker has built-in logging that can be configured with different levels
+- You can create simple timing utilities to measure performance
+- Use the Python logging module for structured logs
+- Use decorators to consistently measure and log operations

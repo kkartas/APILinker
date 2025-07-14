@@ -14,33 +14,33 @@ This guide compares ApiLinker with other popular API integration tools to help y
 | Learning Curve | Medium | Low | Medium | High | High |
 | **Features** |
 | REST API Support | ✅ | ✅ | ✅ | ✅ | ✅ |
-| GraphQL Support | Partial | Partial | ✅ | ✅ | ✅ |
-| SOAP Support | Partial | ❌ | ✅ | ✅ | ✅ |
-| Pagination Handling | ✅ | ✅ | ✅ | ✅ | ✅ |
+| GraphQL Support | ❌ | Partial | ✅ | ✅ | ✅ |
+| SOAP Support | ❌ | ❌ | ✅ | ✅ | ✅ |
+| Pagination Handling | ✅ (Basic) | ✅ | ✅ | ✅ | ✅ |
 | Field Mapping | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Data Transformations | ✅ | Limited | ✅ | ✅ | ✅ |
-| Scheduling | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Error Handling | ✅ | Limited | ✅ | ✅ | ✅ |
+| Data Transformations | ✅ (Built-in & Custom) | Limited | ✅ | ✅ | ✅ |
+| Scheduling | ✅ (Interval, Cron) | ✅ | ✅ | ✅ | ✅ |
+| Error Handling | ✅ (Basic Retries) | Limited | ✅ | ✅ | ✅ |
 | **Authentication** |
 | API Key | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Bearer Token | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Basic Auth | ✅ | ✅ | ✅ | ✅ | ✅ |
-| OAuth2 | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Custom Auth | ✅ | ❌ | ✅ | ✅ | ✅ |
+| OAuth2 | ✅ (Client Credentials) | ✅ | ✅ | ✅ | ✅ |
+| Custom Auth | ❌ | ❌ | ✅ | ✅ | ✅ |
 | **Extensions** |
 | Custom Plugins | ✅ | Limited | ✅ | ✅ | ✅ |
-| Developer SDK | ✅ | Limited | ✅ | ✅ | ✅ |
+| Developer SDK | ❌ | Limited | ✅ | ✅ | ✅ |
 | **Use Cases** |
 | Personal Projects | ✅ | ✅ | ✅ | ❌ | ❌ |
 | Small Business | ✅ | ✅ | ✅ | ❌ | ❌ |
 | Enterprise | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Research/Academic | ✅ | Limited | Limited | ✅ | Limited |
 | **Performance** |
-| Large Data Handling | ✅ | Limited | Limited | ✅ | ✅ |
+| Large Data Handling | ✅ (Pagination) | Limited | Limited | ✅ | ✅ |
 | Low Resource Usage | ✅ | N/A | Moderate | High | High |
 | **Dependencies** |
-| External Dependencies | Minimal | N/A | Moderate | Many | Many |
-| Docker Support | ✅ | N/A | ✅ | ✅ | ✅ |
+| External Dependencies | Minimal (httpx, pydantic, yaml) | N/A | Moderate | Many | Many |
+| Docker Support | ❌ | N/A | ✅ | ✅ | ✅ |
 
 ## When to Use ApiLinker
 

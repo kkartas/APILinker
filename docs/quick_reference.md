@@ -13,8 +13,8 @@ pip install apilinker
 ```python
 from apilinker import ApiLinker
 
-# Initialize
-linker = ApiLinker()
+# Initialize with optional logging configuration
+linker = ApiLinker(log_level="INFO", log_file="apilinker.log")
 
 # Configure source API
 linker.add_source(
@@ -22,14 +22,19 @@ linker.add_source(
     base_url="https://api.source.com",
     auth={
         "type": "bearer",
-        "token": "${TOKEN_ENV_VAR}"
+        "token": "${TOKEN_ENV_VAR}"  # Environment variable reference
     },
     endpoints={
         "get_data": {
             "path": "/data",
-            "method": "GET"
+            "method": "GET",
+            "params": {"limit": 100}
         }
-    }
+    },
+    # Connection settings
+    timeout=30,           # 30 second timeout 
+    retry_count=3,        # Retry failed requests 3 times
+    retry_delay=1         # Wait 1 second between retries
 )
 
 # Configure target API
@@ -38,7 +43,7 @@ linker.add_target(
     base_url="https://api.target.com",
     auth={
         "type": "api_key",
-        "header": "X-API-Key",
+        "header_name": "X-API-Key",  # Note: 'header_name' not 'header'
         "key": "${API_KEY_ENV_VAR}"
     },
     endpoints={
@@ -63,6 +68,10 @@ linker.add_mapping(
 # Run the sync
 result = linker.sync()
 print(f"Synced {result.count} records")
+
+# Check for errors
+if not result.success:
+    print(f"Errors occurred: {result.errors}")
 ```
 
 ## Authentication Methods
@@ -72,8 +81,11 @@ print(f"Synced {result.count} records")
 ```python
 auth={
     "type": "api_key",
-    "header": "X-API-Key",  # or in: "query", param_name: "api_key"
-    "key": "your-api-key"  # Better: "${API_KEY_ENV_VAR}"
+    "key": "your-api-key",  # Better: "${API_KEY_ENV_VAR}"
+    "header_name": "X-API-Key",  # Default header name
+    "in_header": True,  # Send in header (default)
+    "in_query": False,  # Or set to True to send as query param
+    "query_param": "api_key"  # Query parameter name if in_query=True
 }
 ```
 
@@ -96,11 +108,11 @@ auth={
 }
 ```
 
-### OAuth2
+### OAuth2 Client Credentials
 
 ```python
 auth={
-    "type": "oauth2",
+    "type": "oauth2_client_credentials",  # Note the full type name
     "client_id": "${CLIENT_ID}",
     "client_secret": "${CLIENT_SECRET}",
     "token_url": "https://auth.example.com/token",
@@ -159,25 +171,61 @@ linker.add_source(
 ## Scheduling
 
 ```python
-# Run every hour
-linker.add_schedule(interval_minutes=60)
+# Configure schedule by type
 
-# Or with cron expression (every day at 2 AM)
-linker.add_schedule(cron_expression="0 2 * * *")
+# Option 1: Interval-based schedule (runs every X time units)
+linker.add_schedule(
+    type="interval",
+    minutes=60  # Run every 60 minutes
+    # Can also use: seconds=30, hours=2, days=1
+)
 
-# Start the scheduler
+# Option 2: Cron-based schedule (runs according to cron expression)
+linker.add_schedule(
+    type="cron",
+    expression="0 2 * * *"  # Run at 2 AM daily
+)
+
+# Option 3: One-time schedule (runs once at a specific time)
+from datetime import datetime, timedelta
+
+linker.add_schedule(
+    type="once",
+    datetime=datetime.now() + timedelta(hours=1)  # Run in 1 hour
+)
+
+# Start the scheduler in a background thread
 linker.start_scheduled_sync()
+
+# To stop the scheduler
+# linker.stop_scheduled_sync()
 ```
 
 ## Error Handling
 
 ```python
-def handle_error(error, context):
-    print(f"Error: {error}")
-    # Return True to retry, False to abort
-    return True
+# ApiLinker's sync method returns a SyncResult object with error information
+result = linker.sync()
+if not result.success:
+    print(f"Sync failed with {len(result.errors)} errors:")
+    for error in result.errors:
+        print(f" - {error}")
 
-linker.add_error_handler(handle_error)
+# Implementing custom error handling with try/except
+try:
+    result = linker.sync()
+    print(f"Synced {result.count} records")
+except Exception as e:
+    print(f"Error during sync: {e}")
+    # Log the error, notify admins, etc.
+
+# The ApiConnector has built-in retry logic for transient failures
+# Configure when initializing the source/target:
+linker.add_source(
+    # other parameters...
+    retry_count=3,    # Number of retries
+    retry_delay=1     # Seconds between retries
+)
 ```
 
 ## Config File (YAML)
