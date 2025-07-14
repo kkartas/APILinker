@@ -859,13 +859,49 @@ Documentation is available in the `/docs` directory and will be hosted online so
 
 ### Core Documentation
 
-- [Getting Started](docs/getting_started.md) - A beginner-friendly introduction
-- [Installation Guide](docs/installation.md) - Detailed installation instructions
-- [Configuration Guide](docs/configuration.md) - Configuration options and formats
-- [API Reference](docs/api_reference/index.md) - Detailed API reference
+1. [Getting Started](docs/getting_started.md) - A beginner-friendly introduction
+2. [Installation Guide](docs/installation.md) - Detailed installation instructions
+3. [Configuration Guide](docs/configuration.md) - Configuration options and formats
+4. [API Reference](docs/api_reference/index.md) - Detailed API reference
+
+### Quick Resources
+
+- [Quick Reference](docs/quick_reference.md) - Essential commands and patterns
+- [FAQ](docs/faq.md) - Frequently asked questions
+- [Troubleshooting Guide](docs/troubleshooting.md) - Solutions to common problems
+
+### Guides and Examples
+
+- [Cookbook](docs/cookbook.md) - Ready-to-use recipes for common tasks
 - [Examples](docs/examples/index.md) - Example use cases and code
 - [Extending with Plugins](docs/plugins/index.md) - Creating and using plugins
 - [Security Considerations](docs/security.md) - Security best practices
+
+### Technical Documentation
+
+- [Architecture](docs/architecture.md) - System architecture and data flow diagrams
+- [Comparison](docs/comparison.md) - How ApiLinker compares to other integration tools
+
+### Step-by-Step Tutorials
+
+- [API-to-API Sync Tutorial](docs/tutorials/api_to_api_sync.md) - Learn to sync data between APIs
+- [Custom Transformers Tutorial](docs/tutorials/custom_transformers.md) - Create data transformation functions
+- [More tutorials](docs/tutorials/index.md) - Browse all available tutorials
+
+### Comprehensive API Reference
+
+For developers who want to extend ApiLinker or understand its internals, we provide comprehensive API reference documentation that can be generated using Sphinx:
+
+```bash
+# Install Sphinx and required packages
+pip install sphinx sphinx-rtd-theme myst-parser
+
+# Generate HTML documentation
+cd docs/sphinx_setup
+sphinx-build -b html . _build/html
+```
+
+The generated documentation will be available in `docs/sphinx_setup/_build/html/index.html`
 
 ### Community Support
 
