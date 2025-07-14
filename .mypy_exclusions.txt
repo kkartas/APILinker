@@ -1,0 +1,4 @@
+# Exclude Pydantic files that use Python 3.9+ syntax
+pydantic
+pydantic._internal
+pydantic._internal._generate_schema
