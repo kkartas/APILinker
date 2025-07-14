@@ -58,9 +58,10 @@ setup(
             "pre-commit>=2.20.0",
         ],
         "docs": [
-            "mkdocs>=1.4.0",
-            "mkdocs-material>=8.5.6",
-            "mkdocstrings[python]>=0.19.0",
+            "sphinx>=7.2.0",
+            "sphinx-rtd-theme>=2.0.0",
+            "sphinx-autodoc-typehints>=2.0.0",
+            "sphinx-autoapi>=3.0.0",
         ],
     },
     entry_points={
