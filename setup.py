@@ -2,6 +2,10 @@
 """Minimal setup script for APILinker."""
 
 from setuptools import setup, find_packages
+from pathlib import Path
+
+this_directory = Path(__file__).parent
+long_description = (this_directory / "README.md").read_text()
 
 __version__ = "0.1.0"
 
@@ -9,6 +13,8 @@ setup(
     name="apilinker",
     version=__version__,
     description="A universal bridge to connect, map, and automate data transfer between any two REST APIs",
+    long_description=long_description,
+    long_description_content_type="text/markdown",
     author="K. Kartas",
     author_email="kkartas@users.noreply.github.com",
     url="https://github.com/kkartas/APILinker",
