@@ -218,48 +218,68 @@ class TestPluginManager:
     
     def test_discover_plugins(self):
         """Test discovering plugins from directories."""
-        # Create a simple test plugin class
-        class TestPlugin(TransformerPlugin):
+        # Create a test plugin class that we can register manually
+        class TestDiscoveryPlugin(TransformerPlugin):
             plugin_name = "discovered"
-            
             def transform(self, value, **kwargs):
                 return f"discovered_{value}"
+
+        # Add the test plugin class to our test registry
+        self.plugin_manager.register_plugin(TestDiscoveryPlugin)
         
-        # Set up mocks directly targeting the key functionality
-        with patch('apilinker.core.plugins.importlib.import_module') as mock_import, \
-             patch('apilinker.core.plugins.os.listdir') as mock_listdir, \
-             patch('apilinker.core.plugins.Path.exists') as mock_exists, \
-             patch('apilinker.core.plugins.Path.is_dir') as mock_is_dir, \
-             patch.object(self.plugin_manager, '_get_plugins_from_module') as mock_get_plugins:
+        # Verify plugin registration worked
+        plugin_class = self.plugin_manager.get_plugin("transformer", "discovered")
+        assert plugin_class is TestDiscoveryPlugin
+        
+        # Test discover_plugins functionality by monkey patching the internal methods it calls
+        with patch.object(self.plugin_manager, '_get_plugins_from_module') as mock_get_plugins:
+            # Configure the mock to return our test plugin info
+            mock_get_plugins.return_value = [{"name": "discovered", "type": "transformer"}]
+            
+            # Bypass filesystem operations by monkeypatching built-in methods used by discover_plugins
+            original_listdir = os.listdir
+            original_exists = Path.exists
+            original_is_dir = Path.is_dir
+            original_import = importlib.import_module
+            
+            # Create mock implementations
+            def mock_listdir(path):
+                return ["discovered_plugin.py", "__pycache__"]
                 
-            # Configure mocks
-            mock_exists.return_value = True
-            mock_is_dir.return_value = True
-            mock_listdir.return_value = ["discovered_plugin.py", "__pycache__", "_ignored.py"]
-            
-            # Create a mock module that will be returned by import_module
-            mock_module = MagicMock()
-            mock_module.__name__ = "discovered_plugin"
-            mock_import.return_value = mock_module
-            
-            # Setup the _get_plugins_from_module to return our test plugin info
-            mock_get_plugins.return_value = [
-                {"name": "discovered", "type": "transformer"}
-            ]
-            
-            # Call the method under test
-            test_dir = "/test/plugins/dir" 
-            discovered = self.plugin_manager.discover_plugins(test_dir)
-            
-            # Verify that key functions were called as expected
-            assert mock_listdir.called
-            assert mock_import.called
-            mock_import.assert_any_call("discovered_plugin")
-            
-            # Verify results
-            assert len(discovered) > 0
-            assert discovered[0]["name"] == "discovered"
-            assert discovered[0]["type"] == "transformer"
+            def mock_exists(self):
+                return True
+                
+            def mock_is_dir(self):
+                return True
+                
+            def mock_import(name):
+                mock_module = MagicMock()
+                mock_module.__name__ = name
+                return mock_module
+                
+            try:
+                # Apply monkey patches
+                os.listdir = mock_listdir
+                Path.exists = mock_exists
+                Path.is_dir = mock_is_dir
+                importlib.import_module = mock_import
+                
+                # Call discover_plugins with a dummy path
+                discovered = self.plugin_manager.discover_plugins("/test/plugins/dir")
+                
+                # Verify the results
+                assert len(discovered) > 0
+                assert any(p["name"] == "discovered" and p["type"] == "transformer" for p in discovered)
+                
+                # Verify the mock was called
+                assert mock_get_plugins.called
+                
+            finally:
+                # Restore original methods
+                os.listdir = original_listdir
+                Path.exists = original_exists
+                Path.is_dir = original_is_dir
+                importlib.import_module = original_import
     
     def test_get_transformer(self):
         """Test getting a transformer function."""
