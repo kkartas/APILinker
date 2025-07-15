@@ -4,11 +4,14 @@ Main ApiLinker class that orchestrates the connection, mapping, and data transfe
 
 import logging
 import os
+import time
+import uuid
+from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 import yaml
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from apilinker.core.auth import AuthManager
 from apilinker.core.connector import ApiConnector
@@ -17,13 +20,29 @@ from apilinker.core.mapper import FieldMapper
 from apilinker.core.scheduler import Scheduler
 
 
+class ErrorDetail(BaseModel):
+    """Detailed error information for API requests."""
+    
+    message: str
+    status_code: Optional[int] = None
+    response_body: Optional[str] = None
+    request_url: Optional[str] = None
+    request_method: Optional[str] = None
+    timestamp: Optional[str] = None
+    error_type: str = "general"
+
+
 class SyncResult(BaseModel):
-    """Result of a sync operation."""
+    """Result of a sync operation with enhanced error reporting."""
     
     count: int = 0
     success: bool = True
-    errors: List[str] = []
-    details: Dict[str, Any] = {}
+    errors: List[ErrorDetail] = Field(default_factory=list)
+    details: Dict[str, Any] = Field(default_factory=dict)
+    correlation_id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    source_response: Dict[str, Any] = Field(default_factory=dict)
+    target_response: Dict[str, Any] = Field(default_factory=dict)
+    duration_ms: Optional[int] = None
 
 
 class ApiLinker:
@@ -207,7 +226,11 @@ class ApiLinker:
     
     def sync(self, source_endpoint: Optional[str] = None, 
              target_endpoint: Optional[str] = None,
-             params: Optional[Dict[str, Any]] = None) -> SyncResult:
+             params: Optional[Dict[str, Any]] = None,
+             max_retries: int = 3,
+             retry_delay: float = 1.0,
+             retry_backoff_factor: float = 2.0,
+             retry_status_codes: Optional[List[int]] = None) -> SyncResult:
         """
         Execute a sync operation between source and target APIs.
         
@@ -215,6 +238,10 @@ class ApiLinker:
             source_endpoint: Source endpoint to use (overrides mapping)
             target_endpoint: Target endpoint to use (overrides mapping)
             params: Additional parameters for the source API call
+            max_retries: Maximum number of retry attempts for transient failures
+            retry_delay: Initial delay between retries in seconds
+            retry_backoff_factor: Multiplicative factor for retry delay
+            retry_status_codes: HTTP status codes to retry (default: 429, 502, 503, 504)
             
         Returns:
             SyncResult: Result of the sync operation
@@ -230,35 +257,94 @@ class ApiLinker:
             source_endpoint = mapping["source"]
             target_endpoint = mapping["target"]
         
-        self.logger.info(f"Starting sync from {source_endpoint} to {target_endpoint}")
+        # Generate correlation ID for this sync operation
+        correlation_id = str(uuid.uuid4())
+        start_time = time.time()
         
-        try:
-            # Fetch data from source
-            source_data = self.source.fetch_data(source_endpoint, params)
+        # Default retry status codes if none provided
+        if retry_status_codes is None:
+            retry_status_codes = [429, 502, 503, 504]  # Common transient failures
             
+        self.logger.info(f"[{correlation_id}] Starting sync from {source_endpoint} to {target_endpoint}")
+        
+        # Initialize result object
+        sync_result = SyncResult(correlation_id=correlation_id)
+        
+        # Fetch data from source with retries
+        source_data, source_error = self._with_retries(
+            operation=lambda: self.source.fetch_data(source_endpoint, params),
+            operation_name=f"fetch from {source_endpoint}",
+            max_retries=max_retries,
+            retry_delay=retry_delay,
+            retry_backoff_factor=retry_backoff_factor,
+            retry_status_codes=retry_status_codes,
+            correlation_id=correlation_id
+        )
+        
+        if source_error:
+            end_time = time.time()
+            sync_result.duration_ms = int((end_time - start_time) * 1000)
+            sync_result.success = False
+            sync_result.errors.append(source_error)
+            self.logger.error(f"[{correlation_id}] Sync failed: {source_error.message}")
+            return sync_result
+            
+        try:
             # Map fields according to configuration
             transformed_data = self.mapper.map_data(source_endpoint, target_endpoint, source_data)
             
-            # Send data to target
-            result = self.target.send_data(target_endpoint, transformed_data)
+            # Record source data metrics
+            source_count = len(source_data) if isinstance(source_data, list) else 1
+            sync_result.details["source_count"] = source_count
             
-            # Create result object
-            sync_result = SyncResult(
-                count=len(transformed_data) if isinstance(transformed_data, list) else 1,
-                success=True,
-                details={"source_count": len(source_data) if isinstance(source_data, list) else 1}
+            # Send data to target with retries
+            target_result, target_error = self._with_retries(
+                operation=lambda: self.target.send_data(target_endpoint, transformed_data),
+                operation_name=f"send to {target_endpoint}",
+                max_retries=max_retries,
+                retry_delay=retry_delay,
+                retry_backoff_factor=retry_backoff_factor,
+                retry_status_codes=retry_status_codes,
+                correlation_id=correlation_id
             )
             
-            self.logger.info(f"Sync completed successfully: {sync_result.count} items transferred")
+            if target_error:
+                end_time = time.time()
+                sync_result.duration_ms = int((end_time - start_time) * 1000)
+                sync_result.success = False
+                sync_result.errors.append(target_error)
+                self.logger.error(f"[{correlation_id}] Sync failed: {target_error.message}")
+                return sync_result
+                
+            # Update result with success information
+            sync_result.count = len(transformed_data) if isinstance(transformed_data, list) else 1
+            sync_result.success = True
+            sync_result.target_response = target_result if isinstance(target_result, dict) else {}
+            
+            # Calculate duration
+            end_time = time.time()
+            sync_result.duration_ms = int((end_time - start_time) * 1000)
+            
+            self.logger.info(
+                f"[{correlation_id}] Sync completed successfully: {sync_result.count} items transferred in {sync_result.duration_ms}ms"
+            )
             return sync_result
             
         except Exception as e:
-            self.logger.error(f"Sync failed: {str(e)}")
-            return SyncResult(
-                count=0,
-                success=False,
-                errors=[str(e)]
+            end_time = time.time()
+            error_detail = ErrorDetail(
+                message=str(e),
+                error_type="mapping_error",
+                timestamp=datetime.now().isoformat()
             )
+            
+            self.logger.error(f"[{correlation_id}] Sync failed during mapping: {str(e)}")
+            
+            sync_result.duration_ms = int((end_time - start_time) * 1000)
+            sync_result.success = False
+            sync_result.errors.append(error_detail)
+            
+            return sync_result
     
     def start_scheduled_sync(self) -> None:
         """Start scheduled sync operations."""
@@ -269,3 +355,90 @@ class ApiLinker:
         """Stop scheduled sync operations."""
         self.logger.info("Stopping scheduled sync")
         self.scheduler.stop()
+        
+    def _with_retries(self, operation: Callable[[], Any], operation_name: str,
+                     max_retries: int, retry_delay: float, retry_backoff_factor: float,
+                     retry_status_codes: List[int], correlation_id: str) -> Tuple[Any, Optional[ErrorDetail]]:
+        """
+        Execute an operation with configurable retry logic for transient failures.
+        
+        Args:
+            operation: Callable function to execute
+            operation_name: Name of operation for logging
+            max_retries: Maximum number of retry attempts
+            retry_delay: Initial delay between retries in seconds
+            retry_backoff_factor: Multiplicative factor for retry delay
+            retry_status_codes: HTTP status codes that should trigger a retry
+            correlation_id: Correlation ID for tracing
+            
+        Returns:
+            Tuple of (result, error_detail) - If successful, error_detail will be None
+        """
+        current_delay = retry_delay
+        last_exception = None
+        
+        for attempt in range(max_retries + 1):
+            try:
+                if attempt > 0:
+                    self.logger.info(
+                        f"[{correlation_id}] Retry attempt {attempt}/{max_retries} for {operation_name} after {current_delay:.2f}s delay"
+                    )
+                    time.sleep(current_delay)
+                    current_delay *= retry_backoff_factor
+                
+                result = operation()
+                
+                if attempt > 0:
+                    self.logger.info(f"[{correlation_id}] Retry succeeded for {operation_name}")
+                    
+                return result, None
+                
+            except Exception as e:
+                last_exception = e
+                status_code = getattr(e, 'status_code', None)
+                response_body = getattr(e, 'response', None)
+                request_url = getattr(e, 'url', None)
+                request_method = getattr(e, 'method', None)
+                
+                # Convert response to string if it's not already
+                if response_body and not isinstance(response_body, str):
+                    try:
+                        response_body = str(response_body)[:1000]  # Limit size
+                    except:
+                        response_body = "<Unable to convert response to string>"
+                
+                error_detail = ErrorDetail(
+                    message=str(e),
+                    status_code=status_code,
+                    response_body=response_body,
+                    request_url=request_url,
+                    request_method=request_method,
+                    timestamp=datetime.now().isoformat(),
+                    error_type="transient_error" if status_code in retry_status_codes else "api_error"
+                )
+                
+                # Check if this is a retryable error
+                is_retryable = status_code in retry_status_codes if status_code else False
+                
+                if is_retryable and attempt < max_retries:
+                    self.logger.warning(
+                        f"[{correlation_id}] {operation_name} failed with retryable error (status: {status_code}): {str(e)}"
+                    )
+                else:
+                    # Either not retryable or out of retries
+                    log_level = logging.WARNING if is_retryable else logging.ERROR
+                    retry_msg = "out of retry attempts" if is_retryable else "non-retryable error"
+                    
+                    self.logger.log(
+                        log_level,
+                        f"[{correlation_id}] {operation_name} failed with {retry_msg}: {str(e)}"
+                    )
+                    return None, error_detail
+        
+        # We should never reach here, but just in case
+        fallback_error = ErrorDetail(
+            message=f"Unknown error during {operation_name}",
+            timestamp=datetime.now().isoformat(),
+            error_type="unknown_error"
+        )
+        return None, fallback_error

@@ -5,7 +5,7 @@ This package provides tools for connecting to REST APIs, mapping data fields bet
 scheduling automatic data transfers, and extending functionality through plugins.
 """
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 
 from apilinker.core.connector import ApiConnector
 from apilinker.core.mapper import FieldMapper

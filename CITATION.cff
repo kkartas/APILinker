@@ -1,10 +1,10 @@
-cff-version: 1.2.0
+cff-version: 0.2.0
 message: "If you use this software, please cite it as below."
 authors:
   - family-names: "Kartas"
     given-names: "Kyriakos"
 title: "ApiLinker: A Universal Bridge for REST API Integrations"
-version: 0.1.0
+version: 0.2.0
 date-released: 2025-07-14
 url: "https://github.com/kkartas/apilinker"
 repository-code: "https://github.com/kkartas/apilinker"

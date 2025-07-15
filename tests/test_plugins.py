@@ -43,7 +43,7 @@ class TestPluginBase:
         info = CustomPlugin.get_plugin_info()
         assert info["name"] == "custom"
         assert info["type"] == "test"
-        assert info["version"] == "1.2.3"
+        assert info["version"] == "0.2.0"
         assert info["author"] == "Test Author"
         assert "Test plugin docstring" in info["description"]
     
@@ -54,7 +54,7 @@ class TestPluginBase:
             plugin_type = "minimal"
         
         info = BasicPlugin.get_plugin_info()
-        assert info["version"] == "0.1.0"
+        assert info["version"] == "0.2.0"
         assert info["author"] == "Unknown"
 
 
