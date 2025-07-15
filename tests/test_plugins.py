@@ -216,27 +216,49 @@ class TestPluginManager:
         with pytest.raises(PluginInitializationError, match="Error instantiating plugin transformer.broken"):
             self.plugin_manager.instantiate_plugin("transformer", "broken")
     
-    def test_discover_plugins(self):
+    @patch('sys.path')
+    def test_discover_plugins(self, mock_sys_path):
         """Test discovering plugins from directories."""
-        # Create a simple mock plugin
+        # Create a directory that will be used in the test
+        test_dir = "/test/plugins/dir"
+        test_path = Path(test_dir)
+        
+        # Mock plugin module
         mock_plugin_module = MagicMock()
         mock_plugin_module.__name__ = "discovered_plugin"
         
-        # Mock the necessary functions directly for this specific test
-        with patch("importlib.import_module", return_value=mock_plugin_module) as mock_import, \
-             patch("os.listdir", return_value=["discovered_plugin.py", "__pycache__", "_ignored.py"]) as mock_listdir, \
-             patch("pathlib.Path.exists", return_value=True), \
-             patch("pathlib.Path.is_dir", return_value=True), \
-             patch.object(self.plugin_manager, "_get_plugins_from_module", 
-                         return_value=[{"name": "discovered", "type": "transformer"}]) as mock_get_plugins:
+        # Define specific behavior for os.listdir when called with our test path
+        def mock_listdir_side_effect(path):
+            # Convert any Path object to string for comparison
+            path_str = str(path)
+            if path_str == test_dir:
+                return ["discovered_plugin.py", "__pycache__", "_ignored.py"]
+            return []
+        
+        # Set up our mocks with the appropriate side effects
+        with patch('pathlib.Path', wraps=Path) as mock_path_class, \
+             patch('os.listdir', side_effect=mock_listdir_side_effect) as mock_listdir, \
+             patch('importlib.import_module', return_value=mock_plugin_module) as mock_import, \
+             patch.object(self.plugin_manager, '_get_plugins_from_module', 
+                        return_value=[{"name": "discovered", "type": "transformer"}]):
             
-            # Use a string instead of a temporary directory to have more control
-            test_dir = "/test/plugins/dir"
+            # Ensure Path.exists and Path.is_dir return True for our test path
+            def mock_exists(self):
+                return str(self) == test_dir
+                
+            def mock_is_dir(self):
+                return str(self) == test_dir
+                
+            # Apply the mocked methods
+            mock_path_class.return_value.exists.side_effect = mock_exists
+            mock_path_class.return_value.is_dir.side_effect = mock_is_dir
+            
+            # Call the method we're testing
             discovered = self.plugin_manager.discover_plugins(test_dir)
             
-            # Verify that listdir was called - this should pass now
-            mock_listdir.assert_called_once()
-            assert mock_import.called
+            # Verify results
+            mock_listdir.assert_called_with(test_path)
+            mock_import.assert_called_with("discovered_plugin")
             assert len(discovered) > 0
             assert discovered[0]["name"] == "discovered"
             assert discovered[0]["type"] == "transformer"
