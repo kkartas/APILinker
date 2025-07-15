@@ -956,7 +956,7 @@ If you use ApiLinker in your research, please cite:
 
 ```bibtex
 @software{apilinker2025,
-  author = {Kartas, Konstantinos and Alexiou, Maria and Nielsen, Thomas},
+  author = {Kartas, Kyriakos},
   title = {ApiLinker: A Universal Bridge for REST API Integrations},
   url = {https://github.com/kkartas/apilinker},
   version = {0.1.0},
