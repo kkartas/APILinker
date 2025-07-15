@@ -216,10 +216,16 @@ class TestPluginManager:
         with pytest.raises(PluginInitializationError, match="Error instantiating plugin transformer.broken"):
             self.plugin_manager.instantiate_plugin("transformer", "broken")
     
+    @patch("pathlib.Path.exists")
+    @patch("pathlib.Path.is_dir")
     @patch("os.listdir")
     @patch("importlib.import_module")
-    def test_discover_plugins(self, mock_import, mock_listdir):
+    def test_discover_plugins(self, mock_import, mock_listdir, mock_is_dir, mock_exists):
         """Test discovering plugins from directories."""
+        # Setup mock paths and modules
+        mock_exists.return_value = True  # Make Path.exists() return True
+        mock_is_dir.return_value = True  # Make Path.is_dir() return True
+        
         # Setup mock modules and files
         mock_plugin_module = MagicMock()
         mock_plugin_class = type("TestPlugin", (TransformerPlugin,), {
