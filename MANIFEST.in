@@ -1,8 +1,0 @@
-include LICENSE
-include CHANGELOG.md
-include README.md
-include pyproject.toml
-include mypy.ini
-include .mypy_exclusions.txt
-recursive-include docs *.rst *.py *.txt
-prune docs/_build
