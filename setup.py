@@ -27,6 +27,22 @@ setup(
         "croniter>=1.3.8",
         "rich>=12.6.0",
     ],
+    extras_require={
+        "dev": [
+            "pytest>=7.0.0",
+            "pytest-cov>=4.0.0",
+            "flake8>=6.0.0",
+            "mypy>=1.0.0",
+            "types-croniter",
+            "types-PyYAML",
+        ],
+        "docs": [
+            "sphinx>=7.2.0",
+            "sphinx-rtd-theme>=2.0.0",
+            "sphinx-autodoc-typehints>=2.0.0",
+            "sphinx-autoapi>=3.0.0",
+        ],
+    },
     entry_points={
         "console_scripts": [
             "apilinker=apilinker.cli:app",
