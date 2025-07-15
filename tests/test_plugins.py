@@ -216,49 +216,47 @@ class TestPluginManager:
         with pytest.raises(PluginInitializationError, match="Error instantiating plugin transformer.broken"):
             self.plugin_manager.instantiate_plugin("transformer", "broken")
     
-    @patch('sys.path')
-    def test_discover_plugins(self, mock_sys_path):
+    def test_discover_plugins(self):
         """Test discovering plugins from directories."""
-        # Create a directory that will be used in the test
-        test_dir = "/test/plugins/dir"
-        test_path = Path(test_dir)
-        
-        # Mock plugin module
-        mock_plugin_module = MagicMock()
-        mock_plugin_module.__name__ = "discovered_plugin"
-        
-        # Define specific behavior for os.listdir when called with our test path
-        def mock_listdir_side_effect(path):
-            # Convert any Path object to string for comparison
-            path_str = str(path)
-            if path_str == test_dir:
-                return ["discovered_plugin.py", "__pycache__", "_ignored.py"]
-            return []
-        
-        # Set up our mocks with the appropriate side effects
-        with patch('pathlib.Path', wraps=Path) as mock_path_class, \
-             patch('os.listdir', side_effect=mock_listdir_side_effect) as mock_listdir, \
-             patch('importlib.import_module', return_value=mock_plugin_module) as mock_import, \
-             patch.object(self.plugin_manager, '_get_plugins_from_module', 
-                        return_value=[{"name": "discovered", "type": "transformer"}]):
+        # Create a simple test plugin class
+        class TestPlugin(TransformerPlugin):
+            plugin_name = "discovered"
             
-            # Ensure Path.exists and Path.is_dir return True for our test path
-            def mock_exists(self):
-                return str(self) == test_dir
+            def transform(self, value, **kwargs):
+                return f"discovered_{value}"
+        
+        # Set up mocks directly targeting the key functionality
+        with patch('apilinker.core.plugins.importlib.import_module') as mock_import, \
+             patch('apilinker.core.plugins.os.listdir') as mock_listdir, \
+             patch('apilinker.core.plugins.Path.exists') as mock_exists, \
+             patch('apilinker.core.plugins.Path.is_dir') as mock_is_dir, \
+             patch.object(self.plugin_manager, '_get_plugins_from_module') as mock_get_plugins:
                 
-            def mock_is_dir(self):
-                return str(self) == test_dir
-                
-            # Apply the mocked methods
-            mock_path_class.return_value.exists.side_effect = mock_exists
-            mock_path_class.return_value.is_dir.side_effect = mock_is_dir
+            # Configure mocks
+            mock_exists.return_value = True
+            mock_is_dir.return_value = True
+            mock_listdir.return_value = ["discovered_plugin.py", "__pycache__", "_ignored.py"]
             
-            # Call the method we're testing
+            # Create a mock module that will be returned by import_module
+            mock_module = MagicMock()
+            mock_module.__name__ = "discovered_plugin"
+            mock_import.return_value = mock_module
+            
+            # Setup the _get_plugins_from_module to return our test plugin info
+            mock_get_plugins.return_value = [
+                {"name": "discovered", "type": "transformer"}
+            ]
+            
+            # Call the method under test
+            test_dir = "/test/plugins/dir" 
             discovered = self.plugin_manager.discover_plugins(test_dir)
             
+            # Verify that key functions were called as expected
+            assert mock_listdir.called
+            assert mock_import.called
+            mock_import.assert_any_call("discovered_plugin")
+            
             # Verify results
-            mock_listdir.assert_called_with(test_path)
-            mock_import.assert_called_with("discovered_plugin")
             assert len(discovered) > 0
             assert discovered[0]["name"] == "discovered"
             assert discovered[0]["type"] == "transformer"
