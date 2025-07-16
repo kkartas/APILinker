@@ -1,8 +1,15 @@
 # Changelog
 
-## [0.2.0] - 2025-07-15
+## [0.2.0] - 2025-07-16
 
-- Update version to 0.2.0
+### Added
+- Robust error handling and recovery system:
+  - Circuit breaker pattern to prevent cascading failures
+  - Dead Letter Queue (DLQ) for storing and retrying failed operations
+  - Configurable recovery strategies based on error types
+  - Error analytics and monitoring
+- Enhanced error categorization and context tracking
+- Integration with existing retry mechanisms
 
 All notable changes to this project will be documented in this file.
 

@@ -5,12 +5,13 @@ API Connector module for handling connections to different types of APIs.
 import json
 import logging
 import time
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 import httpx
 from pydantic import BaseModel, Field
 
 from apilinker.core.auth import AuthConfig
+from apilinker.core.error_handling import ApiLinkerError, ErrorCategory
 
 logger = logging.getLogger(__name__)
 
@@ -330,9 +331,47 @@ class ApiConnector:
         
         return all_items
     
+    def _categorize_error(self, exc: Exception) -> Tuple[ErrorCategory, int]:
+        """
+        Categorize an exception to determine its error category and status code.
+        
+        Args:
+            exc: The exception to categorize
+            
+        Returns:
+            Tuple of (ErrorCategory, status_code)
+        """
+        # Default values
+        category = ErrorCategory.UNKNOWN
+        status_code = None
+        
+        # Check for HTTP-specific errors
+        if isinstance(exc, httpx.TimeoutException):
+            category = ErrorCategory.TIMEOUT
+            status_code = 0  # Custom code for timeout
+        elif isinstance(exc, httpx.ConnectError) or isinstance(exc, httpx.NetworkError):
+            category = ErrorCategory.NETWORK
+            status_code = 0  # Custom code for network errors
+        elif isinstance(exc, httpx.HTTPStatusError):
+            status_code = exc.response.status_code
+            
+            # Categorize based on HTTP status code
+            if status_code == 401 or status_code == 403:
+                category = ErrorCategory.AUTHENTICATION
+            elif status_code == 422 or status_code == 400:
+                category = ErrorCategory.VALIDATION
+            elif status_code == 429:
+                category = ErrorCategory.RATE_LIMIT
+            elif status_code >= 500:
+                category = ErrorCategory.SERVER
+            elif status_code >= 400:
+                category = ErrorCategory.CLIENT
+            
+        return category, status_code
+        
     def fetch_data(
         self, endpoint_name: str, params: Optional[Dict[str, Any]] = None
-    ) -> Union[Dict[str, Any], List[Dict[str, Any]]]:
+    ) -> Dict[str, Any]:
         """
         Fetch data from the specified endpoint.
         
@@ -342,17 +381,23 @@ class ApiConnector:
             
         Returns:
             The parsed response data
+            
+        Raises:
+            ApiLinkerError: On API request failure with enhanced error context
         """
-        logger.info(f"Fetching data from endpoint: {endpoint_name}")
+        if endpoint_name not in self.endpoints:
+            raise ValueError(f"Endpoint '{endpoint_name}' not found in configuration")
+        
+        endpoint = self.endpoints[endpoint_name]
+        logger.info(f"Fetching data from endpoint: {endpoint_name} ({endpoint.method} {endpoint.path})")
         
         # Prepare the request
         request = self._prepare_request(endpoint_name, params)
         
-        # Make the request with retries
+        # Make the request with retries (note: main retries are now handled by the error recovery manager)
+        last_exception = None
         for attempt in range(1, self.retry_count + 1):
             try:
-                logger.debug(f"Request attempt {attempt}: {request['method']} {request['url']}")
-                
                 response = self.client.request(
                     request["method"],
                     request["url"],
@@ -360,34 +405,58 @@ class ApiConnector:
                     params=request["params"],
                     json=request.get("json"),
                 )
+                response.raise_for_status()
                 
                 # Process the response
-                data = self._process_response(response, endpoint_name)
+                result = self._process_response(response, endpoint_name)
                 
                 # Handle pagination if configured
-                endpoint = self.endpoints[endpoint_name]
                 if endpoint.pagination:
-                    data = self._handle_pagination(data, endpoint_name, params)
+                    result = self._handle_pagination(result, endpoint_name, params)
                 
-                return data
+                logger.info(f"Data fetched successfully from {endpoint_name}")
+                return result
                 
-            except httpx.HTTPStatusError as e:
-                logger.error(f"HTTP error: {e.response.status_code} - {str(e)}")
-                if attempt < self.retry_count:
-                    wait_time = self.retry_delay * attempt
-                    logger.info(f"Retrying in {wait_time} seconds...")
-                    time.sleep(wait_time)
-                else:
-                    raise
-                    
             except Exception as e:
-                logger.error(f"Error fetching data: {str(e)}")
+                last_exception = e
+                error_category, status_code = self._categorize_error(e)
+                
+                # Log the error at an appropriate level
                 if attempt < self.retry_count:
                     wait_time = self.retry_delay * attempt
+                    logger.warning(
+                        f"Error fetching data (attempt {attempt}/{self.retry_count}): {str(e)}"
+                    )
                     logger.info(f"Retrying in {wait_time} seconds...")
                     time.sleep(wait_time)
                 else:
-                    raise
+                    logger.error(f"All retry attempts failed: {str(e)}")
+        
+        # If we get here, all retry attempts failed
+        if last_exception:
+            error_category, status_code = self._categorize_error(last_exception)
+            
+            # Extract response data if available
+            response_body = None
+            if hasattr(last_exception, 'response'):
+                try:
+                    response_body = last_exception.response.text[:1000]  # Limit size
+                except:
+                    response_body = "<Unable to read response body>"
+            
+            # Create an ApiLinkerError with enhanced context
+            raise ApiLinkerError(
+                message=f"Failed to fetch data from {endpoint_name}: {str(last_exception)}",
+                error_category=error_category,
+                status_code=status_code,
+                response_body=response_body,
+                request_url=str(request["url"]),
+                request_method=request["method"],
+                additional_context={
+                    "endpoint": endpoint_name,
+                    "params": params
+                }
+            )
     
     def send_data(
         self, endpoint_name: str, data: Union[Dict[str, Any], List[Dict[str, Any]]]
@@ -401,6 +470,9 @@ class ApiConnector:
             
         Returns:
             The parsed response
+            
+        Raises:
+            ApiLinkerError: On API request failure with enhanced error context
         """
         if endpoint_name not in self.endpoints:
             raise ValueError(f"Endpoint '{endpoint_name}' not found in configuration")
@@ -416,8 +488,9 @@ class ApiConnector:
             results = []
             successful = 0
             failed = 0
+            failures = []
             
-            for item in data:
+            for item_index, item in enumerate(data):
                 try:
                     response = self.client.request(
                         request["method"],
@@ -432,20 +505,46 @@ class ApiConnector:
                     successful += 1
                     
                 except Exception as e:
-                    logger.error(f"Error sending data item: {str(e)}")
+                    error_category, status_code = self._categorize_error(e)
+                    
+                    # Extract response data if available
+                    response_body = None
+                    if hasattr(e, 'response'):
+                        try:
+                            response_body = e.response.text[:1000]  # Limit size
+                        except:
+                            response_body = "<Unable to read response body>"
+                    
+                    error = ApiLinkerError(
+                        message=f"Failed to send data item {item_index} to {endpoint_name}: {str(e)}",
+                        error_category=error_category,
+                        status_code=status_code,
+                        response_body=response_body,
+                        request_url=str(request["url"]),
+                        request_method=request["method"],
+                        additional_context={
+                            "endpoint": endpoint_name,
+                            "item_index": item_index
+                        }
+                    )
+                    failures.append(error.to_dict())
+                    logger.error(f"Error sending data item {item_index}: {error}")
                     failed += 1
             
             logger.info(f"Sent {successful} items successfully, {failed} failed")
             return {
-                "success": True,
+                "success": successful > 0 and failed == 0,
                 "sent_count": successful,
                 "failed_count": failed,
                 "results": results,
+                "failures": failures
             }
         
         # If data is a single item, send it
         else:
-            # Make the request with retries
+            # Make the request with retries (note: main retries now handled by error recovery manager)
+            last_exception = None
+            
             for attempt in range(1, self.retry_count + 1):
                 try:
                     response = self.client.request(
@@ -465,13 +564,43 @@ class ApiConnector:
                     }
                     
                 except Exception as e:
-                    logger.error(f"Error sending data: {str(e)}")
+                    last_exception = e
+                    
+                    # Log the error at an appropriate level
                     if attempt < self.retry_count:
                         wait_time = self.retry_delay * attempt
+                        logger.warning(
+                            f"Error sending data (attempt {attempt}/{self.retry_count}): {str(e)}"
+                        )
                         logger.info(f"Retrying in {wait_time} seconds...")
                         time.sleep(wait_time)
                     else:
-                        raise
+                        logger.error(f"All retry attempts failed: {str(e)}")
             
-            # This should not be reached due to the exception being raised in the loop
+            # If we get here, all retry attempts failed
+            if last_exception:
+                error_category, status_code = self._categorize_error(last_exception)
+                
+                # Extract response data if available
+                response_body = None
+                if hasattr(last_exception, 'response'):
+                    try:
+                        response_body = last_exception.response.text[:1000]  # Limit size
+                    except:
+                        response_body = "<Unable to read response body>"
+                
+                # Create an ApiLinkerError with enhanced context
+                raise ApiLinkerError(
+                    message=f"Failed to send data to {endpoint_name}: {str(last_exception)}",
+                    error_category=error_category,
+                    status_code=status_code,
+                    response_body=response_body,
+                    request_url=str(request["url"]),
+                    request_method=request["method"],
+                    additional_context={
+                        "endpoint": endpoint_name
+                    }
+                )
+            
+            # This should not be reached
             return {"success": False, "error": "Unknown error"}

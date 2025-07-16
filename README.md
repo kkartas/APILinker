@@ -28,7 +28,7 @@
 - 📋 **Data Validation** - Validate data with schemas and custom rules
 - 🔌 **Plugin Architecture** - Extend with custom connectors, transformers, and authentication methods
 - 📈 **Pagination Handling** - Automatic handling of paginated API responses
-- 🔍 **Error Recovery** - Built-in retry logic and error handling
+- 🔍 **Robust Error Handling** - Circuit breakers, Dead Letter Queues (DLQ), and configurable recovery strategies
 - 📦 **Minimal Dependencies** - Lightweight core with minimal external requirements
 
 ## 📋 Table of Contents
@@ -38,6 +38,7 @@
 - [Configuration](#configuration)
 - [Authentication Methods](#authentication-methods)
 - [Field Mapping](#field-mapping)
+- [Error Handling](#error-handling)
 - [Data Transformations](#data-transformations)
 - [Scheduling](#scheduling)
 - [Command Line Interface](#command-line-interface)

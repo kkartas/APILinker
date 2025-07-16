@@ -15,11 +15,22 @@ from pydantic import BaseModel, Field
 
 from apilinker.core.auth import AuthManager
 from apilinker.core.connector import ApiConnector
+from apilinker.core.error_handling import (
+    ApiLinkerError,
+    CircuitBreaker,
+    DeadLetterQueue,
+    ErrorAnalytics,
+    ErrorCategory,
+    ErrorRecoveryManager,
+    RecoveryStrategy,
+    create_error_handler
+)
 from apilinker.core.logger import setup_logger
 from apilinker.core.mapper import FieldMapper
 from apilinker.core.scheduler import Scheduler
 
 
+# Legacy error detail class kept for backward compatibility
 class ErrorDetail(BaseModel):
     """Detailed error information for API requests."""
     
@@ -30,6 +41,19 @@ class ErrorDetail(BaseModel):
     request_method: Optional[str] = None
     timestamp: Optional[str] = None
     error_type: str = "general"
+    
+    @classmethod
+    def from_apilinker_error(cls, error: ApiLinkerError) -> 'ErrorDetail':
+        """Convert an ApiLinkerError to ErrorDetail for backward compatibility."""
+        return cls(
+            message=error.message,
+            status_code=error.status_code,
+            response_body=error.response_body,
+            request_url=error.request_url,
+            request_method=error.request_method,
+            timestamp=error.timestamp,
+            error_type=error.error_category.value.lower()
+        )
 
 
 class SyncResult(BaseModel):
@@ -37,7 +61,7 @@ class SyncResult(BaseModel):
     
     count: int = 0
     success: bool = True
-    errors: List[ErrorDetail] = Field(default_factory=list)
+    errors: List[Dict[str, Any]] = Field(default_factory=list)
     details: Dict[str, Any] = Field(default_factory=dict)
     correlation_id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     source_response: Dict[str, Any] = Field(default_factory=dict)
@@ -74,6 +98,7 @@ class ApiLinker:
         target_config: Optional[Dict[str, Any]] = None,
         mapping_config: Optional[Dict[str, Any]] = None,
         schedule_config: Optional[Dict[str, Any]] = None,
+        error_handling_config: Optional[Dict[str, Any]] = None,
         log_level: str = "INFO",
         log_file: Optional[str] = None,
     ) -> None:
@@ -88,6 +113,9 @@ class ApiLinker:
         self.scheduler = Scheduler()
         self.auth_manager = AuthManager()
         
+        # Initialize error handling system
+        self.dlq, self.error_recovery_manager, self.error_analytics = create_error_handler()
+        
         # Load configuration if provided
         if config_path:
             self.load_config(config_path)
@@ -101,6 +129,8 @@ class ApiLinker:
                 self.add_mapping(**mapping_config)
             if schedule_config:
                 self.add_schedule(**schedule_config)
+            if error_handling_config:
+                self._configure_error_handling(error_handling_config)
     
     def load_config(self, config_path: str) -> None:
         """
@@ -136,6 +166,10 @@ class ApiLinker:
         
         if "schedule" in config:
             self.add_schedule(**config["schedule"])
+        
+        # Configure error handling if specified
+        if "error_handling" in config:
+            self._configure_error_handling(config["error_handling"])
         
         if "logging" in config:
             log_config = config["logging"]
@@ -224,6 +258,135 @@ class ApiLinker:
         self.logger.info(f"Adding schedule: {type}")
         self.scheduler.add_schedule(type, **kwargs)
     
+    def _configure_error_handling(self, config: Dict[str, Any]) -> None:
+        """
+        Configure the error handling system based on provided configuration.
+        
+        Args:
+            config: Error handling configuration dictionary
+        """
+        self.logger.info("Configuring error handling system")
+        
+        # Configure circuit breakers
+        if "circuit_breakers" in config:
+            for cb_name, cb_config in config["circuit_breakers"].items():
+                failure_threshold = cb_config.get("failure_threshold", 5)
+                reset_timeout = cb_config.get("reset_timeout_seconds", 60)
+                half_open_max_calls = cb_config.get("half_open_max_calls", 1)
+                
+                # Create and register circuit breaker
+                circuit = CircuitBreaker(
+                    name=cb_name,
+                    failure_threshold=failure_threshold,
+                    reset_timeout_seconds=reset_timeout,
+                    half_open_max_calls=half_open_max_calls
+                )
+                
+                self.error_recovery_manager.circuit_breakers[cb_name] = circuit
+                self.logger.debug(f"Configured circuit breaker: {cb_name}")
+        
+        # Configure recovery strategies
+        if "recovery_strategies" in config:
+            for category_name, strategies in config["recovery_strategies"].items():
+                try:
+                    error_category = ErrorCategory[category_name.upper()]
+                    strategy_list = [RecoveryStrategy[s.upper()] for s in strategies]
+                    
+                    self.error_recovery_manager.set_strategy(error_category, strategy_list)
+                    self.logger.debug(f"Configured recovery strategies for {category_name}: {strategies}")
+                    
+                except (KeyError, ValueError) as e:
+                    self.logger.warning(f"Invalid recovery strategy configuration: {str(e)}")
+        
+        # Configure DLQ
+        if "dlq" in config:
+            dlq_dir = config["dlq"].get("directory")
+            if dlq_dir:
+                self.dlq = DeadLetterQueue(dlq_dir)
+                self.error_recovery_manager.dlq = self.dlq
+                self.logger.info(f"Configured Dead Letter Queue at {dlq_dir}")
+    
+    def get_error_analytics(self) -> Dict[str, Any]:
+        """
+        Get error analytics summary.
+        
+        Returns:
+            Dictionary with error statistics
+        """
+        return self.error_analytics.get_summary()
+    
+    def process_dlq(self, operation_type: Optional[str] = None, limit: int = 10) -> Dict[str, Any]:
+        """
+        Process items in the Dead Letter Queue for retry.
+        
+        Args:
+            operation_type: Optional operation type to filter by
+            limit: Maximum number of items to process
+            
+        Returns:
+            Dictionary with processing results
+        """
+        self.logger.info(f"Processing Dead Letter Queue (type={operation_type}, limit={limit})")
+        
+        # Get DLQ items
+        items = self.dlq.get_items(limit=limit)
+        
+        results = {
+            "total_processed": 0,
+            "successful": 0,
+            "failed": 0,
+            "items": []
+        }
+        
+        for item in items:
+            # Skip if not matching the requested operation type
+            if operation_type and item.get("metadata", {}).get("operation_type") != operation_type:
+                continue
+                
+            item_id = item.get("id", "unknown")
+            payload = item.get("payload", {})
+            metadata = item.get("metadata", {})
+            
+            retry_result = {
+                "id": item_id,
+                "success": False,
+                "message": "Operation not retried"
+            }
+            
+            # Determine what type of operation this is and how to retry it
+            if "endpoint" in payload and "source_" in metadata.get("operation_type", ""):
+                # This is a source operation
+                try:
+                    result = self.source.fetch_data(payload.get("endpoint"), payload.get("params"))
+                    retry_result["success"] = True
+                    retry_result["message"] = "Successfully retried source operation"
+                    results["successful"] += 1
+                except Exception as e:
+                    retry_result["message"] = f"Failed to retry source operation: {str(e)}"
+                    results["failed"] += 1
+            
+            elif "endpoint" in payload and "target_" in metadata.get("operation_type", ""):
+                # This is a target operation
+                try:
+                    self.target.send_data(payload.get("endpoint"), payload.get("data"))
+                    retry_result["success"] = True
+                    retry_result["message"] = "Successfully retried target operation"
+                    results["successful"] += 1
+                except Exception as e:
+                    retry_result["message"] = f"Failed to retry target operation: {str(e)}"
+                    results["failed"] += 1
+            
+            else:
+                # Unknown operation type
+                retry_result["message"] = "Unknown operation type - cannot retry"
+                results["failed"] += 1
+            
+            results["total_processed"] += 1
+            results["items"].append(retry_result)
+        
+        self.logger.info(f"DLQ processing complete: {results['successful']} successful, {results['failed']} failed")
+        return results
+        
     def sync(self, source_endpoint: Optional[str] = None, 
              target_endpoint: Optional[str] = None,
              params: Optional[Dict[str, Any]] = None,
@@ -270,24 +433,47 @@ class ApiLinker:
         # Initialize result object
         sync_result = SyncResult(correlation_id=correlation_id)
         
-        # Fetch data from source with retries
-        source_data, source_error = self._with_retries(
-            operation=lambda: self.source.fetch_data(source_endpoint, params),
-            operation_name=f"fetch from {source_endpoint}",
-            max_retries=max_retries,
-            retry_delay=retry_delay,
-            retry_backoff_factor=retry_backoff_factor,
-            retry_status_codes=retry_status_codes,
-            correlation_id=correlation_id
+        # Get circuit breaker for source endpoint
+        source_circuit_name = f"source_{source_endpoint}"
+        source_cb = self.error_recovery_manager.get_circuit_breaker(source_circuit_name)
+        
+        # Use circuit breaker for source call
+        source_data, source_error = source_cb.execute(
+            lambda: self.source.fetch_data(source_endpoint, params)
         )
         
+        # If circuit breaker failed, try recovery strategies
         if source_error:
-            end_time = time.time()
-            sync_result.duration_ms = int((end_time - start_time) * 1000)
-            sync_result.success = False
-            sync_result.errors.append(source_error)
-            self.logger.error(f"[{correlation_id}] Sync failed: {source_error.message}")
-            return sync_result
+            # Create payload for retry
+            fetch_payload = {
+                "endpoint": source_endpoint,
+                "params": params
+            }
+            
+            # Apply recovery strategies
+            success, result, error = self.error_recovery_manager.handle_error(
+                error=source_error,
+                payload=fetch_payload,
+                operation=lambda p: self.source.fetch_data(p["endpoint"], p["params"]),
+                operation_type=source_circuit_name,
+                max_retries=max_retries,
+                retry_delay=retry_delay,
+                retry_backoff_factor=retry_backoff_factor
+            )
+            
+            if success:
+                source_data = result
+            else:
+                # Record the error for analytics
+                self.error_analytics.record_error(error)
+                
+                # Update result with error details
+                end_time = time.time()
+                sync_result.duration_ms = int((end_time - start_time) * 1000)
+                sync_result.success = False
+                sync_result.errors.append(error.to_dict())
+                self.logger.error(f"[{correlation_id}] Sync failed: {error}")
+                return sync_result
             
         try:
             # Map fields according to configuration
@@ -297,24 +483,47 @@ class ApiLinker:
             source_count = len(source_data) if isinstance(source_data, list) else 1
             sync_result.details["source_count"] = source_count
             
-            # Send data to target with retries
-            target_result, target_error = self._with_retries(
-                operation=lambda: self.target.send_data(target_endpoint, transformed_data),
-                operation_name=f"send to {target_endpoint}",
-                max_retries=max_retries,
-                retry_delay=retry_delay,
-                retry_backoff_factor=retry_backoff_factor,
-                retry_status_codes=retry_status_codes,
-                correlation_id=correlation_id
+            # Get circuit breaker for target endpoint
+            target_circuit_name = f"target_{target_endpoint}"
+            target_cb = self.error_recovery_manager.get_circuit_breaker(target_circuit_name)
+            
+            # Use circuit breaker for target call
+            target_result, target_error = target_cb.execute(
+                lambda: self.target.send_data(target_endpoint, transformed_data)
             )
             
+            # If circuit breaker failed, try recovery strategies
             if target_error:
-                end_time = time.time()
-                sync_result.duration_ms = int((end_time - start_time) * 1000)
-                sync_result.success = False
-                sync_result.errors.append(target_error)
-                self.logger.error(f"[{correlation_id}] Sync failed: {target_error.message}")
-                return sync_result
+                # Create payload for retry
+                send_payload = {
+                    "endpoint": target_endpoint,
+                    "data": transformed_data
+                }
+                
+                # Apply recovery strategies
+                success, result, error = self.error_recovery_manager.handle_error(
+                    error=target_error,
+                    payload=send_payload,
+                    operation=lambda p: self.target.send_data(p["endpoint"], p["data"]),
+                    operation_type=target_circuit_name,
+                    max_retries=max_retries,
+                    retry_delay=retry_delay,
+                    retry_backoff_factor=retry_backoff_factor
+                )
+                
+                if success:
+                    target_result = result
+                else:
+                    # Record the error for analytics
+                    self.error_analytics.record_error(error)
+                    
+                    # Update result with error details
+                    end_time = time.time()
+                    sync_result.duration_ms = int((end_time - start_time) * 1000)
+                    sync_result.success = False
+                    sync_result.errors.append(error.to_dict())
+                    self.logger.error(f"[{correlation_id}] Sync failed: {error}")
+                    return sync_result
                 
             # Update result with success information
             sync_result.count = len(transformed_data) if isinstance(transformed_data, list) else 1
@@ -331,18 +540,24 @@ class ApiLinker:
             return sync_result
             
         except Exception as e:
-            end_time = time.time()
-            error_detail = ErrorDetail(
-                message=str(e),
-                error_type="mapping_error",
-                timestamp=datetime.now().isoformat()
+            # Convert to ApiLinkerError
+            error = ApiLinkerError.from_exception(
+                e,
+                error_category=ErrorCategory.MAPPING,
+                correlation_id=correlation_id,
+                operation_id=f"mapping_{source_endpoint}_to_{target_endpoint}"
             )
             
-            self.logger.error(f"[{correlation_id}] Sync failed during mapping: {str(e)}")
+            # Record the error for analytics
+            self.error_analytics.record_error(error)
             
+            # Update result
+            end_time = time.time()
             sync_result.duration_ms = int((end_time - start_time) * 1000)
             sync_result.success = False
-            sync_result.errors.append(error_detail)
+            sync_result.errors.append(error.to_dict())
+            
+            self.logger.error(f"[{correlation_id}] Sync failed during mapping: {error}")
             
             return sync_result
     

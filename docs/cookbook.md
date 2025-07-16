@@ -48,6 +48,95 @@ all_users = linker.fetch("get_users")
 }
 ```
 
+## Implementing Robust Error Handling
+
+### Problem
+You need reliable API integrations that can handle service outages, rate limiting, and temporary network issues.
+
+### Solution
+Use APILinker's robust error handling and recovery system:
+
+```yaml
+# In your config.yaml
+error_handling:
+  # Configure circuit breakers to prevent cascading failures
+  circuit_breakers:
+    source_customers_api:
+      failure_threshold: 5        # Open circuit after 5 consecutive failures
+      reset_timeout_seconds: 60   # Wait 60 seconds before testing service again
+      half_open_max_calls: 1      # Allow 1 test call in half-open state
+  
+  # Configure error handling strategies by error category
+  recovery_strategies:
+    network:                      # Network connectivity issues
+      - exponential_backoff       # First try with increasing delays
+      - circuit_breaker           # Then use circuit breaker if still failing
+    rate_limit:                   # API rate limiting
+      - exponential_backoff       # Back off and retry
+    server:                       # Server errors (5xx)
+      - exponential_backoff
+      - circuit_breaker
+    timeout:                      # Request timeout errors
+      - exponential_backoff
+  
+  # Configure Dead Letter Queue for failed operations
+  dlq:
+    directory: "./dlq"           # Store failed operations here
+```
+
+### Accessing Error Analytics
+
+```python
+from apilinker import ApiLinker
+
+# Initialize with error handling config
+linker = ApiLinker(config_path="config.yaml")
+
+# Get error statistics
+analytics = linker.get_error_analytics()
+print(f"Recent error rate: {analytics['recent_error_rate']} errors/minute")
+print(f"Most common errors: {analytics['top_errors']}")
+
+# Check for failed operations in DLQ
+items = linker.dlq.get_items(limit=10)
+if items:
+    print(f"Found {len(items)} failed operations in DLQ")
+    
+    # Process specific types of failed operations
+    results = linker.process_dlq(operation_type="source_customers_api")
+    print(f"Processed {results['successful']} items successfully")
+```
+
+### Handling Different Error Types
+
+```python
+from apilinker.core.error_handling import ErrorCategory, RecoveryStrategy
+
+# Configure specific recovery strategies programmatically
+linker.error_recovery_manager.set_strategy(
+    ErrorCategory.RATE_LIMIT,
+    [
+        RecoveryStrategy.EXPONENTIAL_BACKOFF,
+        RecoveryStrategy.SKIP  # Skip rate-limited operations
+    ],
+    operation_type="fetch_users"  # Only for this operation
+)
+
+# Execute with enhanced error handling
+try:
+    result = linker.sync("fetch_users", "create_users")
+    print(f"Synced {result.count} users")
+    
+    # Check if any errors occurred
+    if not result.success:
+        print(f"Completed with {len(result.errors)} errors")
+        for error in result.errors:
+            print(f"- {error['message']}")
+            
+except Exception as e:
+    print(f"Critical error: {str(e)}")
+```
+
 ### Explanation
 The ApiConnector's _handle_pagination method automatically:
 1. Extracts data items from each response using the data_path

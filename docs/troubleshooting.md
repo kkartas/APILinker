@@ -1,6 +1,44 @@
 # Troubleshooting Guide
 
-This guide helps you diagnose and resolve common issues with ApiLinker.
+This guide helps you diagnose and resolve common issues with ApiLinker and explains how to use the robust error handling and recovery system.
+
+## Error Handling & Recovery System
+
+APILinker includes a sophisticated error handling and recovery system to make your API integrations more resilient against common failures. The system includes:
+
+1. **Circuit Breakers** - Prevent cascading failures during service outages
+2. **Dead Letter Queues (DLQ)** - Store failed operations for later retry
+3. **Configurable Recovery Strategies** - Apply different strategies for different error types
+4. **Error Analytics** - Track error patterns and trends
+
+### Using the Error Handling System
+
+The error handling system is configured in your configuration file under the `error_handling` section:
+
+```yaml
+error_handling:
+  # Configure circuit breakers
+  circuit_breakers:
+    source_customer_api:  # Name of the circuit breaker
+      failure_threshold: 5  # Number of failures before opening circuit
+      reset_timeout_seconds: 60  # Seconds to wait before trying again
+      half_open_max_calls: 1  # Max calls allowed in half-open state
+  
+  # Configure recovery strategies by error category
+  recovery_strategies:
+    network:  # Error category
+      - exponential_backoff
+      - circuit_breaker
+    rate_limit:
+      - exponential_backoff
+    server:
+      - circuit_breaker
+      - exponential_backoff
+  
+  # Configure Dead Letter Queue
+  dlq:
+    directory: "./dlq"  # Directory to store failed operations
+```
 
 ## Diagnostic Decision Tree
 
@@ -21,6 +59,7 @@ Start here and follow the branches to diagnose your issue:
    - [Authentication Failed](#authentication-failed)
    - [SSL/Certificate Errors](#ssl-certificate-errors)
    - [Timeout Errors](#timeout-errors)
+   - [Circuit Breaker Open](#circuit-breaker-open)
 
 4. **Mapping Issues**
    - [Missing Fields](#missing-fields)
@@ -31,6 +70,7 @@ Start here and follow the branches to diagnose your issue:
    - [Scheduling Problems](#scheduling-problems)
    - [Memory Usage](#memory-usage)
    - [Performance Problems](#performance-problems)
+   - [DLQ Processing Errors](#dlq-processing-errors)
 
 ## Installation Issues
 
@@ -384,6 +424,101 @@ TypeError: Cannot process input of type: dict
    linker.add_source_processor("get_data", pre_process)
    ```
 
+## API Connection Issues
+
+### Connection Failed
+
+**Symptoms:**
+```
+ConnectionError: Failed to establish connection to api.example.com
+```
+
+**Solutions:**
+1. Check your internet connection
+2. Verify the API is online using a tool like cURL or Postman
+3. Check if the API domain resolves correctly:
+   ```bash
+   ping api.example.com
+   ```
+4. Check for firewall or proxy issues in your environment
+
+### Authentication Failed
+
+**Symptoms:**
+```
+APILinkerError: [AUTHENTICATION] Failed to fetch data: 401 Unauthorized
+```
+
+**Solutions:**
+1. Verify your credentials are correct
+2. Check if the token has expired
+3. Ensure you're using the correct authentication method for the API
+4. Check if your API key has the necessary permissions
+
+### SSL/Certificate Errors
+
+**Symptoms:**
+```
+SSLError: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed
+```
+
+**Solutions:**
+1. Update your CA certificates
+2. If working in a development environment, you can disable verification (not recommended for production):
+   ```python
+   connector.client.verify = False
+   ```
+3. Provide the path to your custom certificate:
+   ```python
+   connector.client.verify = '/path/to/cert.pem'
+   ```
+
+### Timeout Errors
+
+**Symptoms:**
+```
+APILinkerError: [TIMEOUT] Failed to fetch data: Request timed out
+```
+
+**Solutions:**
+1. Increase the timeout in your configuration:
+   ```yaml
+   source:
+     timeout: 60  # Seconds
+   ```
+2. Check if the API endpoint is slow or under heavy load
+3. Consider adding exponential backoff retry strategy:
+   ```yaml
+   error_handling:
+     recovery_strategies:
+       timeout:
+         - exponential_backoff
+   ```
+
+### Circuit Breaker Open
+
+**Symptoms:**
+```
+APILinkerError: Circuit breaker 'source_customer_api' is open
+```
+
+**Solutions:**
+1. Wait for the circuit breaker to reset (typically 60 seconds by default)
+2. Check the health of the API service that's failing
+3. Adjust your circuit breaker configuration if needed:
+   ```yaml
+   error_handling:
+     circuit_breakers:
+       source_customer_api:
+         failure_threshold: 10  # More permissive
+         reset_timeout_seconds: 30  # Quicker reset
+   ```
+4. Use error analytics to diagnose recurring problems:
+   ```python
+   error_stats = linker.get_error_analytics()
+   print(error_stats)
+   ```
+
 ## Runtime Issues
 
 ### Scheduling Problems
@@ -443,6 +578,131 @@ High memory usage or `MemoryError` exceptions.
 3. Implement a custom stream processor for very large datasets.
 
 ### Performance Problems
+
+**Symptoms:**
+- Syncs take longer than expected
+- High memory usage
+- Slow response times
+
+**Solutions:**
+1. Use batch processing for large datasets
+2. Add appropriate indexes to your database
+3. Use pagination for large API responses
+4. Profile your transformers to identify bottlenecks
+5. Consider adding caching for frequently accessed data
+
+## DLQ Processing Errors
+
+**Symptoms:**
+```
+Failed to retry DLQ item: item_id
+```
+
+**Solutions:**
+1. Check the DLQ item's payload and error details:
+   ```python
+   items = linker.dlq.get_items(limit=10)
+   print(items[0])  # Examine the first item
+   ```
+
+2. Process specific types of failed operations:
+   ```python
+   results = linker.process_dlq(operation_type="source_customer_api")
+   print(f"Processed {results['total_processed']} items, {results['successful']} succeeded")
+   ```
+
+3. Manually fix issues and retry:
+   ```python
+   # For specific item
+   linker.dlq.retry_item("item_id", my_operation_function)
+   ```
+
+4. Check the error category distribution to identify patterns:
+   ```python
+   analytics = linker.get_error_analytics()
+   print(analytics["error_counts_by_category"])
+   ```
+
+## Error Handling System Details
+
+### Circuit Breaker Pattern
+
+The circuit breaker pattern prevents cascading failures by temporarily stopping calls to failing services. It has three states:
+
+- **CLOSED** - Normal operation, requests pass through
+- **OPEN** - Service is failing, requests fail fast without calling the service
+- **HALF-OPEN** - Testing if service has recovered with limited requests
+
+Configuration options:
+```yaml
+circuit_breakers:
+  name_of_breaker:
+    failure_threshold: 5      # Failures before opening
+    reset_timeout_seconds: 60 # Time before half-open
+    half_open_max_calls: 1    # Test calls allowed
+```
+
+### Recovery Strategies
+
+APILinker supports these recovery strategies:
+
+- **RETRY** - Simple retry without delay
+- **EXPONENTIAL_BACKOFF** - Retry with increasing delays
+- **CIRCUIT_BREAKER** - Use circuit breaker pattern
+- **FALLBACK** - Use default data instead
+- **SKIP** - Skip the operation
+- **FAIL_FAST** - Fail immediately
+
+Configure by error category:
+```yaml
+recovery_strategies:
+  network:                  # Error category
+    - exponential_backoff   # First strategy
+    - circuit_breaker       # Second strategy
+```
+
+Available error categories:
+- NETWORK - Network connectivity issues
+- AUTHENTICATION - Auth failures
+- VALIDATION - Invalid data
+- TIMEOUT - Request timeouts
+- RATE_LIMIT - API rate limiting
+- SERVER - Server errors (5xx)
+- CLIENT - Client errors (4xx)
+- MAPPING - Data mapping errors
+- PLUGIN - Plugin errors
+- UNKNOWN - Uncategorized errors
+
+### Dead Letter Queue (DLQ)
+
+The DLQ stores failed operations for later analysis and retry. Each entry contains:
+- Error details (category, message, status code)
+- Original payload that caused the failure
+- Timestamp and operation context
+- Correlation ID for tracing
+
+Access DLQ data:
+```python
+# Get failed operations
+items = linker.dlq.get_items(error_category=ErrorCategory.RATE_LIMIT)
+
+# Retry operations
+linker.process_dlq(operation_type="source_customers", limit=10)
+```
+
+### Error Analytics
+
+The error analytics system tracks:
+- Error counts by category
+- Error rates over time
+- Top error types
+
+Access analytics:
+```python
+analytics = linker.get_error_analytics()
+print(f"Error rate: {analytics['recent_error_rate']} errors/minute")
+print(f"Top errors: {analytics['top_errors']}")
+```
 
 **Symptoms:**
 Syncs taking too long to complete.
