@@ -206,18 +206,32 @@ class TestApiConnector:
     @patch("httpx.Client.request")
     def test_http_error_handling(self, mock_request):
         """Test handling of HTTP errors."""
-        # Mock response with error
-        mock_response = MagicMock()
-        mock_response.raise_for_status.side_effect = httpx.HTTPStatusError(
-            "404 Not Found", request=MagicMock(), response=MagicMock(status_code=404)
+        # Create a proper mock request and response
+        mock_req = MagicMock()
+        mock_req.url = "http://example.com/users"
+        mock_req.method = "GET"
+        
+        mock_resp = MagicMock()
+        mock_resp.status_code = 404
+        mock_resp.text = "Not Found"
+        
+        # Create HTTPStatusError with proper request and response
+        http_error = httpx.HTTPStatusError(
+            "404 Not Found", 
+            request=mock_req,
+            response=mock_resp
         )
+        
+        # Mock response object that will raise the HTTP error
+        mock_response = MagicMock()
+        mock_response.raise_for_status.side_effect = http_error
         mock_request.return_value = mock_response
         
         # Set up retry config for faster testing
         self.connector.retry_count = 2
         self.connector.retry_delay = 0
         
-        # Call fetch_data and expect ApiLinkerError instead of httpx.HTTPStatusError
+        # Call fetch_data and expect ApiLinkerError
         with pytest.raises(ApiLinkerError) as exc_info:
             self.connector.fetch_data("list_users")
             

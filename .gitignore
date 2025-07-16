@@ -12,6 +12,7 @@ build/
 .coverage
 htmlcov/
 .pytest_cache/
+dlq
 
 # Documentation
 docs/_build/
@@ -41,9 +42,4 @@ Thumbs.db
 apilinker/core/__pycache__/logger.cpython-311.pyc
 apilinker/core/__pycache__/auth.cpython-311.pyc
 apilinker/core/__pycache__/connector.cpython-311.pyc
-dlq/1752663784_UNKNOWN_unknown.json
-dlq/1752663941_UNKNOWN_unknown.json
-dlq/1752663966_UNKNOWN_unknown.json
-dlq/1752663975_UNKNOWN_unknown.json
-dlq/1752663949_UNKNOWN_unknown.json
-dlq/1752663924_UNKNOWN_unknown.json
+

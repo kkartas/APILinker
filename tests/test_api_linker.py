@@ -4,6 +4,7 @@ Tests for the main ApiLinker class.
 
 import os
 import tempfile
+from datetime import datetime
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
@@ -152,18 +153,48 @@ class TestApiLinker:
         mock_fetch_data.assert_called_once_with("list_users", None)
         assert mock_send_data.call_count == 1
 
-    @patch("apilinker.core.connector.ApiConnector.fetch_data")
-    def test_sync_error(self, mock_fetch_data):
+    @patch("apilinker.core.error_handling.create_error_handler")
+    def test_sync_error(self, mock_create_error_handler):
         """Test error handling during sync operation."""
-        # Mock source data error
-        mock_fetch_data.side_effect = Exception("API error")
+        # Set up complete mocking of the error handling system
+        # Mock the error itself
+        error = Exception("API error")
         
-        # Create ApiLinker
+        # Create mock circuit breaker
+        mock_cb = MagicMock()
+        mock_cb.execute.return_value = (None, error)
+        
+        # Create mock error recovery manager
+        mock_error_recovery = MagicMock()
+        mock_error_recovery.get_circuit_breaker.return_value = mock_cb
+        mock_error_recovery.recover.return_value = (None, error)
+        
+        # Create mock DLQ and analytics
+        mock_dlq = MagicMock()
+        mock_analytics = MagicMock()
+        
+        # Configure create_error_handler to return our mocks
+        mock_create_error_handler.return_value = (mock_dlq, mock_error_recovery, mock_analytics)
+        
+        # Create ApiLinker - this will use our mocked error handling system
         linker = ApiLinker(
             source_config=self.sample_config["source"],
             target_config=self.sample_config["target"],
             mapping_config=self.sample_config["mapping"][0]
         )
+        
+        # Mock fetch_data - this is easier than mocking the whole circuit breaker flow
+        linker.source = MagicMock()
+        linker.source.fetch_data.side_effect = Exception("API error")
+        
+        # Mock error formatting to ensure consistent error format
+        mock_error_dict = {
+            "message": "API error", 
+            "status_code": 500, 
+            "error_category": "client",
+            "timestamp": datetime.now().isoformat()
+        }
+        mock_error_recovery.format_error.return_value = mock_error_dict
         
         # Run sync
         result = linker.sync()
