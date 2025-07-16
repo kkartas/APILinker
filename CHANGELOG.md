@@ -10,6 +10,12 @@
   - Error analytics and monitoring
 - Enhanced error categorization and context tracking
 - Integration with existing retry mechanisms
+- Advanced security features:
+  - Secure credential storage with encryption-at-rest
+  - Request/response encryption options
+  - Fine-grained access control for multi-user environments
+  - Additional OAuth flows: PKCE and Device Flow
+- Added cryptography dependency for enhanced security features
 
 All notable changes to this project will be documented in this file.
 

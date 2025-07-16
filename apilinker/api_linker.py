@@ -28,6 +28,16 @@ from apilinker.core.error_handling import (
 from apilinker.core.logger import setup_logger
 from apilinker.core.mapper import FieldMapper
 from apilinker.core.scheduler import Scheduler
+from apilinker.core.security import (
+    AccessRole,
+    EncryptionLevel,
+    RequestResponseEncryption,
+    SecureCredentialStorage
+)
+from apilinker.core.security_integration import (
+    SecurityManager,
+    integrate_security_with_auth_manager
+)
 
 
 # Legacy error detail class kept for backward compatibility
@@ -99,6 +109,7 @@ class ApiLinker:
         mapping_config: Optional[Dict[str, Any]] = None,
         schedule_config: Optional[Dict[str, Any]] = None,
         error_handling_config: Optional[Dict[str, Any]] = None,
+        security_config: Optional[Dict[str, Any]] = None,
         log_level: str = "INFO",
         log_file: Optional[str] = None,
     ) -> None:
@@ -111,7 +122,13 @@ class ApiLinker:
         self.target: Optional[ApiConnector] = None
         self.mapper = FieldMapper()
         self.scheduler = Scheduler()
+        
+        # Initialize security system
+        self.security_manager = self._initialize_security(security_config)
+        
+        # Initialize auth manager and integrate with security
         self.auth_manager = AuthManager()
+        integrate_security_with_auth_manager(self.security_manager, self.auth_manager)
         
         # Initialize error handling system
         self.dlq, self.error_recovery_manager, self.error_analytics = create_error_handler()
@@ -131,6 +148,8 @@ class ApiLinker:
                 self.add_schedule(**schedule_config)
             if error_handling_config:
                 self._configure_error_handling(error_handling_config)
+            if security_config:
+                self._configure_security(security_config)
     
     def load_config(self, config_path: str) -> None:
         """
@@ -170,6 +189,10 @@ class ApiLinker:
         # Configure error handling if specified
         if "error_handling" in config:
             self._configure_error_handling(config["error_handling"])
+            
+        # Configure security if specified
+        if "security" in config:
+            self._configure_security(config["security"])
         
         if "logging" in config:
             log_config = config["logging"]
@@ -258,6 +281,78 @@ class ApiLinker:
         self.logger.info(f"Adding schedule: {type}")
         self.scheduler.add_schedule(type, **kwargs)
     
+    def _initialize_security(self, config: Optional[Dict[str, Any]] = None) -> SecurityManager:
+        """
+        Initialize the security system based on provided configuration.
+        
+        Args:
+            config: Security configuration dictionary
+            
+        Returns:
+            SecurityManager instance
+        """
+        if not config:
+            config = {}
+            
+        # Extract security configuration
+        master_password = config.get("master_password")
+        storage_path = config.get("credential_storage_path")
+        encryption_level = config.get("encryption_level", "none")
+        encryption_key = config.get("encryption_key")
+        enable_access_control = config.get("enable_access_control", False)
+        
+        # Initialize security manager
+        security_manager = SecurityManager(
+            master_password=master_password,
+            storage_path=storage_path,
+            encryption_level=encryption_level,
+            encryption_key=encryption_key,
+            enable_access_control=enable_access_control
+        )
+        
+        # Set up initial users if access control is enabled
+        if enable_access_control and "users" in config:
+            for user_config in config["users"]:
+                username = user_config.get("username")
+                role = user_config.get("role", "viewer")
+                api_key = user_config.get("api_key")
+                
+                if username:
+                    security_manager.add_user(username, role, api_key)
+        
+        return security_manager
+    
+    def _configure_security(self, config: Dict[str, Any]) -> None:
+        """
+        Configure security features based on provided configuration.
+        
+        Args:
+            config: Security configuration dictionary
+        """
+        self.logger.info("Configuring security features")
+        
+        # Update encryption level if specified
+        if "encryption_level" in config:
+            encryption_level = config["encryption_level"]
+            try:
+                if isinstance(encryption_level, str):
+                    encryption_level = EncryptionLevel[encryption_level.upper()]
+                self.security_manager.request_encryption.encryption_level = encryption_level
+                self.logger.debug(f"Updated encryption level to {encryption_level}")
+            except (KeyError, ValueError):
+                self.logger.warning(f"Invalid encryption level: {encryption_level}")
+        
+        # Add users if specified and access control is enabled
+        if self.security_manager.enable_access_control and "users" in config:
+            for user_config in config["users"]:
+                username = user_config.get("username")
+                role = user_config.get("role", "viewer")
+                api_key = user_config.get("api_key")
+                
+                if username:
+                    self.security_manager.add_user(username, role, api_key)
+                    self.logger.debug(f"Added user {username} with role {role}")
+    
     def _configure_error_handling(self, config: Dict[str, Any]) -> None:
         """
         Configure the error handling system based on provided configuration.
@@ -314,6 +409,77 @@ class ApiLinker:
             Dictionary with error statistics
         """
         return self.error_analytics.get_summary()
+    
+    def add_user(self, username: str, role: str, api_key: Optional[str] = None) -> Dict[str, Any]:
+        """
+        Add a user to the system with specified role.
+        
+        Args:
+            username: Username to identify the user
+            role: Access role (admin, operator, viewer, developer)
+            api_key: Optional API key for authentication
+            
+        Returns:
+            User data including generated API key if not provided
+        """
+        if not self.security_manager.enable_access_control:
+            raise ValueError("Access control is not enabled. Enable it in the security configuration.")
+        
+        return self.security_manager.add_user(username, role, api_key)
+    
+    def list_users(self) -> List[Dict[str, Any]]:
+        """
+        List all users in the system.
+        
+        Returns:
+            List of user data dictionaries
+        """
+        if not self.security_manager.enable_access_control:
+            raise ValueError("Access control is not enabled. Enable it in the security configuration.")
+        
+        users = []
+        for username in self.security_manager.access_control.users:
+            user_data = self.security_manager.access_control.get_user(username)
+            # Remove sensitive data like API key
+            if "api_key" in user_data:
+                user_data["api_key"] = "*" * 8  # Mask API key
+            users.append(user_data)
+            
+        return users
+    
+    def store_credential(self, name: str, credential_data: Dict[str, Any]) -> bool:
+        """
+        Store API credentials securely.
+        
+        Args:
+            name: Name to identify the credential
+            credential_data: Credential data to store
+            
+        Returns:
+            True if successful, False otherwise
+        """
+        return self.security_manager.store_credential(name, credential_data)
+    
+    def get_credential(self, name: str) -> Optional[Dict[str, Any]]:
+        """
+        Get stored API credentials.
+        
+        Args:
+            name: Name of the credential
+            
+        Returns:
+            Credential data if found, None otherwise
+        """
+        return self.security_manager.get_credential(name)
+    
+    def list_credentials(self) -> List[str]:
+        """
+        List available credential names.
+        
+        Returns:
+            List of credential names
+        """
+        return self.security_manager.list_credentials()
     
     def process_dlq(self, operation_type: Optional[str] = None, limit: int = 10) -> Dict[str, Any]:
         """
@@ -437,10 +603,38 @@ class ApiLinker:
         source_circuit_name = f"source_{source_endpoint}"
         source_cb = self.error_recovery_manager.get_circuit_breaker(source_circuit_name)
         
-        # Use circuit breaker for source call
-        source_data, source_error = source_cb.execute(
-            lambda: self.source.fetch_data(source_endpoint, params)
-        )
+        # Check if user has permission for this operation
+        if self.security_manager.enable_access_control:
+            current_user = getattr(self, "current_user", None)
+            if current_user and not self.security_manager.check_permission(current_user, "run_sync"):
+                raise PermissionError(f"User {current_user} does not have permission to run sync operations")
+        
+        # Use circuit breaker for source call with encryption if enabled
+        if self.security_manager.request_encryption.encryption_level != EncryptionLevel.NONE:
+            # Create a wrapper function that encrypts request and decrypts response
+            def secure_fetch():
+                # Prepare headers and body for encryption
+                headers = {}
+                if self.source and hasattr(self.source, "client") and hasattr(self.source.client, "headers"):
+                    headers = self.source.client.headers
+                    
+                # Encrypt headers and params
+                encrypted_headers, encrypted_params = self.security_manager.encrypt_request(
+                    headers, params or {}
+                )
+                
+                # Use encrypted data for the request
+                result = self.source.fetch_data(source_endpoint, encrypted_params)
+                
+                # We don't decrypt the response here as it's handled separately
+                return result
+                
+            source_data, source_error = source_cb.execute(secure_fetch)
+        else:
+            # Standard non-encrypted call
+            source_data, source_error = source_cb.execute(
+                lambda: self.source.fetch_data(source_endpoint, params)
+            )
         
         # If circuit breaker failed, try recovery strategies
         if source_error:
@@ -487,10 +681,32 @@ class ApiLinker:
             target_circuit_name = f"target_{target_endpoint}"
             target_cb = self.error_recovery_manager.get_circuit_breaker(target_circuit_name)
             
-            # Use circuit breaker for target call
-            target_result, target_error = target_cb.execute(
-                lambda: self.target.send_data(target_endpoint, transformed_data)
-            )
+            # Use circuit breaker for target call with encryption if enabled
+            if self.security_manager.request_encryption.encryption_level != EncryptionLevel.NONE:
+                # Create a wrapper function that encrypts request and decrypts response
+                def secure_send():
+                    # Prepare headers for encryption
+                    headers = {}
+                    if self.target and hasattr(self.target, "client") and hasattr(self.target.client, "headers"):
+                        headers = self.target.client.headers
+                        
+                    # Encrypt headers and body
+                    encrypted_headers, encrypted_data = self.security_manager.encrypt_request(
+                        headers, transformed_data
+                    )
+                    
+                    # Use encrypted data for the request
+                    result = self.target.send_data(target_endpoint, encrypted_data)
+                    
+                    # We don't decrypt the response here as it's handled separately
+                    return result
+                    
+                target_result, target_error = target_cb.execute(secure_send)
+            else:
+                # Standard non-encrypted call
+                target_result, target_error = target_cb.execute(
+                    lambda: self.target.send_data(target_endpoint, transformed_data)
+                )
             
             # If circuit breaker failed, try recovery strategies
             if target_error:
@@ -528,7 +744,22 @@ class ApiLinker:
             # Update result with success information
             sync_result.count = len(transformed_data) if isinstance(transformed_data, list) else 1
             sync_result.success = True
-            sync_result.target_response = target_result if isinstance(target_result, dict) else {}
+            
+            # Decrypt target response if encryption is enabled
+            if self.security_manager.request_encryption.encryption_level != EncryptionLevel.NONE and target_result:
+                # Extract headers and body from target response
+                response_headers = {}
+                response_body = target_result
+                
+                # Decrypt the response
+                _, decrypted_body = self.security_manager.decrypt_response(
+                    response_headers, response_body
+                )
+                
+                # Use decrypted data
+                sync_result.target_response = decrypted_body if isinstance(decrypted_body, dict) else {}
+            else:
+                sync_result.target_response = target_result if isinstance(target_result, dict) else {}
             
             # Calculate duration
             end_time = time.time()

@@ -22,7 +22,8 @@
 - 🔄 **Universal Connectivity** - Connect any two REST APIs with simple configuration
 - 🗺️ **Powerful Mapping** - Transform data between APIs with field mapping and path expressions
 - 📊 **Data Transformation** - Apply built-in or custom transformations to your data
-- 🔒 **Comprehensive Authentication** - Support for API Key, Bearer Token, Basic Auth, and OAuth2
+- 🔒 **Advanced Authentication & Security** - Support for API Key, Bearer Token, Basic Auth, and multiple OAuth2 flows (including PKCE and Device Flow)
+- 🔒 **Enterprise-Grade Security** - Secure credential storage, request/response encryption, and role-based access control
 - 📝 **Flexible Configuration** - Use YAML/JSON or configure programmatically in Python
 - 🕒 **Automated Scheduling** - Run syncs once, on intervals, or using cron expressions
 - 📋 **Data Validation** - Validate data with schemas and custom rules
@@ -30,6 +31,47 @@
 - 📈 **Pagination Handling** - Automatic handling of paginated API responses
 - 🔍 **Robust Error Handling** - Circuit breakers, Dead Letter Queues (DLQ), and configurable recovery strategies
 - 📦 **Minimal Dependencies** - Lightweight core with minimal external requirements
+
+## Security
+
+APILinker provides enterprise-grade security features to protect your API credentials and data:
+
+### Secure Credential Storage
+
+```python
+# Store credentials securely with encryption-at-rest
+linker.store_credential("github_api", {
+    "token": "your-api-token"
+})
+
+# Retrieve when needed
+cred = linker.get_credential("github_api")
+```
+
+### Request/Response Encryption
+
+```yaml
+# In your config.yaml
+security:
+  encryption_level: "full"  # Options: none, headers_only, body_only, full
+```
+
+### Role-Based Access Control
+
+```python
+# Enable multi-user access with different permission levels
+linker = ApiLinker(
+    security_config={
+        "enable_access_control": True,
+        "users": [
+            {"username": "admin1", "role": "admin"},
+            {"username": "viewer1", "role": "viewer"}
+        ]
+    }
+)
+```
+
+For more details, see the [Security Documentation](docs/security.md).
 
 ## 📋 Table of Contents
 

@@ -14,7 +14,7 @@ authors:
 affiliations:
   - name: Independent Researcher
     index: 1
-date: 14 July 2025
+date: 16 July 2025
 bibliography: paper.bib
 ---
 
@@ -32,16 +32,26 @@ ApiLinker addresses these needs by providing:
 
 1. A configuration-driven approach that eliminates repetitive boilerplate code
 2. Flexible field mapping with support for nested structures and data transformations
-3. Multiple authentication methods (API Key, Bearer Token, Basic Auth, OAuth2)
-4. Built-in pagination handling, retry logic, and error management
-5. Scheduling capabilities for recurring data synchronization
-6. An extensible plugin architecture for custom connectors and transformations
+3. Advanced authentication and security features including multiple OAuth flows, secure credential storage, and request encryption
+4. Enterprise-grade error handling with circuit breakers and dead letter queues
+5. Built-in pagination handling, retry logic, and robust error management
+6. Scheduling capabilities for recurring data synchronization
+7. An extensible plugin architecture for custom connectors and transformations
 
 By reducing integration complexity to a declarative configuration, ApiLinker enables developers, researchers and data scientists to focus on their domain-specific problems rather than the mechanics of API integration.
 
 # Core Features
 
 ApiLinker is built with a modular architecture that separates concerns into logical components:
+
+## Security Features
+
+APILinker provides enterprise-grade security capabilities critical for handling sensitive data:
+
+- **Secure Credential Storage**: Encryption-at-rest for API credentials using symmetric encryption
+- **Advanced OAuth Support**: Implementation of modern OAuth flows including PKCE (for mobile/SPA) and Device Flow (for IoT/CLI)
+- **Request/Response Encryption**: Configurable encryption levels for API communications
+- **Role-Based Access Control**: Fine-grained permissions for multi-user environments
 
 ## API Connectors
 
