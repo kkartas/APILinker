@@ -1,0 +1,23 @@
+{
+  "id": "1752664091_UNKNOWN_unknown",
+  "timestamp": "2025-07-16T14:08:11.817265",
+  "error": {
+    "message": "API error",
+    "error_category": "UNKNOWN",
+    "status_code": null,
+    "response_body": null,
+    "request_url": null,
+    "request_method": null,
+    "timestamp": "2025-07-16T14:08:11.817265",
+    "operation_id": "source_list_users_retry_2",
+    "correlation_id": null,
+    "additional_context": {}
+  },
+  "payload": {
+    "endpoint": "list_users",
+    "params": null
+  },
+  "metadata": {
+    "operation_type": "source_list_users"
+  }
+}

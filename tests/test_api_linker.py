@@ -173,7 +173,7 @@ class TestApiLinker:
         assert result.success is False
         assert result.count == 0
         assert len(result.errors) == 1
-        assert "API error" in result.errors[0].message
+        assert "API error" in result.errors[0]["message"]
 
     def test_sync_missing_connectors(self):
         """Test sync operation with missing connectors."""

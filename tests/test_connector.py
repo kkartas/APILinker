@@ -12,6 +12,7 @@ import pytest
 
 from apilinker.core.auth import AuthConfig, ApiKeyAuth
 from apilinker.core.connector import ApiConnector, EndpointConfig
+from apilinker.core.error_handling import ApiLinkerError, ErrorCategory
 
 
 class TestApiConnector:
@@ -216,9 +217,14 @@ class TestApiConnector:
         self.connector.retry_count = 2
         self.connector.retry_delay = 0
         
-        # Call fetch_data and expect exception
-        with pytest.raises(httpx.HTTPStatusError):
+        # Call fetch_data and expect ApiLinkerError instead of httpx.HTTPStatusError
+        with pytest.raises(ApiLinkerError) as exc_info:
             self.connector.fetch_data("list_users")
+            
+        # Verify the error category and status code
+        error = exc_info.value
+        assert error.error_category == ErrorCategory.CLIENT
+        assert error.status_code == 404
         
         # Verify the request was retried
         assert mock_request.call_count == 2
