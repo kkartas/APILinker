@@ -206,13 +206,13 @@ class EthicalResearcher:
 ## 📞 Research Community
 
 ### Getting Help
-- **[GitHub Discussions](https://github.com/yourusername/apilinker/discussions)** - Research-specific questions
+- **[GitHub Discussions](https://github.com/kkartas/apilinker/discussions)** - Research-specific questions
 - **[Research Slack Channel](https://apilinker-research.slack.com)** - Real-time collaboration
 - **[Office Hours](https://calendly.com/apilinker-research)** - Weekly research support
 
 ### Contributing to Research Features
-- **[Research Roadmap](https://github.com/yourusername/apilinker/projects/research)** - Planned research features
-- **[Connector Requests](https://github.com/yourusername/apilinker/issues?q=label%3Aresearch-connector)** - Request new scientific APIs
+- **[Research Roadmap](https://github.com/kkartas/apilinker/projects/research)** - Planned research features
+- **[Connector Requests](https://github.com/kkartas/apilinker/issues?q=label%3Aresearch-connector)** - Request new scientific APIs
 - **[Example Contributions](../CONTRIBUTING.md#research-examples)** - Share your research workflows
 
 ### Research Collaboration
@@ -231,7 +231,7 @@ If you use ApiLinker in your research, please cite:
   title={ApiLinker: A Universal Bridge for Scientific API Integration},
   author={Your Name},
   year={2024},
-  url={https://github.com/yourusername/apilinker},
+  url={https://github.com/kkartas/apilinker},
   version={1.0.4}
 }
 ```

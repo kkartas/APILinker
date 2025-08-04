@@ -6,7 +6,7 @@ source:
     token: ${GITHUB_TOKEN}
   endpoints:
     list_issues:
-      path: /repos/yourusername/your-repo/issues
+      path: /repos/kkartas/apilinker/issues
       method: GET
       params:
         state: all

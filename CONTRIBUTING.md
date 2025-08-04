@@ -101,7 +101,7 @@ By participating in this project, you agree to abide by our Code of Conduct. Ple
 
 ## Creating Plugins
 
-ApiLinker supports plugins for custom connectors, transformers, and authentication methods. See the [Plugin Development Guide](https://yourusername.github.io/apilinker/guide/plugins) for details on creating plugins.
+ApiLinker supports plugins for custom connectors, transformers, and authentication methods. See the [Plugin Development Guide](https://kkartas.github.io/apilinker/guide/plugins) for details on creating plugins.
 
 ## Documentation
 

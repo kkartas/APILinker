@@ -15,7 +15,7 @@ For development, clone the repository and install in development mode:
 
 .. code-block:: bash
 
-    git clone https://github.com/yourusername/APILinker.git
+    git clone https://github.com/kkartas/APILinker.git
     cd APILinker
     pip install -e ".[dev]"
 

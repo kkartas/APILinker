@@ -4,8 +4,8 @@
 
 [![PyPI version](https://badge.fury.io/py/apilinker.svg)](https://badge.fury.io/py/apilinker)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Tests](https://github.com/yourusername/apilinker/workflows/Tests/badge.svg)](https://github.com/yourusername/apilinker/actions)
-[![Documentation Status](https://img.shields.io/badge/docs-latest-brightgreen.svg)](https://yourusername.github.io/apilinker)
+[![Tests](https://github.com/kkartas/apilinker/workflows/Tests/badge.svg)](https://github.com/kkartas/apilinker/actions)
+[![Documentation Status](https://img.shields.io/badge/docs-latest-brightgreen.svg)](https://kkartas.github.io/apilinker)
 
 ## What is ApiLinker?
 
@@ -139,4 +139,4 @@ print(f"Synced {result.count} items")
 
 ## License
 
-ApiLinker is released under the MIT License. See the [LICENSE](https://github.com/yourusername/apilinker/blob/main/LICENSE) file for details.
+ApiLinker is released under the MIT License. See the [LICENSE](https://github.com/kkartas/apilinker/blob/main/LICENSE) file for details.
