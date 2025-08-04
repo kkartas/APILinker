@@ -7,8 +7,9 @@ Welcome to ApiLinker's research-focused documentation. This section is specifica
 New to ApiLinker? Start here:
 
 1. **[Research Getting Started Tutorial](tutorials/research_getting_started.md)** - Perfect first step for researchers
-2. **[Scientific Connectors Demo](../examples/scientific_connectors_demo.py)** - Try the research features immediately
-3. **[Research Workflow Examples](../examples/scientific_research_workflow.py)** - Copy-paste research code
+2. **[Comprehensive Research Examples](../examples/comprehensive_research_examples.py)** - All 8 connectors in action
+3. **[Scientific Connectors Demo](../examples/scientific_connectors_demo.py)** - Basic connector usage
+4. **[Research Workflow Examples](../examples/scientific_research_workflow.py)** - Domain-specific workflows
 
 ## 📚 Comprehensive Guides
 
@@ -28,8 +29,22 @@ New to ApiLinker? Start here:
 ## 🛠️ Technical Resources
 
 ### API Connectors
-- **[NCBI Connector](../apilinker/connectors/scientific/ncbi.py)** - PubMed, GenBank, and more
+
+#### 🔬 Scientific Literature & Citation Data
+- **[NCBI Connector](../apilinker/connectors/scientific/ncbi.py)** - PubMed, GenBank, ClinVar
 - **[arXiv Connector](../apilinker/connectors/scientific/arxiv.py)** - Academic preprint repository
+- **[CrossRef Connector](../apilinker/connectors/scientific/crossref.py)** - Citation data and DOI resolution
+- **[Semantic Scholar Connector](../apilinker/connectors/scientific/semantic_scholar.py)** - AI-powered academic search
+
+#### 🧪 Chemical & Biological Data
+- **[PubChem Connector](../apilinker/connectors/scientific/pubchem.py)** - Chemical compounds and bioassays
+- **[ORCID Connector](../apilinker/connectors/scientific/orcid.py)** - Researcher profiles and credentials
+
+#### 💻 Code & Implementation Research
+- **[GitHub Connector](../apilinker/connectors/general/github.py)** - Code repositories and collaboration analysis
+- **[NASA Connector](../apilinker/connectors/general/nasa.py)** - Earth science and climate data
+
+#### 🔧 Custom Development
 - **[Creating Custom Connectors](../docs/plugins/index.md)** - Build your own research connectors
 
 ### Research Patterns
@@ -42,17 +57,36 @@ New to ApiLinker? Start here:
 
 ### Quick Research Tasks (5-10 minutes)
 ```python
-# Literature search across databases
-from apilinker import NCBIConnector, ArXivConnector
+# Multi-connector research across 8 databases
+from apilinker import (
+    NCBIConnector, ArXivConnector, SemanticScholarConnector,
+    PubChemConnector, GitHubConnector, ORCIDConnector
+)
 
+# Initialize connectors
 ncbi = NCBIConnector(email="researcher@university.edu")
 arxiv = ArXivConnector()
+semantic = SemanticScholarConnector()
+pubchem = PubChemConnector()
+github = GitHubConnector()
 
-topic = "quantum computing"
+topic = "machine learning drug discovery"
+
+# Multi-platform search
 pubmed_papers = ncbi.search_pubmed(topic, max_results=20)
 arxiv_papers = arxiv.search_papers(topic, max_results=20)
+ai_papers = semantic.search_papers(topic, max_results=20)
+compounds = pubchem.search_compounds("machine learning")
+code_repos = github.search_repositories(topic, max_results=10)
 
-print(f"Total papers: {len(pubmed_papers.get('esearchresult', {}).get('idlist', []))} + {len(arxiv_papers)}")
+total_resources = (
+    len(pubmed_papers.get('esearchresult', {}).get('idlist', [])) +
+    len(arxiv_papers) + 
+    len(ai_papers.get('data', [])) +
+    len(code_repos.get('items', []))
+)
+
+print(f"Found {total_resources} resources across multiple platforms")
 ```
 
 ### Comprehensive Research Workflows (30+ minutes)
@@ -137,16 +171,18 @@ class EthicalResearcher:
 
 ## 🏆 Success Stories
 
-### Published Research Using ApiLinker
-- **Cross-Domain Literature Analysis** - "Computational Methods in Biology" (Nature Methods, 2024)
-- **Research Trend Prediction** - "AI in Healthcare: A Longitudinal Study" (Science, 2024)
-- **Collaboration Network Study** - "Global Research Partnerships" (PNAS, 2024)
+### Example Use Cases
+- **Cross-Domain Literature Analysis** - Combining multiple research databases
+- **Research Trend Prediction** - Analyzing patterns across literature sources
+- **Collaboration Network Study** - Mapping researcher connections
 
-### Research Institutions
-- **Stanford University** - Genomics research automation
-- **MIT** - AI research trend analysis  
-- **Harvard Medical School** - Clinical research integration
-- **CERN** - Physics collaboration network analysis
+### Potential Applications
+- **Academic Institutions** - Automated research workflows
+- **Research Organizations** - Large-scale literature analysis  
+- **Medical Research** - Clinical research integration
+- **Scientific Computing** - Reproducible research pipelines
+- **Environmental Research** - Climate data integration
+- **Pharmaceutical Research** - Drug discovery data mining
 
 ## 📞 Research Community
 

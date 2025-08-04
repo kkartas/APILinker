@@ -498,62 +498,83 @@ def phone_formatter(value):
 linker.mapper.register_transformer("phone_formatter", phone_formatter)
 ```
 
-## 🧬 Scientific Research Connectors
+## 🧬 Comprehensive Research Connector Ecosystem
 
-ApiLinker includes specialized connectors for common research APIs, making it easy to integrate scientific data sources:
+ApiLinker includes **8 specialized research connectors** covering scientific literature, chemical data, researcher profiles, code repositories, and more:
 
-### NCBI Connector (PubMed, GenBank)
+### 🔬 Scientific Literature & Data
+- **NCBI (PubMed, GenBank)** - Biomedical literature and genetic sequences
+- **arXiv** - Academic preprints across all sciences  
+- **CrossRef** - Citation data and DOI resolution
+- **Semantic Scholar** - AI-powered academic search with citation analysis
+
+### 🧪 Chemical & Biological Data
+- **PubChem** - Chemical compounds, bioassays, and drug discovery data
+- **ORCID** - Researcher profiles and academic credentials
+
+### 💻 Code & Implementation Research
+- **GitHub** - Code repositories, contribution analysis, and software research
+- **NASA** - Earth science, climate data, and space research
+
+### Quick Start with Multiple Connectors
 
 ```python
-from apilinker import NCBIConnector
+from apilinker import (
+    NCBIConnector, ArXivConnector, CrossRefConnector, 
+    SemanticScholarConnector, PubChemConnector, ORCIDConnector,
+    GitHubConnector, NASAConnector
+)
 
-# Search biomedical literature
+# Initialize research connectors
 ncbi = NCBIConnector(email="researcher@university.edu")
-papers = ncbi.search_pubmed("CRISPR gene editing", max_results=50)
-
-# Get article summaries
-pubmed_ids = papers['esearchresult']['idlist']
-summaries = ncbi.get_article_summaries(pubmed_ids[:10])
-
-# Search genetic sequences
-sequences = ncbi.search_genbank("BRCA1 Homo sapiens", max_results=20)
-```
-
-### arXiv Connector (Academic Preprints)
-
-```python
-from apilinker import ArXivConnector
-
-# Search computer science papers
 arxiv = ArXivConnector()
-ml_papers = arxiv.search_papers("machine learning", max_results=100)
+semantic = SemanticScholarConnector(api_key="optional")
+pubchem = PubChemConnector()
+github = GitHubConnector(token="optional")
 
-# Get papers by specific author
-author_papers = arxiv.search_by_author("Geoffrey Hinton")
+# Cross-platform drug discovery research
+topic = "BRCA1 inhibitors"
 
-# Monitor recent papers in AI
-recent_ai = arxiv.search_recent_papers("cs.AI", days_back=7, max_results=50)
+# Literature search
+pubmed_papers = ncbi.search_pubmed(topic, max_results=50)
+ai_papers = semantic.search_papers(f"machine learning {topic}", max_results=30)
+
+# Chemical compound analysis  
+compounds = pubchem.search_compounds("BRCA1 inhibitor")
+
+# Implementation code
+github_repos = github.search_repositories(f"{topic} drug discovery", language="Python")
+
+print(f"PubMed papers: {len(pubmed_papers.get('esearchresult', {}).get('idlist', []))}")
+print(f"AI/ML papers: {len(ai_papers.get('data', []))}")
+print(f"GitHub repositories: {len(github_repos.get('items', []))}")
 ```
 
-### Cross-Database Research Workflows
+### Interdisciplinary Research Workflows
 
 ```python
-from apilinker import ApiLinker, NCBIConnector, ArXivConnector
+from apilinker import ApiLinker
 
-# Create integrated research workflow
+# Climate science + AI research
 linker = ApiLinker()
 
-# Search both databases for the same topic
-topic = "neural network protein folding"
-ncbi = NCBIConnector(email="researcher@university.edu")
+# Combine NASA climate data with arXiv ML papers
+nasa = NASAConnector(api_key="nasa_key")
 arxiv = ArXivConnector()
 
-biomedical_papers = ncbi.search_pubmed(topic, max_results=50)
-cs_papers = arxiv.search_papers(topic, max_results=50)
+# Get earth observation data
+climate_data = nasa.get_earth_imagery(lat=40.7128, lon=-74.0060)
 
-# Analyze interdisciplinary research opportunities
-print(f"Biomedical papers: {len(biomedical_papers.get('esearchresult', {}).get('idlist', []))}")
-print(f"Computer science papers: {len(cs_papers)}")
+# Find AI methods for climate analysis
+ml_climate_papers = arxiv.search_papers("machine learning climate", max_results=100)
+
+# Researcher collaboration analysis
+orcid = ORCIDConnector()
+climate_researchers = orcid.search_by_research_area(["climate science", "machine learning"])
+
+print(f"Climate data sources: {len(climate_data)}")
+print(f"ML climate papers: {len(ml_climate_papers)}")
+print(f"Researchers found: {len(climate_researchers.get('result', []))}")
 ```
 
 ## 📊 Examples
