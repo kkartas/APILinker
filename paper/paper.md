@@ -123,23 +123,23 @@ The package is designed for both programmatic use as a library and as a command-
 
 # Research Applications
 
-ApiLinker is particularly valuable for research applications where data must be collected from multiple sources with different APIs. Our evaluation with 12 research teams across 4 institutions demonstrated significant benefits:
+ApiLinker addresses common challenges in research computing where data must be collected from multiple sources with different APIs. The software's design principles directly support reproducible research workflows:
 
-1. **Reproducible Data Pipelines**: In a bioinformatics study integrating genomic data from three different repositories (NCBI, EBI, and DDBJ), ApiLinker reduced code complexity by 68% compared to custom integration scripts while ensuring complete reproducibility through configuration files [@Wilkinson2016].
+1. **Reproducible Data Pipelines**: Configuration-driven approach ensures that API integration workflows can be versioned, shared, and exactly reproduced. Unlike custom scripts that often contain hardcoded parameters, ApiLinker's YAML configurations provide a declarative specification that can be archived alongside research data [@Wilkinson2016].
 
-2. **Time Efficiency**: Researchers working with climate data APIs reported an average 73% reduction in development time (from 2.5 weeks to 3.7 days) when using ApiLinker compared to building custom integrations for collecting and normalizing data from multiple weather stations.
+2. **Reduced Development Overhead**: By abstracting common API patterns (authentication, pagination, rate limiting, error handling), researchers can focus on domain-specific analysis rather than infrastructure code. The declarative configuration eliminates much of the boilerplate code typically required for API integrations.
 
-3. **Error Reduction**: In a social media analysis project tracking public health sentiment across Twitter, Facebook, and Reddit APIs, ApiLinker's validation mechanisms reduced data processing errors by 45% compared to manual integration methods.
+3. **Error Resilience**: Built-in retry mechanisms, circuit breakers, and dead letter queues provide robust handling of transient API failures that commonly occur in long-running data collection workflows.
 
-4. **Longitudinal Data Collection**: For a 6-month ecological field study, ApiLinker's scheduling and pagination handling successfully maintained consistent data collection from sensor APIs with 99.7% uptime, compared to 92.3% with previous custom scripts.
+4. **Scheduling and Automation**: Native support for interval and cron-based scheduling enables automated data collection without external dependencies, critical for longitudinal studies and real-time monitoring applications.
 
-5. **Cross-Domain Integration**: Researchers studying correlations between economic indicators and public health metrics successfully integrated data from 7 different APIs with incompatible data models using ApiLinker's transformer plugins, reducing pre-processing time from 40% of the project timeline to 12%.
+5. **Cross-Domain Flexibility**: The plugin architecture and transformer system support diverse data formats and API patterns commonly encountered in interdisciplinary research, from bioinformatics repositories to climate monitoring networks.
 
-By providing a standardized approach to API integration, ApiLinker helps ensure that research data pipelines are maintainable, reproducible, and adaptable to changing API specifications.
+The standardized approach to API integration helps ensure that research data pipelines remain maintainable and adaptable as API specifications evolve over time.
 
 # Comparison with Existing Tools
 
-We performed a comparative evaluation of ApiLinker against other integration tools commonly used in research settings:
+ApiLinker occupies a unique position in the API integration ecosystem, balancing simplicity with research-specific requirements:
 
 | Feature | ApiLinker | Apache Airflow | Zapier | n8n |
 |---------|-----------|----------------|--------|-----|
@@ -148,19 +148,22 @@ We performed a comparative evaluation of ApiLinker against other integration too
 | Open source | ✓ | ✓ | ✗ | Partial |
 | Local deployment | ✓ | ✓ | ✗ | ✓ |
 | Minimal dependencies | ✓ | ✗ | N/A | ✗ |
-| Authentication variety | 5 methods | 2 methods | 4 methods | 3 methods |
-| Learning curve (1-10) | 3 | 7 | 2 | 4 |
+| Python-native library | ✓ | ✓ | ✗ | ✗ |
+| Research workflow focus | ✓ | Partial | ✗ | ✗ |
 
-When benchmarking a standard GitHub-to-GitLab issue migration task:
-- **ApiLinker**: 47 lines of configuration/code, 1.2s average processing per issue
-- **Apache Airflow**: 124 lines of configuration/code, 1.8s average processing per issue
-- **Custom Python script**: 86 lines of code, 1.5s average processing per issue
+**Distinctive advantages** for research applications:
+- **Minimal infrastructure**: Unlike Airflow's complex architecture, ApiLinker runs as a simple Python library
+- **Configuration reproducibility**: YAML configurations can be version-controlled and shared with research data
+- **Embedded usage**: Designed to be imported and used within existing research codebases
+- **Research-oriented features**: Built-in support for common research patterns like pagination, retry logic, and data validation
 
 # Conclusion
 
-ApiLinker fills a significant gap in the open-source ecosystem by providing a flexible, configuration-driven approach to REST API integration. Through quantitative evaluation across multiple research domains, we demonstrated that ApiLinker reduces development time by an average of 65%, decreases code complexity by 57%, and improves maintainability scores by 3.2x compared to custom integration code. 
+ApiLinker fills a significant gap in the open-source ecosystem by providing a flexible, configuration-driven approach to REST API integration specifically designed for research workflows. The software addresses common pain points in research computing: the need for reproducible data pipelines, minimal infrastructure dependencies, and robust handling of the diverse API patterns encountered in interdisciplinary research.
 
-By abstracting common integration patterns into a declarative model with strong typing, validation, and error handling, ApiLinker enables researchers to focus on their domain-specific analyses rather than the mechanics of API communication. The plugin architecture ensures adaptability to new API types and transformation requirements without modifying the core codebase.
+By abstracting common integration patterns into a declarative configuration model with strong typing, validation, and error handling, ApiLinker enables researchers to focus on their domain-specific analyses rather than the mechanics of API communication. The plugin architecture ensures adaptability to new API types and transformation requirements without modifying the core codebase, supporting the evolving needs of research communities.
+
+The software's design principles—reproducibility, simplicity, and extensibility—align with the broader goals of open science and FAIR data principles, making it a valuable tool for researchers who need reliable, maintainable API integration solutions.
 
 # Acknowledgements
 

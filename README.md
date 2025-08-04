@@ -30,6 +30,7 @@
 - 🔌 **Plugin Architecture** - Extend with custom connectors, transformers, and authentication methods
 - 📈 **Pagination Handling** - Automatic handling of paginated API responses
 - 🔍 **Robust Error Handling** - Circuit breakers, Dead Letter Queues (DLQ), and configurable recovery strategies
+- 🧬 **Scientific Connectors** - Built-in connectors for research APIs (NCBI/PubMed, arXiv) with domain-specific functionality
 - 📦 **Minimal Dependencies** - Lightweight core with minimal external requirements
 
 ## Security
@@ -495,6 +496,64 @@ def phone_formatter(value):
 
 # Register with ApiLinker
 linker.mapper.register_transformer("phone_formatter", phone_formatter)
+```
+
+## 🧬 Scientific Research Connectors
+
+ApiLinker includes specialized connectors for common research APIs, making it easy to integrate scientific data sources:
+
+### NCBI Connector (PubMed, GenBank)
+
+```python
+from apilinker import NCBIConnector
+
+# Search biomedical literature
+ncbi = NCBIConnector(email="researcher@university.edu")
+papers = ncbi.search_pubmed("CRISPR gene editing", max_results=50)
+
+# Get article summaries
+pubmed_ids = papers['esearchresult']['idlist']
+summaries = ncbi.get_article_summaries(pubmed_ids[:10])
+
+# Search genetic sequences
+sequences = ncbi.search_genbank("BRCA1 Homo sapiens", max_results=20)
+```
+
+### arXiv Connector (Academic Preprints)
+
+```python
+from apilinker import ArXivConnector
+
+# Search computer science papers
+arxiv = ArXivConnector()
+ml_papers = arxiv.search_papers("machine learning", max_results=100)
+
+# Get papers by specific author
+author_papers = arxiv.search_by_author("Geoffrey Hinton")
+
+# Monitor recent papers in AI
+recent_ai = arxiv.search_recent_papers("cs.AI", days_back=7, max_results=50)
+```
+
+### Cross-Database Research Workflows
+
+```python
+from apilinker import ApiLinker, NCBIConnector, ArXivConnector
+
+# Create integrated research workflow
+linker = ApiLinker()
+
+# Search both databases for the same topic
+topic = "neural network protein folding"
+ncbi = NCBIConnector(email="researcher@university.edu")
+arxiv = ArXivConnector()
+
+biomedical_papers = ncbi.search_pubmed(topic, max_results=50)
+cs_papers = arxiv.search_papers(topic, max_results=50)
+
+# Analyze interdisciplinary research opportunities
+print(f"Biomedical papers: {len(biomedical_papers.get('esearchresult', {}).get('idlist', []))}")
+print(f"Computer science papers: {len(cs_papers)}")
 ```
 
 ## 📊 Examples
@@ -1002,7 +1061,7 @@ If you use ApiLinker in your research, please cite:
   author = {Kartas, Kyriakos},
   title = {ApiLinker: A Universal Bridge for REST API Integrations},
   url = {https://github.com/kkartas/apilinker},
-  version = {0.2.0},
+  version = {1.0.4},
   year = {2025},
   doi = {10.21105/joss.12345}
 }

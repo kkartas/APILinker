@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.0.4] - 2025-07-22
+
+- Update version to 1.0.4
+
 ## [0.2.0] - 2025-07-16
 
 ### Added
