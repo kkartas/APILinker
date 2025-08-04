@@ -6,17 +6,36 @@ Welcome to ApiLinker's research-focused documentation. This section is specifica
 
 New to ApiLinker? Start here:
 
-1. **[Research Getting Started Tutorial](tutorials/research_getting_started.md)** - Perfect first step for researchers
-2. **[Comprehensive Research Examples](../examples/comprehensive_research_examples.py)** - All 8 connectors in action
-3. **[Scientific Connectors Demo](../examples/scientific_connectors_demo.py)** - Basic connector usage
-4. **[Research Workflow Examples](../examples/scientific_research_workflow.py)** - Domain-specific workflows
+```python
+# Install ApiLinker (includes all 8 research connectors)
+pip install apilinker
+
+# Basic literature search across databases
+from apilinker import NCBIConnector, ArXivConnector
+
+ncbi = NCBIConnector(email="researcher@university.edu")
+arxiv = ArXivConnector()
+
+# Search biomedical literature
+papers = ncbi.search_pubmed("CRISPR gene editing", max_results=50)
+print(f"PubMed papers: {len(papers.get('esearchresult', {}).get('idlist', []))}")
+
+# Search computer science preprints
+ai_papers = arxiv.search_papers("machine learning", max_results=100) 
+print(f"arXiv papers: {len(ai_papers)}")
+```
+
+**Next Steps:**
+1. **[Research Workflows Guide](research_workflows.md)** - Comprehensive domain-specific workflows
+2. **[Comprehensive Examples](../examples/comprehensive_research_examples.py)** - All 8 connectors in action
+3. **[Installation Guide](installation.md)** - Setup with API keys
 
 ## 📚 Comprehensive Guides
 
 ### Core Research Documentation
-- **[Research Workflows](research_workflows.md)** - Complete guide to research automation
-- **[Scientific Use Cases](scientific_use_cases.md)** - Domain-specific research applications  
-- **[Research Examples](examples/research_examples.md)** - Practical code examples across domains
+- **[Research Workflows](research_workflows.md)** - Complete guide with automated monitoring, ethical usage, and reproducible research
+- **[Installation Guide](installation.md)** - Setup all 8 research connectors with API keys
+- **[Configuration Guide](configuration.md)** - Research connector configuration examples
 
 ### Domain-Specific Guides
 - **Bioinformatics & Genomics** - NCBI, GenBank, PubMed integration
