@@ -37,7 +37,7 @@ class ORCIDConnector(ApiConnector):
         # Set up headers
         headers = {
             "Accept": "application/json",
-            "User-Agent": "ApiLinker/1.0.4"
+            "User-Agent": "ApiLinker/0.3.0"
         }
         
         if access_token:

@@ -35,7 +35,7 @@ class CrossRefConnector(ApiConnector):
         
         # Set up headers for polite pool access
         headers = {
-            "User-Agent": f"ApiLinker/1.0.4 (mailto:{email})"
+            "User-Agent": f"ApiLinker/0.3.0 (mailto:{email})"
         }
         
         # Define CrossRef endpoints

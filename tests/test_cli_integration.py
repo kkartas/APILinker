@@ -91,7 +91,7 @@ class TestCLIIntegration:
         # Version command should work (exit code 0)
         assert result.returncode == 0
         output = result.stdout + result.stderr
-        assert "1.0.4" in output and "ApiLinker" in output
+        assert "0.3.0" in output and "ApiLinker" in output
 
     def test_cli_sync_dry_run(self):
         """Test CLI sync with dry-run flag."""

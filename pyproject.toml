@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "apilinker"
-version = "1.0.4"
+version = "0.3.0"
 description = "A universal bridge to connect, map, and automate data transfer between any two REST APIs"
 readme = "README.md"
 authors = [

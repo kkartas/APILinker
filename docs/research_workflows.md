@@ -726,7 +726,7 @@ def create_reproducible_workflow(config_path):
     workflow_metadata = {
         'timestamp': datetime.now().isoformat(),
         'config_hash': config_hash,
-        'apilinker_version': '1.0.4',
+        'apilinker_version': '0.3.0',
         'workflow_id': config_hash[:8]
     }
     

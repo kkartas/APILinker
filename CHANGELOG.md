@@ -1,8 +1,13 @@
 # Changelog
 
-## [1.0.4] - 2025-07-22
+## [0.3.0] - 2025-01-28
 
-- Update version to 1.0.4
+- Updated version to 0.3.0
+- Added 8 research connectors for scientific workflows
+- Comprehensive documentation enhancement and consolidation
+- Enhanced authentication system with multiple methods
+- Improved error handling and testing coverage
+- GitHub URL updates to correct username (kkartas)
 
 ## [0.2.0] - 2025-07-16
 
