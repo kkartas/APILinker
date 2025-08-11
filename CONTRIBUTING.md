@@ -115,11 +115,12 @@ ApiLinker supports plugins for custom connectors, transformers, and authenticati
 # Install docs dependencies
 pip install -e ".[docs]"
 
-# Build the docs
-mkdocs build
+# Build the Sphinx docs
+cd docs/sphinx_setup
+sphinx-build -b html . _build/html
 
-# Serve the docs locally
-mkdocs serve
+# View the docs
+start _build/html/index.html  # On Windows
 ```
 
 ## Reporting Issues

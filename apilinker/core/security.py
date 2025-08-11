@@ -85,13 +85,30 @@ class SecureCredentialStorage:
             self.load()
     
     def _init_cipher(self) -> None:
-        """Initialize encryption cipher from master password."""
+        """Initialize encryption cipher from master password using a persisted random salt."""
         if not self.master_password:
             logger.warning("Cannot initialize encryption without master password")
             return
-            
-        # Generate a key from the password
-        salt = b'apilinker_salt'  # In production, this should be randomly generated and stored
+
+        # Determine salt file path next to the credentials file
+        salt_path = self.storage_path + ".salt"
+
+        # Load or generate random salt
+        try:
+            if os.path.exists(salt_path):
+                with open(salt_path, "rb") as f:
+                    salt = f.read()
+            else:
+                salt = os.urandom(16)
+                # Persist the salt for future derivations
+                with open(salt_path, "wb") as f:
+                    f.write(salt)
+        except Exception as e:
+            logger.error(f"Failed to initialize/load salt: {str(e)}")
+            # Fall back to a fixed in-memory salt to avoid crashing, but warn
+            salt = b"apilinker_fallback_salt"
+
+        # Derive key from password and salt
         kdf = PBKDF2HMAC(
             algorithm=hashes.SHA256(),
             length=32,

@@ -1024,8 +1024,7 @@ If you use ApiLinker in your research, please cite:
   title = {ApiLinker: A Universal Bridge for REST API Integrations},
   url = {https://github.com/kkartas/apilinker},
   version = {0.3.0},
-  year = {2025},
-  doi = {10.21105/joss.12345}
+  year = {2025}
 }
 ```
 

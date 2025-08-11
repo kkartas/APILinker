@@ -26,8 +26,8 @@ class ArXivConnector(ApiConnector):
     def __init__(self, **kwargs):
         """Initialize arXiv connector."""
         
-        # arXiv API base URL
-        base_url = "http://export.arxiv.org/api"
+        # arXiv API base URL (use HTTPS)
+        base_url = "https://export.arxiv.org/api"
         
         # Define arXiv endpoints
         endpoints = {
