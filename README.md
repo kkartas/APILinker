@@ -22,8 +22,7 @@
 - 🔄 **Universal Connectivity** - Connect any two REST APIs with simple configuration
 - 🗺️ **Powerful Mapping** - Transform data between APIs with field mapping and path expressions
 - 📊 **Data Transformation** - Apply built-in or custom transformations to your data
-- 🔒 **Advanced Authentication & Security** - Support for API Key, Bearer Token, Basic Auth, and multiple OAuth2 flows (including PKCE and Device Flow)
-- 🔒 **Enterprise-Grade Security** - Secure credential storage, request/response encryption, and role-based access control
+ - 🔒 **Authentication & Security** - Support for API Key, Bearer Token, Basic Auth, and multiple OAuth2 flows (including PKCE and Device Flow). Optional secure credential storage and role-based access control.
 - 📝 **Flexible Configuration** - Use YAML/JSON or configure programmatically in Python
 - 🕒 **Automated Scheduling** - Run syncs once, on intervals, or using cron expressions
 - 📋 **Data Validation** - Validate data with schemas and custom rules
@@ -35,27 +34,7 @@
 
 ## Security
 
-APILinker provides enterprise-grade security features to protect your API credentials and data:
-
-### Secure Credential Storage
-
-```python
-# Store credentials securely with encryption-at-rest
-linker.store_credential("github_api", {
-    "token": "your-api-token"
-})
-
-# Retrieve when needed
-cred = linker.get_credential("github_api")
-```
-
-### Request/Response Encryption
-
-```yaml
-# In your config.yaml
-security:
-  encryption_level: "full"  # Options: none, headers_only, body_only, full
-```
+APILinker provides security features to protect your API credentials and data:
 
 ### Role-Based Access Control
 
@@ -72,7 +51,7 @@ linker = ApiLinker(
 )
 ```
 
-For more details, see the [Security Documentation](docs/security.md).
+For more details, see the [Security Documentation](docs/security.md). Note: ApiLinker does not implement custom request/response encryption; use HTTPS and provider-recommended authentication.
 
 ## 📋 Table of Contents
 
@@ -940,42 +919,6 @@ linker.add_mapping(
 
 ### Common Code Examples
 
-#### Handling API Rate Limits
-
-```python
-from apilinker import ApiLinker
-import time
-
-linker = ApiLinker()
-
-# Configure with retry settings
-linker.add_source(
-    type="rest",
-    base_url="https://api.example.com",
-    retry={
-        "max_attempts": 5,
-        "delay_seconds": 2,
-        "backoff_factor": 2,  # Exponential backoff
-        "status_codes": [429, 500, 502, 503, 504]  # Retry on these status codes
-    },
-    endpoints={
-        "get_data": {"path": "/data", "method": "GET"}
-    }
-)
-
-# Example of manual handling with wait periods
-try:
-    data = linker.fetch("get_data")
-    print("Success!")
-except Exception as e:
-    if "rate limit" in str(e).lower():
-        print("Rate limited, waiting and trying again...")
-        time.sleep(60)  # Wait 1 minute
-        data = linker.fetch("get_data")  # Try again
-    else:
-        raise e
-```
-
 ## 📚 Documentation
 
 Documentation is available in the `/docs` directory and will be hosted online soon.
@@ -998,7 +941,7 @@ Documentation is available in the `/docs` directory and will be hosted online so
 - [Cookbook](docs/cookbook.md) - Ready-to-use recipes for common tasks
 - [Examples](docs/examples/index.md) - Example use cases and code
 - [Extending with Plugins](docs/plugins/index.md) - Creating and using plugins
-- [Security Considerations](docs/security.md) - Security best practices
+- [Security Considerations](docs/security.md) - Security best practices (no custom encryption or built-in rate limiting)
 
 ### Technical Documentation
 
@@ -1049,11 +992,9 @@ When working with APIs that require authentication, follow these security best p
 
 4. **Credential Validation**: ApiLinker performs validation checks on authentication configurations to prevent common security issues.
 
-5. **HTTPS Only**: ApiLinker enforces HTTPS for production API endpoints by default. Override only in development environments with explicit configuration.
+5. **HTTPS**: Use HTTPS endpoints whenever possible to protect data in transit.
 
-6. **Rate Limiting**: Built-in rate limiting prevents accidental API abuse that could lead to account suspension.
-
-7. **Audit Logging**: Enable detailed logging for security-relevant events with:
+6. **Audit Logging**: Enable detailed logging for security-relevant events with:
    ```yaml
    logging:
      level: INFO

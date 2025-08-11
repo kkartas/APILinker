@@ -20,8 +20,8 @@
 - Enhanced error categorization and context tracking
 - Integration with existing retry mechanisms
 - Advanced security features:
-  - Secure credential storage with encryption-at-rest
-  - Request/response encryption options
+  - Secure credential storage (optional)
+  - Removed custom request/response encryption in favor of HTTPS-only usage guidance
   - Fine-grained access control for multi-user environments
   - Additional OAuth flows: PKCE and Device Flow
 - Added cryptography dependency for enhanced security features

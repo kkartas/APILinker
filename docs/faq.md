@@ -69,7 +69,7 @@ Yes, you can create a custom connector plugin for GraphQL or use the REST connec
 
 ### How do I handle API rate limits?
 
-ApiLinker provides built-in rate limiting and retry functionality:
+ApiLinker does not include built-in rate limiting. Use provider guidance, exponential backoff, and retries to handle 429 responses.
 
 ```yaml
 source:

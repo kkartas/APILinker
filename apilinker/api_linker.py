@@ -609,32 +609,10 @@ class ApiLinker:
             if current_user and not self.security_manager.check_permission(current_user, "run_sync"):
                 raise PermissionError(f"User {current_user} does not have permission to run sync operations")
         
-        # Use circuit breaker for source call with encryption if enabled
-        if self.security_manager.request_encryption.encryption_level != EncryptionLevel.NONE:
-            # Create a wrapper function that encrypts request and decrypts response
-            def secure_fetch():
-                # Prepare headers and body for encryption
-                headers = {}
-                if self.source and hasattr(self.source, "client") and hasattr(self.source.client, "headers"):
-                    headers = self.source.client.headers
-                    
-                # Encrypt headers and params
-                encrypted_headers, encrypted_params = self.security_manager.encrypt_request(
-                    headers, params or {}
-                )
-                
-                # Use encrypted data for the request
-                result = self.source.fetch_data(source_endpoint, encrypted_params)
-                
-                # We don't decrypt the response here as it's handled separately
-                return result
-                
-            source_data, source_error = source_cb.execute(secure_fetch)
-        else:
-            # Standard non-encrypted call
-            source_data, source_error = source_cb.execute(
-                lambda: self.source.fetch_data(source_endpoint, params)
-            )
+        # Always use standard non-encrypted call
+        source_data, source_error = source_cb.execute(
+            lambda: self.source.fetch_data(source_endpoint, params)
+        )
         
         # If circuit breaker failed, try recovery strategies
         if source_error:
@@ -681,32 +659,10 @@ class ApiLinker:
             target_circuit_name = f"target_{target_endpoint}"
             target_cb = self.error_recovery_manager.get_circuit_breaker(target_circuit_name)
             
-            # Use circuit breaker for target call with encryption if enabled
-            if self.security_manager.request_encryption.encryption_level != EncryptionLevel.NONE:
-                # Create a wrapper function that encrypts request and decrypts response
-                def secure_send():
-                    # Prepare headers for encryption
-                    headers = {}
-                    if self.target and hasattr(self.target, "client") and hasattr(self.target.client, "headers"):
-                        headers = self.target.client.headers
-                        
-                    # Encrypt headers and body
-                    encrypted_headers, encrypted_data = self.security_manager.encrypt_request(
-                        headers, transformed_data
-                    )
-                    
-                    # Use encrypted data for the request
-                    result = self.target.send_data(target_endpoint, encrypted_data)
-                    
-                    # We don't decrypt the response here as it's handled separately
-                    return result
-                    
-                target_result, target_error = target_cb.execute(secure_send)
-            else:
-                # Standard non-encrypted call
-                target_result, target_error = target_cb.execute(
-                    lambda: self.target.send_data(target_endpoint, transformed_data)
-                )
+            # Always use standard non-encrypted call
+            target_result, target_error = target_cb.execute(
+                lambda: self.target.send_data(target_endpoint, transformed_data)
+            )
             
             # If circuit breaker failed, try recovery strategies
             if target_error:
@@ -745,21 +701,8 @@ class ApiLinker:
             sync_result.count = len(transformed_data) if isinstance(transformed_data, list) else 1
             sync_result.success = True
             
-            # Decrypt target response if encryption is enabled
-            if self.security_manager.request_encryption.encryption_level != EncryptionLevel.NONE and target_result:
-                # Extract headers and body from target response
-                response_headers = {}
-                response_body = target_result
-                
-                # Decrypt the response
-                _, decrypted_body = self.security_manager.decrypt_response(
-                    response_headers, response_body
-                )
-                
-                # Use decrypted data
-                sync_result.target_response = decrypted_body if isinstance(decrypted_body, dict) else {}
-            else:
-                sync_result.target_response = target_result if isinstance(target_result, dict) else {}
+            # Set target response directly
+            sync_result.target_response = target_result if isinstance(target_result, dict) else {}
             
             # Calculate duration
             end_time = time.time()

@@ -144,7 +144,7 @@ print(f"Found {total_resources} resources across multiple platforms")
 from apilinker import NCBIConnector
 import time
 
-# Always use institutional email and rate limiting
+# Always use institutional email and respectful API usage (back off on 429)
 class EthicalResearcher:
     def __init__(self, email, rate_limit=1.0):
         self.ncbi = NCBIConnector(email=email)
@@ -152,7 +152,7 @@ class EthicalResearcher:
     
     def respectful_search(self, query, max_results=50):
         result = self.ncbi.search_pubmed(query, max_results=max_results)
-        time.sleep(self.rate_limit)  # Respectful rate limiting
+        time.sleep(self.backoff_seconds)  # Respectful backoff
         return result
 ```
 

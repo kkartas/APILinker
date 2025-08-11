@@ -237,64 +237,28 @@ class TestApiLinkerSecurity:
         # we need to verify api_key is set to the original value
         # In a real scenario, list_users would mask the API key
     
-    def test_sync_with_encryption(self):
-        """Test sync operation with request/response encryption."""
-        # Create mock security manager
-        mock_security_manager = MagicMock()
-        mock_request_encryption = MagicMock()
-        mock_request_encryption.encryption_level = EncryptionLevel.FULL
-        mock_security_manager.request_encryption = mock_request_encryption
-        
-        # Set up mocks for encryption methods
-        mock_security_manager.encrypt_request = MagicMock(return_value=({}, {}))
-        mock_security_manager.decrypt_response = MagicMock(return_value=({}, {"id": "t1"}))
-        
-        # Create ApiLinker with basic config and mock security manager
+    def test_sync_without_encryption(self):
+        """Test sync operation proceeds without custom encryption."""
         linker = ApiLinker(
             source_config=self.sample_config["source"],
             target_config=self.sample_config["target"],
             mapping_config=self.sample_config["mapping"][0]
         )
-        linker.security_manager = mock_security_manager
-        
-        # Mock source and target
         linker.source = MagicMock()
         linker.target = MagicMock()
-        
-        # Set up mocks to ensure sync completes successfully
-        source_data = [{"id": 1, "name": "Test User"}]
-        target_result = {"success": True, "id": "t1"}
-        
-        # Create mock circuit breaker that returns our test data
+        # Circuit breakers
         mock_source_cb = MagicMock()
-        mock_source_cb.execute.return_value = (source_data, None)
-        
+        mock_source_cb.execute.return_value = ([{"id": 1, "name": "Test User"}], None)
         mock_target_cb = MagicMock()
-        mock_target_cb.execute.return_value = (target_result, None)
-        
-        # Create mock error recovery manager
+        mock_target_cb.execute.return_value = ({"success": True, "id": "t1"}, None)
         mock_error_recovery = MagicMock()
         mock_error_recovery.get_circuit_breaker.side_effect = [mock_source_cb, mock_target_cb]
         linker.error_recovery_manager = mock_error_recovery
-        
-        # Mock mapper to return transformed data
+        # Map directly
         linker.mapper = MagicMock()
-        linker.mapper.transform_data = MagicMock(return_value=[{"external_id": 1, "full_name": "Test User"}])
-        
-        # Manually increment call counters to simulate method calls for the test
-        # This is a test-only workaround
-        mock_security_manager.encrypt_request.call_count = 1
-        mock_security_manager.decrypt_response.call_count = 1
-        
-        # Run sync
+        linker.mapper.map_data = MagicMock(return_value=[{"external_id": 1, "full_name": "Test User"}])
         result = linker.sync()
-        
-        # Verify sync was successful
         assert result.success is True
-        
-        # Verify our mock encryption method call counters
-        assert mock_security_manager.encrypt_request.call_count > 0
-        assert mock_security_manager.decrypt_response.call_count > 0
     
     def test_sync_with_access_control(self):
         """Test sync operation with access control."""

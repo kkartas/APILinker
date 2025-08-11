@@ -666,7 +666,7 @@ Available error categories:
 - AUTHENTICATION - Auth failures
 - VALIDATION - Invalid data
 - TIMEOUT - Request timeouts
-- RATE_LIMIT - API rate limiting
+- RATE_LIMIT - API returned 429 (rate limited): apply exponential backoff and retry
 - SERVER - Server errors (5xx)
 - CLIENT - Client errors (4xx)
 - MAPPING - Data mapping errors

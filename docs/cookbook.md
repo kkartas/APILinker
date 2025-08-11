@@ -51,7 +51,7 @@ all_users = linker.fetch("get_users")
 ## Implementing Robust Error Handling
 
 ### Problem
-You need reliable API integrations that can handle service outages, rate limiting, and temporary network issues.
+You need reliable API integrations that can handle service outages and temporary network issues.
 
 ### Solution
 Use APILinker's robust error handling and recovery system:
@@ -71,7 +71,7 @@ error_handling:
     network:                      # Network connectivity issues
       - exponential_backoff       # First try with increasing delays
       - circuit_breaker           # Then use circuit breaker if still failing
-    rate_limit:                   # API rate limiting
+    # rate limiting: not built-in; use server guidance and retries
       - exponential_backoff       # Back off and retry
     server:                       # Server errors (5xx)
       - exponential_backoff
@@ -147,7 +147,7 @@ The ApiConnector's _handle_pagination method automatically:
 ## Handling API Rate Limits
 
 ### Problem
-Your API requests are getting rate limited.
+Your API requests are getting rate limited (HTTP 429).
 
 ### Solution
 ```python
@@ -164,7 +164,7 @@ linker.add_source(
     }
 )
 
-# For manual rate limit handling
+# For manual handling of 429s with backoff
 def handle_rate_limits(func):
     def wrapper(*args, **kwargs):
         max_attempts = 3
@@ -188,7 +188,7 @@ def fetch_data():
 
 ### Explanation
 - The retry mechanism is built into ApiConnector for temporary failures
-- For specific rate limit handling, you can implement a decorator or wrapper function
+- For specific rate limit handling, implement a decorator or wrapper function in your app
 - The connector will automatically use exponential backoff between retries
 
 ## Transforming Nested JSON Structures

@@ -777,7 +777,7 @@ class EthicalResearchCollector:
     
     def respectful_search(self, query, max_results=100, database="both"):
         """
-        Search with rate limiting and respectful API usage.
+        Search with respectful API usage and backoff on 429.
         """
         results = {}
         

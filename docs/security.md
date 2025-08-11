@@ -1,12 +1,12 @@
 # Security Considerations
 
-APILinker provides robust security features to ensure safe handling of API credentials, request/response data, and multi-user access. This document outlines security best practices and describes the available security features.
+APILinker provides security features to ensure safe handling of API credentials and multi-user access. This document outlines security best practices and describes the available security features.
 
 ## Security Features
 
 ### Secure Credential Storage
 
-APILinker provides encrypted storage for sensitive credentials:
+APILinker provides optional encrypted storage for sensitive credentials (for development convenience; consider dedicated secret managers in production):
 
 ```python
 # Configure secure credential storage
@@ -28,15 +28,7 @@ cred = linker.get_credential("github_api")
 print(f"Token: {cred['token']}")
 ```
 
-### Request/Response Encryption
-
-Encrypt API requests and responses to protect sensitive data:
-
-```yaml
-security:
-  encryption_level: "full"  # Options: none, headers_only, body_only, full
-  encryption_key: "your-encryption-key"  # Optional, auto-generated if not provided
-```
+<!-- Custom request/response encryption is not supported. Use HTTPS and provider-recommended authentication. -->
 
 ### Multi-User Access Control
 
@@ -249,15 +241,6 @@ auth:
 
 ## Network Security
 
-### HTTPS Enforcement
-
-ApiLinker enforces HTTPS for all production API endpoints by default. To override this (not recommended except for development):
-
-```yaml
-source:
-  enforce_https: false  # Not recommended for production
-```
-
 ### Request Timeouts
 
 Set appropriate timeouts to prevent hanging connections:
@@ -273,61 +256,7 @@ source:
 
 Always use HTTPS for API endpoints to ensure data is encrypted in transit.
 
-### Request/Response Encryption
-
-For additional security, you can enable request/response encryption for sensitive API calls:
-
-```yaml
-security:
-  encryption_level: "full"  # Options: none, headers_only, body_only, full
-```
-
-This is particularly useful for:
-
-1. APIs that do not support HTTPS
-2. Adding an extra layer of security even over HTTPS
-3. Protecting sensitive data when using intermediate proxies
-
-### Encryption Configuration
-
-You can configure encryption via YAML configuration:
-
-```yaml
-security:
-  encryption_level: "full"
-  encryption_key: "your-base64-encoded-key"  # Optional
-```
-
-Or programmatically:
-
-```python
-linker = ApiLinker(
-    security_config={
-        "encryption_level": "full",
-        # Key will be auto-generated if not provided
-    }
-)
-```
-
-### Headers vs Body Encryption
-
-APILinker allows fine-grained control over what gets encrypted:
-
-- `none`: No encryption (default)
-- `headers_only`: Only encrypt headers (useful for auth tokens)
-- `body_only`: Only encrypt request/response body
-- `full`: Encrypt both headers and body
-
-## Rate Limiting
-
-Configure rate limits to prevent accidental API abuse:
-
-```yaml
-source:
-  rate_limit:
-    requests_per_second: 5
-    burst: 10
-```
+<!-- Built-in rate limiting is not provided by ApiLinker. Use provider-side limits and backoff/retry as needed. -->
 
 ## Audit Logging
 
@@ -441,8 +370,6 @@ source:
     token_url: "https://api.example.com/oauth/token"
     scope: "read"
   timeout: 30
-  rate_limit:
-    requests_per_second: 10
   retry:
     max_attempts: 3
     backoff_factor: 2

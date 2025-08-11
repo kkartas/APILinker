@@ -730,8 +730,8 @@ def search_pubmed(self, query: str, max_results: int = 100,
         search_params["mindate"] = start_date
         search_params["maxdate"] = end_date
     
-    # Execute search with rate limiting
-    response = self._execute_with_rate_limit("search", **search_params)
+    # Execute search and apply backoff on 429 responses
+    response = self._execute_with_backoff("search", **search_params)
     
     # Parse and validate response
     return self._parse_pubmed_search_response(response)
@@ -1073,7 +1073,6 @@ class SecurityManager:
     Centralized security management system.
     
     Features:
-    - Request/response encryption
     - Data anonymization
     - Access control and permissions
     - Audit logging
@@ -1097,9 +1096,7 @@ class SecurityManager:
         if not self.access_control.check_permission(security_context, "api_request"):
             raise SecurityError("Access denied for API request")
         
-        # Request encryption if configured
-        if self.config.encrypt_requests:
-            request = self.encryption_manager.encrypt_request(request)
+        # Custom request encryption is not supported; rely on HTTPS
         
         # Data anonymization
         if self.config.anonymize_data:
@@ -1122,9 +1119,7 @@ class SecurityManager:
             if self.config.block_threats:
                 raise SecurityError(f"Response blocked due to threats: {threats}")
         
-        # Response decryption if needed
-        if self.encryption_manager.is_encrypted_response(response):
-            response = self.encryption_manager.decrypt_response(response)
+        # Custom response decryption is not supported
         
         # Audit logging
         self.audit_logger.log_response(response, security_context)
@@ -2076,7 +2071,7 @@ class CustomConnector(ConnectorPlugin, ApiConnector):
         - Validate required parameters
         - Set up appropriate headers and authentication
         - Define endpoint configurations
-        - Configure rate limiting
+        - Handle HTTP 429 with exponential backoff
         - Set up error handling
         """
         
@@ -2119,11 +2114,7 @@ class CustomConnector(ConnectorPlugin, ApiConnector):
             )
         }
         
-        # Set up custom rate limiting
-        self.rate_limiter = RateLimiter(
-            requests_per_second=10,
-            burst_requests=50
-        )
+        # Example: implement application-level backoff for 429 responses instead of client-side rate limiter
     
     def fetch_data(self, endpoint_name: str, **kwargs) -> Dict:
         """

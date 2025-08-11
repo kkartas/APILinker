@@ -32,7 +32,7 @@ ApiLinker addresses these needs by providing:
 
 1. A configuration-driven approach that eliminates repetitive boilerplate code
 2. Flexible field mapping with support for nested structures and data transformations
-3. Advanced authentication and security features including multiple OAuth flows, secure credential storage, and request encryption
+3. Authentication options (API Key, Bearer, Basic, OAuth2 flows) and optional secure credential storage
 4. Enterprise-grade error handling with circuit breakers and dead letter queues
 5. Built-in pagination handling, retry logic, and robust error management
 6. Scheduling capabilities for recurring data synchronization
@@ -46,11 +46,10 @@ ApiLinker is built with a modular architecture that separates concerns into logi
 
 ## Security Features
 
-APILinker provides enterprise-grade security capabilities critical for handling sensitive data:
+APILinker provides security capabilities for handling sensitive data:
 
-- **Secure Credential Storage**: Encryption-at-rest for API credentials using symmetric encryption
-- **Advanced OAuth Support**: Implementation of modern OAuth flows including PKCE (for mobile/SPA) and Device Flow (for IoT/CLI)
-- **Request/Response Encryption**: Configurable encryption levels for API communications
+- **Secure Credential Storage**: Optional encrypted storage for API credentials
+- **OAuth Support**: Implementation of modern OAuth flows including PKCE (for mobile/SPA) and Device Flow (for IoT/CLI)
 - **Role-Based Access Control**: Fine-grained permissions for multi-user environments
 
 ## API Connectors
@@ -127,7 +126,7 @@ ApiLinker addresses common challenges in research computing where data must be c
 
 1. **Reproducible Data Pipelines**: Configuration-driven approach ensures that API integration workflows can be versioned, shared, and exactly reproduced. Unlike custom scripts that often contain hardcoded parameters, ApiLinker's YAML configurations provide a declarative specification that can be archived alongside research data [@Wilkinson2016].
 
-2. **Reduced Development Overhead**: By abstracting common API patterns (authentication, pagination, rate limiting, error handling), researchers can focus on domain-specific analysis rather than infrastructure code. The declarative configuration eliminates much of the boilerplate code typically required for API integrations.
+2. **Reduced Development Overhead**: By abstracting common API patterns (authentication, pagination, error handling), researchers can focus on domain-specific analysis rather than infrastructure code. The declarative configuration eliminates much of the boilerplate code typically required for API integrations.
 
 3. **Error Resilience**: Built-in retry mechanisms, circuit breakers, and dead letter queues provide robust handling of transient API failures that commonly occur in long-running data collection workflows.
 
