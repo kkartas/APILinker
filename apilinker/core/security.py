@@ -77,38 +77,23 @@ class SecureCredentialStorage:
         self.master_password = master_password
         self.credentials: Dict[str, Dict[str, Any]] = {}
         self.cipher = None
+        self._salt: Optional[bytes] = None
         
-        if self.master_password:
-            self._init_cipher()
-            
-        if auto_load and os.path.exists(self.storage_path) and self.cipher:
+        # Attempt to auto-load existing credentials (initializes cipher from persisted salt)
+        if auto_load and os.path.exists(self.storage_path):
             self.load()
+
+        # Ensure cipher is initialized when a master password is provided,
+        # even if no credentials file exists yet (tests expect this behavior)
+        if self.master_password and self.cipher is None:
+            self._init_cipher(os.urandom(16))
     
-    def _init_cipher(self) -> None:
-        """Initialize encryption cipher from master password using a persisted random salt."""
+    def _init_cipher(self, salt: bytes) -> None:
+        """Initialize encryption cipher from master password and provided salt (no side files)."""
         if not self.master_password:
             logger.warning("Cannot initialize encryption without master password")
             return
-
-        # Determine salt file path next to the credentials file
-        salt_path = self.storage_path + ".salt"
-
-        # Load or generate random salt
-        try:
-            if os.path.exists(salt_path):
-                with open(salt_path, "rb") as f:
-                    salt = f.read()
-            else:
-                salt = os.urandom(16)
-                # Persist the salt for future derivations
-                with open(salt_path, "wb") as f:
-                    f.write(salt)
-        except Exception as e:
-            logger.error(f"Failed to initialize/load salt: {str(e)}")
-            # Fall back to a fixed in-memory salt to avoid crashing, but warn
-            salt = b"apilinker_fallback_salt"
-
-        # Derive key from password and salt
+        self._salt = salt
         kdf = PBKDF2HMAC(
             algorithm=hashes.SHA256(),
             length=32,
@@ -125,18 +110,29 @@ class SecureCredentialStorage:
         Returns:
             True if successful, False otherwise
         """
-        if not self.cipher:
-            logger.error("Encryption not initialized - cannot save credentials")
+        if not self.master_password:
+            logger.error("Master password not set - cannot save credentials")
             return False
             
         try:
+            # Ensure cipher is initialized with a stable salt
+            if self.cipher is None:
+                salt = os.urandom(16)
+                self._init_cipher(salt)
+
             # Convert credentials to JSON and encrypt
             data = json.dumps(self.credentials).encode()
             encrypted_data = self.cipher.encrypt(data)
-            
-            # Write to file
-            with open(self.storage_path, 'wb') as f:
-                f.write(encrypted_data)
+
+            # Persist JSON structure containing salt and encrypted data
+            payload = {
+                "salt": base64.urlsafe_b64encode(self._salt or b"").decode(),
+                "data": base64.urlsafe_b64encode(encrypted_data).decode(),
+                "version": 1,
+            }
+
+            with open(self.storage_path, 'w', encoding='utf-8') as f:
+                json.dump(payload, f)
                 
             logger.info(f"Credentials saved to {self.storage_path}")
             return True
@@ -152,22 +148,43 @@ class SecureCredentialStorage:
         Returns:
             True if successful, False otherwise
         """
-        if not self.cipher:
-            logger.error("Encryption not initialized - cannot load credentials")
-            return False
-            
         if not os.path.exists(self.storage_path):
             logger.warning(f"No credentials file found at {self.storage_path}")
             return False
             
         try:
-            # Read encrypted data from file
-            with open(self.storage_path, 'rb') as f:
-                encrypted_data = f.read()
-                
-            # Decrypt and parse JSON
-            data = self.cipher.decrypt(encrypted_data)
-            self.credentials = json.loads(data.decode())
+            # Attempt to read new JSON payload format first
+            with open(self.storage_path, 'r', encoding='utf-8') as f:
+                content = f.read()
+
+            try:
+                payload = json.loads(content)
+                if isinstance(payload, dict) and "salt" in payload and "data" in payload:
+                    salt = base64.urlsafe_b64decode(payload["salt"].encode())
+                    self._init_cipher(salt)
+                    encrypted_bytes = base64.urlsafe_b64decode(payload["data"].encode())
+                    data = self.cipher.decrypt(encrypted_bytes)
+                    self.credentials = json.loads(data.decode())
+                else:
+                    raise ValueError("Invalid payload format")
+            except Exception:
+                # Legacy format fallback: raw encrypted bytes + side .salt file (do not create new side files)
+                try:
+                    # Read raw bytes again (content may be binary)
+                    with open(self.storage_path, 'rb') as fb:
+                        encrypted_data = fb.read()
+                    salt_path = self.storage_path + ".salt"
+                    if os.path.exists(salt_path):
+                        with open(salt_path, 'rb') as sf:
+                            salt = sf.read()
+                        self._init_cipher(salt)
+                        data = self.cipher.decrypt(encrypted_data)
+                        self.credentials = json.loads(data.decode())
+                    else:
+                        raise ValueError("Missing salt for legacy credentials file")
+                except Exception as e2:
+                    logger.error(f"Failed to load legacy credentials: {str(e2)}")
+                    return False
             
             logger.info(f"Credentials loaded from {self.storage_path}")
             return True
@@ -187,10 +204,6 @@ class SecureCredentialStorage:
         Returns:
             True if successful, False otherwise
         """
-        if not self.cipher:
-            logger.error("Encryption not initialized - cannot store credential")
-            return False
-            
         try:
             self.credentials[name] = credential_data
             return self.save()
@@ -221,10 +234,14 @@ class SecureCredentialStorage:
         Returns:
             True if successful, False otherwise
         """
-        if name in self.credentials:
-            del self.credentials[name]
-            return self.save()
-        return False
+        try:
+            if name in self.credentials:
+                del self.credentials[name]
+                return self.save()
+            return False
+        except Exception as e:
+            logger.error(f"Failed to delete credential {name}: {str(e)}")
+            return False
     
     def list_credentials(self) -> List[str]:
         """
