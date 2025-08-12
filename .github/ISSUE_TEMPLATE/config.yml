@@ -1,0 +1,9 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Documentation
+    url: https://kkartas.github.io/apilinker
+    about: Read the latest documentation
+  - name: Questions and discussions
+    url: https://github.com/kkartas/apilinker/discussions
+    about: Ask questions, share ideas, and get help
+

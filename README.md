@@ -1005,14 +1005,9 @@ When working with APIs that require authentication, follow these security best p
 
 Contributions are welcome! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
 
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Install development dependencies (`pip install -e ".[dev]"`)
-4. Make your changes
-5. Run tests (`pytest`)
-6. Commit your changes (`git commit -m 'Add amazing feature'`)
-7. Push to the branch (`git push origin feature/amazing-feature`)
-8. Open a Pull Request
+- Use GitHub “New issue” to open a bug report or feature request (templates provided)
+- Fork the repo and create a focused branch for changes
+- Add tests and docs where applicable, then open a Pull Request
 
 ## 📄 Citation
 

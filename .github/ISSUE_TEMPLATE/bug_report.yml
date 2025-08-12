@@ -1,0 +1,92 @@
+name: Bug report
+description: Report a reproducible problem to help us improve ApiLinker
+title: "bug: <concise title>"
+labels: [bug]
+assignees: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to fill out this bug report!
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: A clear and concise description of what the bug is.
+      placeholder: What happened?
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to reproduce
+      description: Tell us how to reproduce the behavior, ideally with the smallest possible example.
+      placeholder: |
+        1. Use config ...
+        2. Run command ...
+        3. See error ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: What did you expect to happen instead?
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant log output
+      description: Please copy and paste any relevant log output (redact secrets). This will be automatically formatted into code.
+      render: shell
+
+  - type: input
+    id: version
+    attributes:
+      label: ApiLinker version
+      placeholder: e.g., 0.3.0
+    validations:
+      required: true
+
+  - type: input
+    id: python
+    attributes:
+      label: Python version
+      placeholder: e.g., 3.9.18
+    validations:
+      required: true
+
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating system
+      options:
+        - Linux
+        - macOS
+        - Windows
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: config
+    attributes:
+      label: Minimal config to reproduce (YAML/JSON)
+      description: Provide the smallest configuration snippet that reproduces the issue (redact secrets).
+      render: yaml
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Checklist
+      options:
+        - label: I have searched existing issues for duplicates
+          required: true
+        - label: I am using the latest patch release (or I tried it and the problem persists)
+          required: false
+

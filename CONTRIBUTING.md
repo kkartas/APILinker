@@ -69,6 +69,18 @@ By participating in this project, you agree to abide by our Code of Conduct. Ple
 
 7. **Submit a pull request** to the main repository.
 
+### Conventional Commits (recommended)
+
+Use conventional commits to improve changelog generation and release notes:
+
+```
+feat(connector): add PubChem batch fetch endpoint
+fix(security): embed salt into encrypted credentials file
+docs(benchmarks): add local benchmark guide
+```
+
+Types: feat, fix, docs, style, refactor, perf, test, chore.
+
 ## Coding Style Guidelines
 
 - Follow [PEP 8](https://pep8.org/) for Python code style
@@ -83,6 +95,13 @@ By participating in this project, you agree to abide by our Code of Conduct. Ple
 - **Update documentation** for any changed functionality
 - **Describe your changes** in the pull request description
 - **Reference related issues** in the pull request description
+
+### PR checklist
+
+- [ ] Updates are scoped to a single topic
+- [ ] New/changed APIs have type hints and docstrings
+- [ ] Backwards compatibility considered (and documented if breaking)
+- [ ] Benchmarks added/updated if performance-sensitive
 
 ## Adding Features
 
