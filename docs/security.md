@@ -28,7 +28,7 @@ cred = linker.get_credential("github_api")
 print(f"Token: {cred['token']}")
 ```
 
-<!-- Custom request/response encryption is not supported. Use HTTPS and provider-recommended authentication. -->
+Note: ApiLinker defaults to using HTTPS without custom request/response encryption. Optional request/response encryption helpers exist for advanced scenarios; evaluate carefully and prefer provider-managed security controls.
 
 ### Multi-User Access Control
 

@@ -30,4 +30,6 @@ This page lists built-in connectors with links to source files and basic usage.
 - Authentication varies per provider (see each source file for details).
 - Respect rate limits and terms of service; include a descriptive User-Agent where applicable.
 
+The following connectors are exported at the top level in `apilinker/__init__.py` and available for import as shown above.
+
 

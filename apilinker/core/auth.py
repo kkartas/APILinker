@@ -15,8 +15,7 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 from urllib.parse import urlencode
 
 import httpx
-from pydantic import BaseModel, Field
-from pydantic.config import ConfigDict
+from pydantic import BaseModel, Field, ConfigDict
 
 logger = logging.getLogger(__name__)
 

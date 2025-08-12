@@ -23,9 +23,10 @@ setup(
         "httpx>=0.23.0",
         "pyyaml>=6.0",
         "typer>=0.7.0",
-        "pydantic>=1.10.2",
+        "pydantic>=2.0.0",
         "croniter>=1.3.8",
         "rich>=12.6.0",
+        "cryptography>=41.0.0",
     ],
     extras_require={
         "dev": [
@@ -35,6 +36,7 @@ setup(
             "mypy>=1.0.0",
             "types-croniter",
             "types-PyYAML",
+            "black>=23.0.0",
         ],
         "docs": [
             "sphinx>=7.2.0",

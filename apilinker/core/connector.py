@@ -9,7 +9,7 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 
 import httpx
 from pydantic import BaseModel, Field
-from pydantic.config import ConfigDict
+from pydantic import ConfigDict
 
 from apilinker.core.auth import AuthConfig
 from apilinker.core.error_handling import ApiLinkerError, ErrorCategory
@@ -57,6 +57,7 @@ class ApiConnector:
         timeout: int = 30,
         retry_count: int = 3,
         retry_delay: int = 1,
+        default_headers: Optional[Dict[str, str]] = None,
         **kwargs: Any,
     ) -> None:
         self.connector_type = connector_type
@@ -66,6 +67,16 @@ class ApiConnector:
         self.retry_count = retry_count
         self.retry_delay = retry_delay
         
+        # Default headers (may be provided via explicit parameter or legacy 'headers' kwarg)
+        if default_headers is None and "headers" in kwargs:
+            try:
+                default_headers = dict(kwargs.pop("headers"))
+            except Exception:
+                default_headers = None
+        self.default_headers: Dict[str, str] = default_headers or {}
+        # Provide a backwards-compatible attribute name used by some connectors
+        self.headers: Dict[str, str] = self.default_headers
+
         # Parse and store endpoint configurations
         self.endpoints: Dict[str, EndpointConfig] = {}
         if endpoints:
@@ -123,8 +134,8 @@ class ApiConnector:
         if params:
             request_params.update(params)
         
-        # Prepare headers
-        headers = endpoint.headers.copy()
+        # Prepare headers (merge default headers and endpoint-specific headers)
+        headers = {**(self.default_headers or {}), **endpoint.headers}
         
         # Add auth headers if needed
         if self.auth_config:
@@ -349,9 +360,9 @@ class ApiConnector:
         if isinstance(exc, httpx.TimeoutException):
             category = ErrorCategory.TIMEOUT
             status_code = 0  # Custom code for timeout
-        elif isinstance(exc, httpx.ConnectError) or isinstance(exc, httpx.NetworkError):
+        elif isinstance(exc, httpx.TransportError) or isinstance(exc, httpx.RequestError):
             category = ErrorCategory.NETWORK
-            status_code = 0  # Custom code for network errors
+            status_code = 0  # Custom code for network/transport errors
         elif isinstance(exc, httpx.HTTPStatusError):
             status_code = exc.response.status_code
             

@@ -113,7 +113,7 @@ class GitHubConnector(ApiConnector):
             base_url=base_url,
             auth_config=None,  # Auth handled via headers
             endpoints=endpoints,
-            headers=headers,
+            default_headers=headers,
             **kwargs
         )
         
@@ -258,7 +258,7 @@ class GitHubConnector(ApiConnector):
         response = self.client.request(
             method="GET",
             url=repo_path,
-            headers=self.headers
+            headers=self.default_headers
         )
         response.raise_for_status()
         repo_data = response.json()
@@ -309,7 +309,7 @@ class GitHubConnector(ApiConnector):
         response = self.client.request(
             method="GET",
             url=user_path,
-            headers=self.headers
+            headers=self.default_headers
         )
         response.raise_for_status()
         user_data = response.json()
@@ -354,7 +354,7 @@ class GitHubConnector(ApiConnector):
             method="GET",
             url=repos_path,
             params=params,
-            headers=self.headers
+            headers=self.default_headers
         )
         response.raise_for_status()
         return response.json()
@@ -392,7 +392,7 @@ class GitHubConnector(ApiConnector):
             method="GET",
             url=commits_path,
             params=params,
-            headers=self.headers
+            headers=self.default_headers
         )
         response.raise_for_status()
         return response.json()
@@ -422,7 +422,7 @@ class GitHubConnector(ApiConnector):
             method="GET",
             url=contributors_path,
             params=params,
-            headers=self.headers
+            headers=self.default_headers
         )
         response.raise_for_status()
         return response.json()
@@ -443,7 +443,7 @@ class GitHubConnector(ApiConnector):
         response = self.client.request(
             method="GET",
             url=languages_path,
-            headers=self.headers
+            headers=self.default_headers
         )
         response.raise_for_status()
         return response.json()
@@ -543,7 +543,7 @@ class GitHubConnector(ApiConnector):
             method="GET",
             url=issues_path,
             params=params,
-            headers=self.headers
+            headers=self.default_headers
         )
         response.raise_for_status()
         return response.json()

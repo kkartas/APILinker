@@ -2,7 +2,7 @@
 
 [![PyPI version](https://badge.fury.io/py/apilinker.svg)](https://badge.fury.io/py/apilinker)
 [![docs](https://readthedocs.org/projects/apilinker/badge/?version=latest)](https://apilinker.readthedocs.io/en/latest/)
-[![build](https://github.com/kkartas/ApiLinker/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/kkartas/ApiLinker/actions/workflows/ci.yml)
+[![build](https://github.com/kkartas/APILinker/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/kkartas/APILinker/actions/workflows/ci.yml)
 ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/apilinker)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
@@ -51,7 +51,7 @@ linker = ApiLinker(
 )
 ```
 
-For more details, see the [Security Documentation](docs/security.md). Note: ApiLinker does not implement custom request/response encryption; use HTTPS and provider-recommended authentication.
+For more details, see the [Security Documentation](docs/security.md). Note: ApiLinker defaults to no request/response encryption and recommends HTTPS and provider-recommended authentication. Optional request/response encryption utilities are available for advanced scenarios; review the security docs before enabling.
 
 ## 📋 Table of Contents
 
@@ -921,7 +921,7 @@ linker.add_mapping(
 
 ## 📚 Documentation
 
-Documentation is available in the `/docs` directory and will be hosted online soon.
+Documentation is available in the `/docs` directory and at Read the Docs: https://apilinker.readthedocs.io/
 
 ### Core Documentation
 

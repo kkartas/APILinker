@@ -5,13 +5,13 @@
 [![PyPI version](https://badge.fury.io/py/apilinker.svg)](https://badge.fury.io/py/apilinker)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Tests](https://github.com/kkartas/apilinker/workflows/Tests/badge.svg)](https://github.com/kkartas/apilinker/actions)
-[![Documentation Status](https://img.shields.io/badge/docs-latest-brightgreen.svg)](https://kkartas.github.io/apilinker)
+[![docs](https://readthedocs.org/projects/apilinker/badge/?version=latest)](https://apilinker.readthedocs.io/en/latest/)
 
 ## What is ApiLinker?
 
 ApiLinker is an open-source Python package that makes it easy to connect, map, and automate data transfer between any two REST APIs. It provides a flexible and extensible framework for building API integrations with minimal code.
 
-![ApiLinker Overview](assets/apilinker_overview.png)
+<!-- Overview image removed until asset is added to docs/assets -->
 
 ## Key Features
 
@@ -140,6 +140,10 @@ print(f"Synced {result.count} items")
 ## Connectors Index
 
 See the list of built-in connectors with links to source files and basic usage in the [Connectors Index](connectors_index.md).
+
+## Error Handling
+
+Configure circuit breakers, retries, and the DLQ with a few lines. See [Error Handling and Recovery](error_handling.md).
 
 ## License
 
