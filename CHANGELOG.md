@@ -8,6 +8,7 @@
 - Enhanced authentication system with multiple methods
 - Improved error handling and testing coverage
 - GitHub URL updates to correct username (kkartas)
+- Added local benchmarks suite under `benchmarks/` with mock server and harness; docs in `docs/benchmarks.md`
 
 ## [0.2.0] - 2025-07-16
 
