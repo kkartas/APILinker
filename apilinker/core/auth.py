@@ -15,7 +15,8 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 from urllib.parse import urlencode
 
 import httpx
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field
+from pydantic.config import ConfigDict
 
 logger = logging.getLogger(__name__)
 
@@ -24,9 +25,7 @@ class AuthConfig(BaseModel):
     """Base authentication configuration."""
     
     type: str
-    
-    class Config:
-        extra = "allow"
+    model_config = ConfigDict(extra="allow")
 
 
 class ApiKeyAuth(AuthConfig):

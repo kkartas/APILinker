@@ -26,9 +26,9 @@ jobs:
           black --check apilinker
           flake8 apilinker
           mypy apilinker
-      - name: Run tests
+      - name: Run tests with coverage
         run: |
-          pytest --maxfail=1 --disable-warnings -q
+          pytest --cov=apilinker --cov-report=xml --cov-report=term-missing --cov-fail-under=80
 
   build-docker:
     runs-on: ubuntu-latest

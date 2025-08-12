@@ -9,6 +9,7 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 
 import httpx
 from pydantic import BaseModel, Field
+from pydantic.config import ConfigDict
 
 from apilinker.core.auth import AuthConfig
 from apilinker.core.error_handling import ApiLinkerError, ErrorCategory
@@ -27,8 +28,7 @@ class EndpointConfig(BaseModel):
     pagination: Optional[Dict[str, Any]] = None
     response_path: Optional[str] = None
     
-    class Config:
-        arbitrary_types_allowed = True
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
 
 class ApiConnector:

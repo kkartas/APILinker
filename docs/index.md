@@ -137,6 +137,10 @@ print(f"Synced {result.count} items")
 - **Extensible Design**: Add custom connectors, transformers, and authentication methods
 - **Production Ready**: Robust error handling, retries, and logging
 
+## Connectors Index
+
+See the list of built-in connectors with links to source files and basic usage in the [Connectors Index](connectors_index.md).
+
 ## License
 
 ApiLinker is released under the MIT License. See the [LICENSE](https://github.com/kkartas/apilinker/blob/main/LICENSE) file for details.
