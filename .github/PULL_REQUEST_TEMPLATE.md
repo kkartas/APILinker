@@ -25,5 +25,6 @@ Steps to verify the change:
 - [ ] I have updated documentation according to the changes
 - [ ] I have run `pytest` and all tests pass locally
 - [ ] I have run linters/type-checkers (black, flake8, mypy) successfully
+- [ ] CI (GitHub Actions) is green for this PR
 
 

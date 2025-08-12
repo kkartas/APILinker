@@ -70,3 +70,18 @@ ApiLinker is designed to work on all major operating systems:
 - Windows
 
 The package is lightweight and doesn't require significant system resources for most use cases. However, performance may vary depending on the volume of data being processed and the frequency of API operations.
+
+## Docker
+
+You can run ApiLinker via Docker without installing Python locally.
+
+```bash
+docker build -t apilinker .
+docker run --rm apilinker --help
+```
+
+To mount a config file:
+
+```bash
+docker run --rm -v $(pwd)/config.yaml:/app/config.yaml apilinker sync --config /app/config.yaml
+```
