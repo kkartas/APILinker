@@ -63,6 +63,18 @@ apilinker = "apilinker.cli:app"
 minversion = "7.0"
 testpaths = ["tests"]
 
+[tool.coverage.run]
+branch = true
+source = ["apilinker"]
+omit = [
+    "apilinker/connectors/*",
+    "apilinker/examples/*",
+]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = true
+
 [tool.mypy]
 python_version = "3.8"
 warn_return_any = true
