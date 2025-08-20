@@ -7,7 +7,7 @@ import os
 import time
 import uuid
 from datetime import datetime
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import Any, Callable, Dict, List, Optional, Tuple, TypedDict, Union
 
 import yaml
 from pydantic import BaseModel, Field
@@ -439,7 +439,7 @@ class ApiLinker:
                 half_open_max_calls = cb_config.get("half_open_max_calls", 1)
 
                 # Create and register circuit breaker
-                circuit = CircuitBreaker(
+                circuit: CircuitBreaker = CircuitBreaker(
                     name=cb_name,
                     failure_threshold=failure_threshold,
                     reset_timeout_seconds=reset_timeout,
@@ -454,7 +454,7 @@ class ApiLinker:
             for category_name, strategies in config["recovery_strategies"].items():
                 try:
                     error_category = ErrorCategory[category_name.upper()]
-                    strategy_list = [RecoveryStrategy[s.upper()] for s in strategies]
+                    strategy_list = [RecoveryStrategy[str(s).upper()] for s in strategies]
 
                     self.error_recovery_manager.set_strategy(
                         error_category, strategy_list
@@ -582,7 +582,18 @@ class ApiLinker:
         # Get DLQ items
         items = self.dlq.get_items(limit=limit)
 
-        results = {"total_processed": 0, "successful": 0, "failed": 0, "items": []}
+        class DLQResults(TypedDict):
+            total_processed: int
+            successful: int
+            failed: int
+            items: List[Dict[str, Any]]
+
+        results: DLQResults = {
+            "total_processed": 0,
+            "successful": 0,
+            "failed": 0,
+            "items": [],
+        }
 
         for item in items:
             # Skip if not matching the requested operation type
@@ -646,7 +657,7 @@ class ApiLinker:
         self.logger.info(
             f"DLQ processing complete: {results['successful']} successful, {results['failed']} failed"
         )
-        return results
+        return dict(results)
 
     def sync(
         self,
@@ -836,7 +847,7 @@ class ApiLinker:
                         if not self.deduplicator.has_seen(target_endpoint, key):
                             self.deduplicator.mark_seen(target_endpoint, key)
                             filtered.append(item)
-                    payload = filtered
+                    payload: Union[Dict[str, Any], List[Dict[str, Any]]] = filtered
                 else:
                     payload = transformed_data
                 return self.target.send_data(target_endpoint, payload)
@@ -881,9 +892,10 @@ class ApiLinker:
             sync_result.success = True
 
             # Set target response directly
-            sync_result.target_response = (
-                target_result if isinstance(target_result, dict) else {}
-            )
+            if isinstance(target_result, dict):
+                sync_result.target_response = target_result
+            else:
+                sync_result.target_response = {}
 
             # Calculate duration
             end_time = time.time()

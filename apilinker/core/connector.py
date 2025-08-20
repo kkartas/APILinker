@@ -193,7 +193,7 @@ class ApiConnector:
         response.raise_for_status()
 
         # Parse JSON response
-        data: Union[Dict[str, Any], List[Dict[str, Any]]] = response.json()
+        data: Any = response.json()
 
         # Extract data from response path if configured
         endpoint = self.endpoints[endpoint_name]
@@ -283,9 +283,18 @@ class ApiConnector:
             # If no data path is specified, the entire response is the data
             items = initial_data
 
-        # If items is not a list, make it a list
+        # Normalize items to a list of dicts
         if not isinstance(items, list):
-            items = [items] if isinstance(items, dict) else [{"value": items}]
+            items_list: List[Dict[str, Any]] = (
+                [items] if isinstance(items, dict) else [{"value": items}]
+            )
+        else:
+            items_list = []
+            for elem in items:
+                if isinstance(elem, dict):
+                    items_list.append(elem)
+                else:
+                    items_list.append({"value": elem})
 
         # Extract next page token/URL if available
         next_page: Optional[Union[str, int]] = None
@@ -304,22 +313,18 @@ class ApiConnector:
 
         # Return the items if there's no next page
         if not next_page:
-            return items
+            return items_list
 
         # Fetch all pages
-        all_items = items
+        all_items: List[Dict[str, Any]] = list(items_list)
         page = 2
 
         while next_page:
             # Update params for next page
             next_params: Dict[str, Any] = params.copy() if params else {}
 
-            # Use either page number or next page token
-            if isinstance(next_page, (str, int)):
-                next_params[page_param] = next_page
-            else:
-                # If next_page is not a simple value, just increment page number
-                next_params[page_param] = page
+            # Use either page number or next page token (refined to str|int in this loop)
+            next_params[page_param] = next_page
 
             # Make the next request
             try:
@@ -348,14 +353,16 @@ class ApiConnector:
                 else:
                     page_items = page_data
 
-                # Add items to the result
+                # Add items to the result, normalizing to list[dict]
                 if isinstance(page_items, list):
-                    all_items.extend(page_items)
+                    for elem in page_items:
+                        if isinstance(elem, dict):
+                            all_items.append(elem)
+                        else:
+                            all_items.append({"value": elem})
                 else:
                     all_items.append(
-                        page_items
-                        if isinstance(page_items, dict)
-                        else {"value": page_items}
+                        page_items if isinstance(page_items, dict) else {"value": page_items}
                     )
 
                 # Extract next page token
@@ -428,7 +435,7 @@ class ApiConnector:
 
     def fetch_data(
         self, endpoint_name: str, params: Optional[Dict[str, Any]] = None
-    ) -> Dict[str, Any]:
+    ) -> Union[Dict[str, Any], List[Dict[str, Any]]]:
         """
         Fetch data from the specified endpoint.
 
@@ -513,6 +520,13 @@ class ApiConnector:
                 request_method=request["method"],
                 additional_context={"endpoint": endpoint_name, "params": params},
             )
+
+        # Should not reach here
+        raise ApiLinkerError(
+            message=f"Unexpected state fetching data from {endpoint_name}",
+            error_category=ErrorCategory.UNKNOWN,
+            status_code=0,
+        )
 
     def send_data(
         self, endpoint_name: str, data: Union[Dict[str, Any], List[Dict[str, Any]]]
