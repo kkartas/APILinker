@@ -657,11 +657,18 @@ class ApiLinker:
                 raise PermissionError(f"User {current_user} does not have permission to run sync operations")
         
         # Merge last_sync into params from state store if not provided
-        effective_params = dict(params or {})
-        if "updated_since" not in effective_params and self.state_store:
-            last_sync = self.state_store.get_last_sync(source_endpoint)
-            if last_sync:
-                effective_params["updated_since"] = last_sync
+        if params is None:
+            effective_params = None
+        else:
+            effective_params = dict(params)
+        if self.state_store:
+            # Ensure we have a dict if we are going to inject
+            need_inject = (effective_params is None) or ("updated_since" not in effective_params)
+            if need_inject:
+                last_sync = self.state_store.get_last_sync(source_endpoint)
+                if last_sync:
+                    effective_params = dict(effective_params or {})
+                    effective_params["updated_since"] = last_sync
 
         # Always use standard non-encrypted call
         source_data, source_error = source_cb.execute(
