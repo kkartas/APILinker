@@ -21,7 +21,7 @@ import os
 import sys
 import traceback
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Set, Type, cast
+from typing import Any, Callable, Dict, List, Optional, Set, Type
 
 # Set up module logger
 logger = logging.getLogger(__name__)
