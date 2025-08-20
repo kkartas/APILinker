@@ -311,3 +311,21 @@ Load from config file:
 ```python
 linker = ApiLinker(config_path="config.yaml")
 ```
+
+## State Management
+
+```yaml
+state:
+  type: sqlite            # or 'file'
+  path: .apilinker/state.db
+  default_last_sync: "2024-01-01T00:00:00Z"
+```
+
+- Show current state:
+```bash
+apilinker state --config config.yaml --action show
+```
+- Reset state:
+```bash
+apilinker state --config config.yaml --action reset
+```

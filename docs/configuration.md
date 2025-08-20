@@ -342,3 +342,19 @@ logging:
   level: INFO
   file: logs/apilinker.log
 ```
+
+## State & Resumability
+
+Persist last sync cursors and checkpoints to resume safely on subsequent runs.
+
+```yaml
+state:
+  type: file
+  path: .apilinker/state.json
+  default_last_sync: "2024-01-01T00:00:00Z"  # Used if no previous value exists
+```
+
+Behavior:
+- The `updated_since` parameter is injected automatically from `state.last_sync[<source_endpoint>]` when not provided explicitly.
+- After a successful sync, `last_sync` is updated to the current time (UTC ISO 8601).
+- Checkpoints and DLQ pointers are available via the state store API for advanced workflows.

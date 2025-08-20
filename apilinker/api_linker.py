@@ -42,6 +42,7 @@ from apilinker.core.validation import validate_payload_against_schema, pretty_pr
 from apilinker.core.schema_probe import infer_schema, suggest_mapping_template
 from apilinker.core.provenance import ProvenanceRecorder
 from apilinker.core.idempotency import InMemoryDeduplicator, generate_idempotency_key
+from apilinker.core.state_store import FileStateStore, SQLiteStateStore, StateStore, now_iso
 
 
 # Legacy error detail class kept for backward compatibility
@@ -130,6 +131,7 @@ class ApiLinker:
         self.validation_config = validation_config or {"strict_mode": False}
         self.provenance = ProvenanceRecorder()
         self.deduplicator = InMemoryDeduplicator()
+        self.state_store: Optional[StateStore] = None
         
         # Initialize security system
         self.security_manager = self._initialize_security(security_config)
@@ -224,6 +226,19 @@ class ApiLinker:
             self.idempotency_config = config["idempotency"]
         else:
             self.idempotency_config = {"enabled": False, "salt": ""}
+
+        # State store
+        if "state" in config:
+            st_cfg = config["state"]
+            st_type = st_cfg.get("type", "file")
+            if st_type == "file":
+                path = st_cfg.get("path", ".apilinker/state.json")
+                default_last_sync = st_cfg.get("default_last_sync")
+                self.state_store = FileStateStore(path, default_last_sync=default_last_sync)
+            elif st_type == "sqlite":
+                path = st_cfg.get("path", ".apilinker/state.db")
+                default_last_sync = st_cfg.get("default_last_sync")
+                self.state_store = SQLiteStateStore(path, default_last_sync=default_last_sync)
     
     def add_source(self, type: str, base_url: str, auth: Optional[Dict[str, Any]] = None, 
                   endpoints: Optional[Dict[str, Any]] = None, **kwargs: Any) -> None:
@@ -641,9 +656,16 @@ class ApiLinker:
             if current_user and not self.security_manager.check_permission(current_user, "run_sync"):
                 raise PermissionError(f"User {current_user} does not have permission to run sync operations")
         
+        # Merge last_sync into params from state store if not provided
+        effective_params = dict(params or {})
+        if "updated_since" not in effective_params and self.state_store:
+            last_sync = self.state_store.get_last_sync(source_endpoint)
+            if last_sync:
+                effective_params["updated_since"] = last_sync
+
         # Always use standard non-encrypted call
         source_data, source_error = source_cb.execute(
-            lambda: self.source.fetch_data(source_endpoint, params)
+            lambda: self.source.fetch_data(source_endpoint, effective_params)
         )
         
         # If circuit breaker failed, try recovery strategies
@@ -781,6 +803,9 @@ class ApiLinker:
             self.logger.info(
                 f"[{correlation_id}] Sync completed successfully: {sync_result.count} items transferred in {sync_result.duration_ms}ms"
             )
+            # Update last_sync checkpoint
+            if self.state_store:
+                self.state_store.set_last_sync(source_endpoint, now_iso())
             # Complete provenance
             self.provenance.complete_run(True, sync_result.count, sync_result.details)
             return sync_result

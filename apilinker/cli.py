@@ -339,5 +339,44 @@ def probe_schema(
         sys.exit(1)
 
 
+@app.command()
+def state(
+    config: Path = typer.Option(..., "--config", "-c", help="Path to configuration YAML file", exists=True, dir_okay=False, readable=True),
+    action: str = typer.Option("show", "--action", help="Action: show | reset"),
+) -> None:
+    """Inspect or reset stored state (last_sync, checkpoints, DLQ pointer)."""
+    try:
+        import yaml
+        with open(config, "r", encoding="utf-8") as f:
+            cfg = yaml.safe_load(f)
+        st_cfg = (cfg or {}).get("state", {})
+        st_type = st_cfg.get("type", "file")
+        path = st_cfg.get("path", ".apilinker/state.json" if st_type == "file" else ".apilinker/state.db")
+        default_last_sync = st_cfg.get("default_last_sync")
+
+        if st_type == "sqlite":
+            from apilinker.core.state_store import SQLiteStateStore as Store
+        else:
+            from apilinker.core.state_store import FileStateStore as Store
+
+        store = Store(path, default_last_sync=default_last_sync)
+
+        if action == "reset":
+            store.reset()
+            console.print("[green]State reset.[/green]")
+            return
+
+        # show
+        console.print("[bold]Last Sync:[/bold]")
+        console.print(store.list_last_sync())
+        console.print("\n[bold]Checkpoints:[/bold]")
+        console.print(store.list_checkpoints())
+        console.print("\n[bold]DLQ Pointer:[/bold]")
+        console.print(store.get_dlq_pointer())
+    except Exception as e:
+        console.print(f"[bold red]State command error:[/bold red] {str(e)}")
+        sys.exit(1)
+
+
 if __name__ == "__main__":
     app()
