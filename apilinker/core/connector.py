@@ -13,6 +13,7 @@ from pydantic import ConfigDict
 
 from apilinker.core.auth import AuthConfig
 from apilinker.core.error_handling import ApiLinkerError, ErrorCategory
+from apilinker.core.validation import validate_payload_against_schema, pretty_print_diffs, is_validator_available
 
 logger = logging.getLogger(__name__)
 
@@ -27,6 +28,9 @@ class EndpointConfig(BaseModel):
     body_template: Optional[Dict[str, Any]] = None
     pagination: Optional[Dict[str, Any]] = None
     response_path: Optional[str] = None
+    # Optional JSON Schemas for validation
+    response_schema: Optional[Dict[str, Any]] = None
+    request_schema: Optional[Dict[str, Any]] = None
     
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
@@ -194,6 +198,17 @@ class ApiConnector:
             if current_data is not data:
                 data = current_data
         
+        # Validate against response schema if provided
+        endpoint = self.endpoints[endpoint_name]
+        if endpoint.response_schema and is_validator_available():
+            valid, diffs = validate_payload_against_schema(data, endpoint.response_schema)
+            if not valid:
+                logger.warning(
+                    "Response schema validation failed for %s\n%s",
+                    endpoint_name,
+                    pretty_print_diffs(diffs),
+                )
+
         # Ensure we return a valid type
         if isinstance(data, (dict, list)):
             return data
@@ -493,6 +508,26 @@ class ApiConnector:
         
         # Prepare the request
         request = self._prepare_request(endpoint_name)
+
+        # Validate single item(s) against request schema if provided
+        endpoint = self.endpoints[endpoint_name]
+        if endpoint.request_schema and is_validator_available():
+            def _validate_item(item: Any) -> None:
+                valid, diffs = validate_payload_against_schema(item, endpoint.request_schema)
+                if not valid:
+                    logger.error("Request schema validation failed for %s\n%s", endpoint_name, pretty_print_diffs(diffs))
+                    raise ApiLinkerError(
+                        message="Request failed schema validation",
+                        error_category=ErrorCategory.VALIDATION,
+                        status_code=0,
+                        additional_context={"endpoint": endpoint_name, "diffs": diffs},
+                    )
+
+            if isinstance(data, list):
+                for item in data:
+                    _validate_item(item)
+            else:
+                _validate_item(data)
         
         # If data is a list, send each item individually
         if isinstance(data, list):

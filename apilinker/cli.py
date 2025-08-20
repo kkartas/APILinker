@@ -13,6 +13,7 @@ from rich.table import Table
 
 from apilinker import ApiLinker, __version__
 from apilinker.core.logger import setup_logger
+from apilinker.core.schema_probe import infer_schema, suggest_mapping_template
 
 # Create Typer app
 app = typer.Typer(
@@ -306,6 +307,36 @@ logging:
     
     console.print(f"[bold green]Template configuration created:[/bold green] {output}")
     console.print("Edit this file with your API details before running apilinker sync.")
+
+
+@app.command()
+def probe_schema(
+    sample_source: Path = typer.Option(..., "--source", help="Path to JSON sample for source payload"),
+    sample_target: Path = typer.Option(..., "--target", help="Path to JSON sample for target payload"),
+) -> None:
+    """
+    Infer minimal schemas and suggest an initial mapping template by pairing leaf paths.
+    """
+    try:
+        import json
+        with open(sample_source, "r", encoding="utf-8") as f:
+            src = json.load(f)
+        with open(sample_target, "r", encoding="utf-8") as f:
+            tgt = json.load(f)
+
+        src_schema = infer_schema(src)
+        tgt_schema = infer_schema(tgt)
+        mapping = suggest_mapping_template(src, tgt)
+
+        console.print("[bold]Inferred Source Schema:[/bold]")
+        console.print(src_schema)
+        console.print("\n[bold]Inferred Target Schema:[/bold]")
+        console.print(tgt_schema)
+        console.print("\n[bold]Suggested Mapping Template:[/bold]")
+        console.print(mapping)
+    except Exception as e:
+        console.print(f"[bold red]Schema probe error:[/bold red] {str(e)}")
+        sys.exit(1)
 
 
 if __name__ == "__main__":

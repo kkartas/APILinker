@@ -108,6 +108,18 @@ endpoints:
     
     # Response configuration (optional)
     response_path: results  # Path to extract from response
+    
+    # JSON Schema validation (optional)
+    response_schema:
+      type: object
+      properties:
+        results:
+          type: array
+          items:
+            type: object
+            properties:
+              id: { type: string }
+              name: { type: string }
 ```
 
 For endpoints that send data:
@@ -124,6 +136,14 @@ endpoints:
     body_template:
       source: "apilinker"
       created_by: "integration"
+
+    # Optional JSON Schema for validating request payloads
+    request_schema:
+      type: object
+      properties:
+        external_id: { type: string }
+        title: { type: string }
+      required: [external_id, title]
 ```
 
 ## Field Mappings

@@ -25,7 +25,7 @@
  - 🔒 **Authentication & Security** - Support for API Key, Bearer Token, Basic Auth, and multiple OAuth2 flows (including PKCE and Device Flow). Optional secure credential storage and role-based access control.
 - 📝 **Flexible Configuration** - Use YAML/JSON or configure programmatically in Python
 - 🕒 **Automated Scheduling** - Run syncs once, on intervals, or using cron expressions
-- 📋 **Data Validation** - Validate data with schemas and custom rules
+- 📋 **Schema Validation** - JSON Schema validation for responses and requests, with optional strict mode and readable diffs
 - 🔌 **Plugin Architecture** - Extend with custom connectors, transformers, and authentication methods
 - 📈 **Pagination Handling** - Automatic handling of paginated API responses
 - 🔍 **Robust Error Handling** - Circuit breakers, Dead Letter Queues (DLQ), and configurable recovery strategies
@@ -64,6 +64,7 @@ For more details, see the [Security Documentation](docs/security.md). Note: ApiL
 - [Data Transformations](#data-transformations)
 - [Scheduling](#scheduling)
 - [Command Line Interface](#command-line-interface)
+- [Schema Validation and Strict Mode](#schema-validation-and-strict-mode)
 - [Python API](#python-api)
 - [Examples](#examples)
 - [Extending ApiLinker](#extending-apilinker)
@@ -281,6 +282,12 @@ Run a scheduled sync based on the configuration:
 apilinker run --config config.yaml
 ```
 
+Probe schemas and suggest a starter mapping from example payloads:
+
+```bash
+apilinker probe_schema --source source_sample.json --target target_sample.json
+```
+
 ### Using as a Python Library
 
 ```python
@@ -440,6 +447,49 @@ mapping:
           field: status
           operator: eq  # eq, ne, exists, not_exists, gt, lt
           value: active
+```
+
+### Schema Validation and Strict Mode
+
+Validate source responses and target requests against JSON Schemas, and optionally enable strict mode to fail early when mismatches occur.
+
+```yaml
+source:
+  endpoints:
+    list_items:
+      path: /items
+      method: GET
+      response_schema:
+        type: object
+        properties:
+          data:
+            type: array
+            items:
+              type: object
+              properties:
+                id: { type: string }
+                name: { type: string }
+
+target:
+  endpoints:
+    create_item:
+      path: /items
+      method: POST
+      request_schema:
+        type: object
+        properties:
+          external_id: { type: string }
+          title: { type: string }
+        required: [external_id, title]
+
+validation:
+  strict_mode: true  # Fail sync if target payloads do not satisfy the request schema
+```
+
+CLI to infer minimal schemas and a starter mapping from samples:
+
+```bash
+apilinker probe_schema --source src_sample.json --target tgt_sample.json
 ```
 
 ## 🔄 Data Transformations

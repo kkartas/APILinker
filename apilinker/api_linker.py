@@ -38,6 +38,8 @@ from apilinker.core.security_integration import (
     SecurityManager,
     integrate_security_with_auth_manager
 )
+from apilinker.core.validation import validate_payload_against_schema, pretty_print_diffs, is_validator_available
+from apilinker.core.schema_probe import infer_schema, suggest_mapping_template
 
 
 # Legacy error detail class kept for backward compatibility
@@ -110,6 +112,7 @@ class ApiLinker:
         schedule_config: Optional[Dict[str, Any]] = None,
         error_handling_config: Optional[Dict[str, Any]] = None,
         security_config: Optional[Dict[str, Any]] = None,
+        validation_config: Optional[Dict[str, Any]] = None,
         log_level: str = "INFO",
         log_file: Optional[str] = None,
     ) -> None:
@@ -122,6 +125,7 @@ class ApiLinker:
         self.target: Optional[ApiConnector] = None
         self.mapper = FieldMapper()
         self.scheduler = Scheduler()
+        self.validation_config = validation_config or {"strict_mode": False}
         
         # Initialize security system
         self.security_manager = self._initialize_security(security_config)
@@ -193,6 +197,10 @@ class ApiLinker:
         # Configure security if specified
         if "security" in config:
             self._configure_security(config["security"])
+
+        # Validation configuration
+        if "validation" in config:
+            self.validation_config = config["validation"]
         
         if "logging" in config:
             log_config = config["logging"]
@@ -650,6 +658,30 @@ class ApiLinker:
         try:
             # Map fields according to configuration
             transformed_data = self.mapper.map_data(source_endpoint, target_endpoint, source_data)
+
+            # Optional strict validation against target request schema (if defined in connector)
+            if self.validation_config.get("strict_mode") and is_validator_available():
+                target_endpoint_cfg = self.target.endpoints.get(target_endpoint) if self.target else None
+                if target_endpoint_cfg and target_endpoint_cfg.request_schema:
+                    if isinstance(transformed_data, list):
+                        for item in transformed_data:
+                            valid, diffs = validate_payload_against_schema(item, target_endpoint_cfg.request_schema)
+                            if not valid:
+                                raise ApiLinkerError(
+                                    message="Strict mode: target payload failed schema validation",
+                                    error_category=ErrorCategory.VALIDATION,
+                                    status_code=0,
+                                    additional_context={"diffs": diffs},
+                                )
+                    else:
+                        valid, diffs = validate_payload_against_schema(transformed_data, target_endpoint_cfg.request_schema)
+                        if not valid:
+                            raise ApiLinkerError(
+                                message="Strict mode: target payload failed schema validation",
+                                error_category=ErrorCategory.VALIDATION,
+                                status_code=0,
+                                additional_context={"diffs": diffs},
+                            )
             
             # Record source data metrics
             source_count = len(source_data) if isinstance(source_data, list) else 1

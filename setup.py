@@ -27,6 +27,7 @@ setup(
         "croniter>=1.3.8",
         "rich>=12.6.0",
         "cryptography>=41.0.0",
+        "jsonschema>=4.18.0",
     ],
     extras_require={
         "dev": [

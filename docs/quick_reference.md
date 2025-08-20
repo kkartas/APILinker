@@ -243,6 +243,16 @@ source:
       method: GET
       params:
         limit: 100
+      response_schema:
+        type: object
+        properties:
+          items:
+            type: array
+            items:
+              type: object
+              properties:
+                id: { type: string }
+                name: { type: string }
 
 target:
   type: rest
@@ -255,6 +265,12 @@ target:
     create_item:
       path: /items
       method: POST
+      request_schema:
+        type: object
+        properties:
+          external_id: { type: string }
+          title: { type: string }
+        required: [external_id, title]
 
 mapping:
   - source: get_items
@@ -271,6 +287,8 @@ mapping:
 schedule:
   type: interval
   minutes: 60
+validation:
+  strict_mode: true
 ```
 
 Load from config file:

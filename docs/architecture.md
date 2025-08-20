@@ -73,6 +73,8 @@ The flow of data through ApiLinker follows these steps:
 
 7. **Result Processing**: Results are collected and returned to the caller or handled by the error handler.
 
+8. **Optional Validation**: When configured, source responses and target requests are validated against JSON Schemas. In strict mode, schema mismatches cause the operation to fail early with readable diffs explaining the mismatch.
+
 ## Core Components
 
 ### 1. ApiLinker
@@ -99,6 +101,8 @@ Manages field mappings and transformations. It:
 - Applies transformations
 - Handles nested data structures
 - Implements conditional mapping
+
+Validation complements (but does not replace) mapping. Validation checks structural compatibility of responses/requests; mapping performs the semantic transformation between schemas.
 
 ### 4. Transformers
 
