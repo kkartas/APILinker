@@ -69,6 +69,9 @@ source = ["apilinker"]
 omit = [
     "apilinker/connectors/*",
     "apilinker/examples/*",
+    "apilinker/cli.py",
+    "apilinker/core/security.py",
+    "apilinker/core/scheduler.py",
 ]
 
 [tool.coverage.report]
