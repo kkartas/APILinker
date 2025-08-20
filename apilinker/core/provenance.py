@@ -28,7 +28,9 @@ def compute_sha256_of_text(text: str) -> str:
 
 def try_get_git_sha(cwd: Optional[str] = None) -> Optional[str]:
     try:
-        sha = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=cwd or os.getcwd())
+        sha = subprocess.check_output(
+            ["git", "rev-parse", "HEAD"], cwd=cwd or os.getcwd()
+        )
         return sha.decode("utf-8").strip()
     except Exception:
         return None
@@ -72,7 +74,9 @@ class RunProvenance:
 
 
 class ProvenanceRecorder:
-    def __init__(self, output_dir: Optional[str] = None, jsonl_log_path: Optional[str] = None) -> None:
+    def __init__(
+        self, output_dir: Optional[str] = None, jsonl_log_path: Optional[str] = None
+    ) -> None:
         self.output_dir = Path(output_dir) if output_dir else None
         self.jsonl_log_path = Path(jsonl_log_path) if jsonl_log_path else None
         self._run: Optional[RunProvenance] = None
@@ -116,7 +120,14 @@ class ProvenanceRecorder:
         self._run.rate_limit_events.append(ev)
         self._emit_jsonl({"event": "ratelimit", **asdict(ev)})
 
-    def record_error(self, message: str, *, category: Optional[str] = None, status_code: Optional[int] = None, endpoint: Optional[str] = None) -> None:
+    def record_error(
+        self,
+        message: str,
+        *,
+        category: Optional[str] = None,
+        status_code: Optional[int] = None,
+        endpoint: Optional[str] = None,
+    ) -> None:
         if not self._run:
             return
         ev = ErrorEvent(
@@ -129,7 +140,9 @@ class ProvenanceRecorder:
         self._run.error_events.append(ev)
         self._emit_jsonl({"event": "error", **asdict(ev)})
 
-    def complete_run(self, success: bool, transferred_count: Optional[int], details: Dict[str, Any]) -> None:
+    def complete_run(
+        self, success: bool, transferred_count: Optional[int], details: Dict[str, Any]
+    ) -> None:
         if not self._run:
             return
         self._run.finished_ms = _safe_now_ms()
@@ -157,5 +170,3 @@ class ProvenanceRecorder:
                 f.write(json.dumps(obj) + "\n")
         except Exception:
             pass
-
-

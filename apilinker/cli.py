@@ -79,7 +79,7 @@ def sync(
     """
     logger = setup_logger(log_level, log_file)
     logger.info(f"ApiLinker v{__version__} starting sync")
-    
+
     try:
         # Initialize ApiLinker with config
         linker = ApiLinker(
@@ -87,46 +87,56 @@ def sync(
             log_level=log_level,
             log_file=str(log_file) if log_file else None,
         )
-        
+
         # If dry run, just report what would happen
         if dry_run:
-            console.print("[bold yellow]DRY RUN MODE[/bold yellow] - No data will be transferred")
-            source_url = linker.source.base_url if linker.source is not None else 'Not configured'
-            target_url = linker.target.base_url if linker.target is not None else 'Not configured'
+            console.print(
+                "[bold yellow]DRY RUN MODE[/bold yellow] - No data will be transferred"
+            )
+            source_url = (
+                linker.source.base_url
+                if linker.source is not None
+                else "Not configured"
+            )
+            target_url = (
+                linker.target.base_url
+                if linker.target is not None
+                else "Not configured"
+            )
             console.print(f"Source: {source_url}")
             console.print(f"Target: {target_url}")
             mappings = linker.mapper.get_mappings()
-            
+
             if mappings:
                 table = Table(title="Field Mappings")
                 table.add_column("Source Endpoint", style="cyan")
                 table.add_column("Target Endpoint", style="green")
                 table.add_column("Field Count", style="magenta")
-                
+
                 for mapping in mappings:
                     table.add_row(
                         mapping["source"],
                         mapping["target"],
-                        str(len(mapping["fields"]))
+                        str(len(mapping["fields"])),
                     )
-                
+
                 console.print(table)
             else:
                 console.print("[yellow]No mappings configured[/yellow]")
-                
+
             return
-        
+
         # Execute the sync
         result = linker.sync(
             source_endpoint=source_endpoint,
             target_endpoint=target_endpoint,
         )
-        
+
         # Report results
         if result.success:
             console.print(f"[bold green]Sync completed successfully![/bold green]")
             console.print(f"Transferred [bold]{result.count}[/bold] items")
-            
+
             if result.details:
                 console.print("\n[bold]Details:[/bold]")
                 for key, value in result.details.items():
@@ -135,7 +145,7 @@ def sync(
             console.print(f"[bold red]Sync failed![/bold red]")
             for error in result.errors:
                 console.print(f"[red]Error: {error}[/red]")
-    
+
     except Exception as e:
         console.print(f"[bold red]Error:[/bold red] {str(e)}")
         logger.exception("Error during sync operation")
@@ -171,7 +181,7 @@ def run(
     """
     logger = setup_logger(log_level, log_file)
     logger.info(f"ApiLinker v{__version__} starting scheduler")
-    
+
     try:
         # Initialize ApiLinker with config
         linker = ApiLinker(
@@ -179,20 +189,20 @@ def run(
             log_level=log_level,
             log_file=str(log_file) if log_file else None,
         )
-        
+
         # Show schedule info
         schedule_info = linker.scheduler.get_schedule_info()
         console.print(f"[bold]Schedule:[/bold] {schedule_info}")
-        
+
         # Start scheduled sync
         console.print("Starting scheduled sync. Press CTRL+C to stop.")
         linker.start_scheduled_sync()
-        
+
     except KeyboardInterrupt:
         console.print("\n[yellow]Stopping scheduled sync...[/yellow]")
         linker.stop_scheduled_sync()
         console.print("[green]Stopped[/green]")
-    
+
     except Exception as e:
         console.print(f"[bold red]Error:[/bold red] {str(e)}")
         logger.exception("Error during scheduled sync")
@@ -217,10 +227,10 @@ def validate(
     try:
         # Initialize ApiLinker with config (will validate the config)
         ApiLinker(config_path=str(config))
-        
+
         console.print(f"[bold green]Configuration is valid![/bold green]")
         console.print(f"Configuration file: {config}")
-    
+
     except Exception as e:
         console.print(f"[bold red]Configuration error:[/bold red] {str(e)}")
         sys.exit(1)
@@ -246,9 +256,11 @@ def init(
     """
     # Check if output file exists
     if output.exists() and not force:
-        console.print(f"[bold red]Error:[/bold red] File {output} already exists. Use --force to overwrite.")
+        console.print(
+            f"[bold red]Error:[/bold red] File {output} already exists. Use --force to overwrite."
+        )
         sys.exit(1)
-    
+
     # Create template config
     template = """# ApiLinker Configuration
 
@@ -300,25 +312,30 @@ logging:
   level: INFO
   file: apilinker.log
 """
-    
+
     # Write template to file
     with open(output, "w") as f:
         f.write(template)
-    
+
     console.print(f"[bold green]Template configuration created:[/bold green] {output}")
     console.print("Edit this file with your API details before running apilinker sync.")
 
 
 @app.command()
 def probe_schema(
-    sample_source: Path = typer.Option(..., "--source", help="Path to JSON sample for source payload"),
-    sample_target: Path = typer.Option(..., "--target", help="Path to JSON sample for target payload"),
+    sample_source: Path = typer.Option(
+        ..., "--source", help="Path to JSON sample for source payload"
+    ),
+    sample_target: Path = typer.Option(
+        ..., "--target", help="Path to JSON sample for target payload"
+    ),
 ) -> None:
     """
     Infer minimal schemas and suggest an initial mapping template by pairing leaf paths.
     """
     try:
         import json
+
         with open(sample_source, "r", encoding="utf-8") as f:
             src = json.load(f)
         with open(sample_target, "r", encoding="utf-8") as f:
@@ -341,17 +358,29 @@ def probe_schema(
 
 @app.command()
 def state(
-    config: Path = typer.Option(..., "--config", "-c", help="Path to configuration YAML file", exists=True, dir_okay=False, readable=True),
+    config: Path = typer.Option(
+        ...,
+        "--config",
+        "-c",
+        help="Path to configuration YAML file",
+        exists=True,
+        dir_okay=False,
+        readable=True,
+    ),
     action: str = typer.Option("show", "--action", help="Action: show | reset"),
 ) -> None:
     """Inspect or reset stored state (last_sync, checkpoints, DLQ pointer)."""
     try:
         import yaml
+
         with open(config, "r", encoding="utf-8") as f:
             cfg = yaml.safe_load(f)
         st_cfg = (cfg or {}).get("state", {})
         st_type = st_cfg.get("type", "file")
-        path = st_cfg.get("path", ".apilinker/state.json" if st_type == "file" else ".apilinker/state.db")
+        path = st_cfg.get(
+            "path",
+            ".apilinker/state.json" if st_type == "file" else ".apilinker/state.db",
+        )
         default_last_sync = st_cfg.get("default_last_sync")
 
         if st_type == "sqlite":

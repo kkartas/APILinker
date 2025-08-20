@@ -33,5 +33,3 @@ class InMemoryDeduplicator:
 
     def mark_seen(self, endpoint: str, idem_key: str) -> None:
         self._seen.add((endpoint, idem_key))
-
-

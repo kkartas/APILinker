@@ -19,16 +19,24 @@ def now_iso() -> str:
 
 
 class StateStore:
-    def get_last_sync(self, endpoint_name: str) -> Optional[str]:  # pragma: no cover - interface
+    def get_last_sync(
+        self, endpoint_name: str
+    ) -> Optional[str]:  # pragma: no cover - interface
         raise NotImplementedError
 
-    def set_last_sync(self, endpoint_name: str, iso_timestamp: str) -> None:  # pragma: no cover - interface
+    def set_last_sync(
+        self, endpoint_name: str, iso_timestamp: str
+    ) -> None:  # pragma: no cover - interface
         raise NotImplementedError
 
-    def get_checkpoint(self, name: str) -> Optional[Dict[str, Any]]:  # pragma: no cover - interface
+    def get_checkpoint(
+        self, name: str
+    ) -> Optional[Dict[str, Any]]:  # pragma: no cover - interface
         raise NotImplementedError
 
-    def set_checkpoint(self, name: str, data: Dict[str, Any]) -> None:  # pragma: no cover - interface
+    def set_checkpoint(
+        self, name: str, data: Dict[str, Any]
+    ) -> None:  # pragma: no cover - interface
         raise NotImplementedError
 
     def get_dlq_pointer(self) -> Optional[str]:  # pragma: no cover - interface
@@ -49,7 +57,9 @@ class StateStore:
 
 
 class FileStateStore(StateStore):
-    def __init__(self, file_path: str, *, default_last_sync: Optional[str] = None) -> None:
+    def __init__(
+        self, file_path: str, *, default_last_sync: Optional[str] = None
+    ) -> None:
         self.file = Path(file_path)
         self.default_last_sync = default_last_sync
         self._lock = threading.Lock()
@@ -70,7 +80,9 @@ class FileStateStore(StateStore):
             self.file.write_text(json.dumps(self._data, indent=2), encoding="utf-8")
 
     def get_last_sync(self, endpoint_name: str) -> Optional[str]:
-        return self._data.get("last_sync", {}).get(endpoint_name) or self.default_last_sync
+        return (
+            self._data.get("last_sync", {}).get(endpoint_name) or self.default_last_sync
+        )
 
     def set_last_sync(self, endpoint_name: str, iso_timestamp: str) -> None:
         self._data.setdefault("last_sync", {})[endpoint_name] = iso_timestamp
@@ -103,8 +115,11 @@ class FileStateStore(StateStore):
 
 # Optional SQLite-backed state store
 class SQLiteStateStore(StateStore):
-    def __init__(self, db_path: str, *, default_last_sync: Optional[str] = None) -> None:
+    def __init__(
+        self, db_path: str, *, default_last_sync: Optional[str] = None
+    ) -> None:
         import sqlite3  # lazy import
+
         self._sqlite3 = sqlite3
         self.db_path = db_path
         self.default_last_sync = default_last_sync
@@ -116,9 +131,15 @@ class SQLiteStateStore(StateStore):
     def _init_db(self) -> None:
         with self._conn() as conn:
             cur = conn.cursor()
-            cur.execute("CREATE TABLE IF NOT EXISTS last_sync (endpoint TEXT PRIMARY KEY, iso TEXT)")
-            cur.execute("CREATE TABLE IF NOT EXISTS checkpoints (name TEXT PRIMARY KEY, data TEXT)")
-            cur.execute("CREATE TABLE IF NOT EXISTS dlq (id INTEGER PRIMARY KEY CHECK(id=1), pointer TEXT)")
+            cur.execute(
+                "CREATE TABLE IF NOT EXISTS last_sync (endpoint TEXT PRIMARY KEY, iso TEXT)"
+            )
+            cur.execute(
+                "CREATE TABLE IF NOT EXISTS checkpoints (name TEXT PRIMARY KEY, data TEXT)"
+            )
+            cur.execute(
+                "CREATE TABLE IF NOT EXISTS dlq (id INTEGER PRIMARY KEY CHECK(id=1), pointer TEXT)"
+            )
             conn.commit()
 
     def get_last_sync(self, endpoint_name: str) -> Optional[str]:
@@ -199,5 +220,3 @@ class SQLiteStateStore(StateStore):
             cur.execute("DELETE FROM checkpoints")
             cur.execute("DELETE FROM dlq")
             conn.commit()
-
-

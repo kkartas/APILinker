@@ -15,9 +15,9 @@ from .orcid import ORCIDConnector
 
 __all__ = [
     "NCBIConnector",
-    "ArXivConnector", 
+    "ArXivConnector",
     "CrossRefConnector",
     "SemanticScholarConnector",
     "PubChemConnector",
-    "ORCIDConnector"
+    "ORCIDConnector",
 ]

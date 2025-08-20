@@ -26,38 +26,32 @@ try:
     from .connectors.scientific.semantic_scholar import SemanticScholarConnector
     from .connectors.scientific.pubchem import PubChemConnector
     from .connectors.scientific.orcid import ORCIDConnector
-    
+
     # General research connectors
     from .connectors.general.github import GitHubConnector
     from .connectors.general.nasa import NASAConnector
-    
+
     research_connectors_available = True
-    
+
     __all__ = [
-        "ApiLinker", 
+        "ApiLinker",
         "SyncResult",
-        "ApiConnector", 
-        "FieldMapper", 
+        "ApiConnector",
+        "FieldMapper",
         "Scheduler",
         # Scientific APIs
         "NCBIConnector",
         "ArXivConnector",
-        "CrossRefConnector", 
+        "CrossRefConnector",
         "SemanticScholarConnector",
         "PubChemConnector",
         "ORCIDConnector",
         # General research APIs
         "GitHubConnector",
-        "NASAConnector"
+        "NASAConnector",
     ]
 except ImportError:
     # Research connectors not available
     research_connectors_available = False
-    
-    __all__ = [
-        "ApiLinker",
-        "SyncResult", 
-        "ApiConnector", 
-        "FieldMapper", 
-        "Scheduler"
-    ]
+
+    __all__ = ["ApiLinker", "SyncResult", "ApiConnector", "FieldMapper", "Scheduler"]

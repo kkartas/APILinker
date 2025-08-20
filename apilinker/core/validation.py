@@ -60,7 +60,9 @@ def validate_payload_against_schema(
         elif error.validator == "additionalProperties":
             # unexpected additional property
             if isinstance(error.instance, dict):
-                extras = set(error.instance.keys()) - set(error.schema.get("properties", {}).keys())
+                extras = set(error.instance.keys()) - set(
+                    error.schema.get("properties", {}).keys()
+                )
                 if extras:
                     msg = f"Unexpected properties: {', '.join(sorted(extras))}"
         errors.append(f"{path}: {msg}")
@@ -99,5 +101,3 @@ def dump_example_for_schema(schema: Dict[str, Any]) -> Dict[str, Any]:
     if t == "boolean":
         return False
     return {}
-
-

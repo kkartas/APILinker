@@ -39,7 +39,11 @@ def infer_schema(sample: Any, max_depth: int = 5) -> Dict[str, Any]:
             props[k] = infer_schema(v, max_depth=max_depth - 1)
         return {"type": "object", "properties": props}
     if t == "array":
-        item_schema = infer_schema(sample[0], max_depth=max_depth - 1) if sample else {"type": "object"}
+        item_schema = (
+            infer_schema(sample[0], max_depth=max_depth - 1)
+            if sample
+            else {"type": "object"}
+        )
         return {"type": "array", "items": item_schema}
     return {"type": t}
 
@@ -69,5 +73,3 @@ def suggest_mapping_template(source_sample: Any, target_sample: Any) -> Dict[str
     pairs = zip(source_paths, target_paths)
     fields = [{"source": s, "target": t} for s, t in pairs]
     return {"fields": fields}
-
-
