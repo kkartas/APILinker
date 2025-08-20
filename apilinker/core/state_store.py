@@ -11,7 +11,7 @@ import json
 import threading
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, cast
 
 
 def now_iso() -> str:
@@ -89,14 +89,16 @@ class FileStateStore(StateStore):
         self._save()
 
     def get_checkpoint(self, name: str) -> Optional[Dict[str, Any]]:
-        return self._data.get("checkpoints", {}).get(name)
+        value: Any = self._data.get("checkpoints", {}).get(name)
+        return cast(Optional[Dict[str, Any]], value)
 
     def set_checkpoint(self, name: str, data: Dict[str, Any]) -> None:
         self._data.setdefault("checkpoints", {})[name] = data
         self._save()
 
     def get_dlq_pointer(self) -> Optional[str]:
-        return self._data.get("dlq", {}).get("pointer")
+        value: Any = self._data.get("dlq", {}).get("pointer")
+        return cast(Optional[str], value)
 
     def set_dlq_pointer(self, pointer: str) -> None:
         self._data.setdefault("dlq", {})["pointer"] = pointer
@@ -166,7 +168,8 @@ class SQLiteStateStore(StateStore):
             if not row:
                 return None
             try:
-                return json.loads(row[0])
+                data = json.loads(row[0])
+                return cast(Optional[Dict[str, Any]], data)
             except Exception:
                 return None
 
@@ -184,7 +187,7 @@ class SQLiteStateStore(StateStore):
             cur = conn.cursor()
             cur.execute("SELECT pointer FROM dlq WHERE id=1")
             row = cur.fetchone()
-            return row[0] if row else None
+            return cast(Optional[str], row[0] if row else None)
 
     def set_dlq_pointer(self, pointer: str) -> None:
         with self._conn() as conn:

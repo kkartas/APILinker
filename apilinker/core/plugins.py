@@ -630,7 +630,7 @@ class PluginManager:
                 logger.error(error_msg)
                 raise TypeError(error_msg)
 
-            return cast(ConnectorPlugin, plugin)
+            return plugin
 
         except (PluginNotFoundError, PluginInitializationError) as e:
             logger.warning(f"Could not get connector {name}: {str(e)}")
@@ -660,7 +660,7 @@ class PluginManager:
                 logger.error(error_msg)
                 raise TypeError(error_msg)
 
-            return cast(AuthPlugin, plugin)
+            return plugin
 
         except (PluginNotFoundError, PluginInitializationError) as e:
             logger.warning(f"Could not get auth plugin {name}: {str(e)}")

@@ -13,11 +13,11 @@ from typing import Any, Dict, List, Tuple
 
 
 try:
-    from jsonschema import Draft202012Validator as DefaultValidator  # type: ignore
+    from jsonschema import Draft202012Validator as DefaultValidator
     from jsonschema.exceptions import ValidationError
 except Exception:  # pragma: no cover - optional import checked at runtime
-    DefaultValidator = None  # type: ignore
-    ValidationError = Exception  # type: ignore
+    DefaultValidator = None
+    ValidationError = Exception
 
 
 def is_validator_available() -> bool:
@@ -76,7 +76,7 @@ def pretty_print_diffs(diffs: List[str]) -> str:
     return "\n".join(f"- {d}" for d in diffs)
 
 
-def dump_example_for_schema(schema: Dict[str, Any]) -> Dict[str, Any]:
+def dump_example_for_schema(schema: Dict[str, Any]) -> Any:
     """
     Produce a minimal example instance that satisfies a subset of the schema.
     (Best-effort, not complete) Useful for quick scaffolding and docs.
