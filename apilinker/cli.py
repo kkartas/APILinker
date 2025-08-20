@@ -2,7 +2,6 @@
 Command Line Interface for ApiLinker.
 """
 
-import os
 import sys
 from pathlib import Path
 from typing import Optional
@@ -134,7 +133,7 @@ def sync(
 
         # Report results
         if result.success:
-            console.print(f"[bold green]Sync completed successfully![/bold green]")
+            console.print("[bold green]Sync completed successfully![/bold green]")
             console.print(f"Transferred [bold]{result.count}[/bold] items")
 
             if result.details:
@@ -142,7 +141,7 @@ def sync(
                 for key, value in result.details.items():
                     console.print(f"  {key}: {value}")
         else:
-            console.print(f"[bold red]Sync failed![/bold red]")
+            console.print("[bold red]Sync failed![/bold red]")
             for error in result.errors:
                 console.print(f"[red]Error: {error}[/red]")
 
@@ -228,7 +227,7 @@ def validate(
         # Initialize ApiLinker with config (will validate the config)
         ApiLinker(config_path=str(config))
 
-        console.print(f"[bold green]Configuration is valid![/bold green]")
+        console.print("[bold green]Configuration is valid![/bold green]")
         console.print(f"Configuration file: {config}")
 
     except Exception as e:
@@ -257,7 +256,7 @@ def init(
     # Check if output file exists
     if output.exists() and not force:
         console.print(
-            f"[bold red]Error:[/bold red] File {output} already exists. Use --force to overwrite."
+            "[bold red]Error:[/bold red] File {output} already exists. Use --force to overwrite."
         )
         sys.exit(1)
 

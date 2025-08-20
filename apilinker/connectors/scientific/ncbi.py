@@ -7,7 +7,6 @@ including PubMed, GenBank, and other databases.
 
 from typing import Any, Dict, List, Optional
 from apilinker.core.connector import ApiConnector
-from apilinker.core.auth import AuthConfig
 
 
 class NCBIConnector(ApiConnector):

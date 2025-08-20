@@ -14,7 +14,7 @@ import uuid
 from contextlib import contextmanager
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, Generator, Optional, Union
+from typing import Any, Generator, Optional
 
 
 class CorrelationFilter(logging.Filter):

@@ -8,7 +8,7 @@ configuration authoring.
 
 from __future__ import annotations
 
-from typing import Any, Dict, List, Tuple, Union
+from typing import Any, Dict, List
 
 
 def _infer_type(value: Any) -> str:

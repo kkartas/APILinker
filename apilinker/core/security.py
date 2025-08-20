@@ -13,8 +13,7 @@ import logging
 import os
 import time
 from enum import Enum
-from pathlib import Path
-from typing import Any, Dict, List, Optional, Set, Tuple, Union
+from typing import Any, Dict, List, Optional, Set, Union
 
 from cryptography.fernet import Fernet
 from cryptography.hazmat.primitives import hashes

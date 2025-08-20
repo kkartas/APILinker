@@ -4,18 +4,16 @@ Authentication module for handling API authentication.
 
 import base64
 import hashlib
-import json
 import logging
 import os
 import random
 import string
 import time
-from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, Optional, Tuple
 from urllib.parse import urlencode
 
 import httpx
-from pydantic import BaseModel, Field, ConfigDict
+from pydantic import BaseModel, ConfigDict
 
 logger = logging.getLogger(__name__)
 
@@ -614,7 +612,7 @@ class AuthManager:
                 "verification_url"
             )
             verification_uri_complete = device_data.get("verification_uri_complete")
-            expires_in = device_data.get("expires_in", 1800)  # Default 30 minutes
+            # expires_in not used in client; polling interval governs timing
             interval = device_data.get("interval", 5)  # Default 5 seconds
 
             logger.debug("OAuth2 device flow started successfully")

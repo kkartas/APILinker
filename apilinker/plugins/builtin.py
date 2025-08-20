@@ -5,9 +5,9 @@ This module contains the built-in plugins that are available by default
 in ApiLinker, including transformers, connectors, and authentication plugins.
 """
 
-from typing import Any, Dict, List, Optional, Union
+from typing import Any
 
-from apilinker.core.plugins import TransformerPlugin, ConnectorPlugin, AuthPlugin
+from apilinker.core.plugins import TransformerPlugin
 
 
 class JsonPathTransformer(TransformerPlugin):

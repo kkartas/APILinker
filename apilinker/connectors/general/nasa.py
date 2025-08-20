@@ -256,7 +256,6 @@ class NASAConnector(ApiConnector):
             Dictionary containing exoplanet data
         """
         # NASA Exoplanet Archive uses different base URL
-        import urllib.parse
 
         base_url = "https://exoplanetarchive.ipac.caltech.edu/TAP/sync"
 

@@ -5,7 +5,7 @@ Provides access to CrossRef's REST API for academic citation data,
 journal metadata, and bibliographic information.
 """
 
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 from apilinker.core.connector import ApiConnector
 
 

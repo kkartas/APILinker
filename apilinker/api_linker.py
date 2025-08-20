@@ -7,8 +7,7 @@ import os
 import time
 import uuid
 from datetime import datetime
-from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Tuple, Union
+from typing import Any, Callable, Dict, List, Optional, Tuple
 
 import yaml
 from pydantic import BaseModel, Field
@@ -19,9 +18,7 @@ from apilinker.core.error_handling import (
     ApiLinkerError,
     CircuitBreaker,
     DeadLetterQueue,
-    ErrorAnalytics,
     ErrorCategory,
-    ErrorRecoveryManager,
     RecoveryStrategy,
     create_error_handler,
 )
@@ -29,10 +26,7 @@ from apilinker.core.logger import setup_logger
 from apilinker.core.mapper import FieldMapper
 from apilinker.core.scheduler import Scheduler
 from apilinker.core.security import (
-    AccessRole,
     EncryptionLevel,
-    RequestResponseEncryption,
-    SecureCredentialStorage,
 )
 from apilinker.core.security_integration import (
     SecurityManager,
@@ -40,10 +34,8 @@ from apilinker.core.security_integration import (
 )
 from apilinker.core.validation import (
     validate_payload_against_schema,
-    pretty_print_diffs,
     is_validator_available,
 )
-from apilinker.core.schema_probe import infer_schema, suggest_mapping_template
 from apilinker.core.provenance import ProvenanceRecorder
 from apilinker.core.idempotency import InMemoryDeduplicator, generate_idempotency_key
 from apilinker.core.state_store import (
@@ -616,7 +608,7 @@ class ApiLinker:
             ):
                 # This is a source operation
                 try:
-                    result = self.source.fetch_data(
+                    self.source.fetch_data(
                         payload.get("endpoint"), payload.get("params")
                     )
                     retry_result["success"] = True
@@ -972,7 +964,6 @@ class ApiLinker:
             Tuple of (result, error_detail) - If successful, error_detail will be None
         """
         current_delay = retry_delay
-        last_exception = None
 
         for attempt in range(max_retries + 1):
             try:
@@ -993,7 +984,6 @@ class ApiLinker:
                 return result, None
 
             except Exception as e:
-                last_exception = e
                 status_code = getattr(e, "status_code", None)
                 response_body = getattr(e, "response", None)
                 request_url = getattr(e, "url", None)

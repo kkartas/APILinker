@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import hashlib
 import json
-from typing import Any, Dict, Optional, Set, Tuple
+from typing import Any, Set, Tuple
 
 
 def generate_idempotency_key(payload: Any, *, salt: str = "") -> str:

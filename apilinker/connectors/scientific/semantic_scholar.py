@@ -5,7 +5,7 @@ Provides access to Semantic Scholar's API for academic papers with
 AI-enhanced search, citation analysis, and research recommendations.
 """
 
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional
 from apilinker.core.connector import ApiConnector
 
 

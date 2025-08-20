@@ -6,7 +6,7 @@ import logging
 import threading
 import time
 from datetime import datetime, timedelta
-from typing import Any, Callable, Dict, Optional, Union, TypeVar, cast
+from typing import Any, Callable, Dict, Optional, TypeVar, cast
 
 from croniter import croniter
 

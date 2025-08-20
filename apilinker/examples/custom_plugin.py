@@ -18,7 +18,7 @@ Or register them manually:
 
 import json
 import os
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List
 
 from apilinker.core.plugins import AuthPlugin, ConnectorPlugin, TransformerPlugin
 

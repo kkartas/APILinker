@@ -20,10 +20,8 @@ import logging
 import os
 import sys
 import traceback
-from dataclasses import dataclass
-from enum import Enum, auto
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Set, Tuple, Type, Union, cast
+from typing import Any, Callable, Dict, List, Optional, Set, Type, cast
 
 # Set up module logger
 logger = logging.getLogger(__name__)
@@ -32,25 +30,17 @@ logger = logging.getLogger(__name__)
 class PluginError(Exception):
     """Base exception for all plugin-related errors."""
 
-    pass
-
 
 class PluginNotFoundError(PluginError):
     """Raised when a requested plugin cannot be found."""
-
-    pass
 
 
 class PluginValidationError(PluginError):
     """Raised when a plugin fails validation checks."""
 
-    pass
-
 
 class PluginInitializationError(PluginError):
     """Raised when a plugin cannot be initialized."""
-
-    pass
 
 
 class PluginBase:

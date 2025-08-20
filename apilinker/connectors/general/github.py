@@ -5,7 +5,7 @@ Provides access to GitHub's REST API for repository data, contribution
 analysis, and software development research.
 """
 
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional
 from apilinker.core.connector import ApiConnector
 
 

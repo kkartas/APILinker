@@ -73,7 +73,6 @@ logging:
 import argparse
 import os
 import sys
-from datetime import datetime
 from typing import Any, Dict, List
 
 from apilinker import ApiLinker
@@ -101,10 +100,19 @@ def main():
     parser = argparse.ArgumentParser(description="Migrate issues from GitHub to GitLab")
     parser.add_argument("--config", "-c", required=True, help="Path to config file")
     parser.add_argument(
-        "--dry-run", "-d", action="store_true", help="Dry run without creating issues"
+        "--dry-run",
+        "-d",
+        action="store_true",
+        help="Dry run without creating issues",
     )
-    parser.add_argument("--github-repo", help="GitHub repository in format owner/repo")
-    parser.add_argument("--gitlab-project", help="GitLab project ID")
+    parser.add_argument(
+        "--github-repo",
+        help="GitHub repository in format owner/repo",
+    )
+    parser.add_argument(
+        "--gitlab-project",
+        help="GitLab project ID",
+    )
 
     args = parser.parse_args()
 
@@ -150,7 +158,10 @@ def main():
     )
 
     print(
-        f"Migrating issues from GitHub repository: {github_repo} to GitLab project ID: {gitlab_project}"
+        (
+            "Migrating issues from GitHub repository: "
+            f"{github_repo} to GitLab project ID: {gitlab_project}"
+        )
     )
 
     if args.dry_run:
