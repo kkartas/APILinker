@@ -77,7 +77,9 @@ def sync(
     """
     Sync data between source and target APIs based on configuration.
     """
-    logger = setup_logger(log_level, str(log_file) if isinstance(log_file, Path) else None)
+    logger = setup_logger(
+        log_level, str(log_file) if isinstance(log_file, Path) else None
+    )
     logger.info(f"ApiLinker v{__version__} starting sync")
 
     try:
@@ -179,7 +181,9 @@ def run(
     """
     Run scheduled syncs based on configuration.
     """
-    logger = setup_logger(log_level, str(log_file) if isinstance(log_file, Path) else None)
+    logger = setup_logger(
+        log_level, str(log_file) if isinstance(log_file, Path) else None
+    )
     logger.info(f"ApiLinker v{__version__} starting scheduler")
 
     try:
@@ -386,7 +390,9 @@ def state(
         if st_type == "sqlite":
             from apilinker.core.state_store import SQLiteStateStore
 
-            store: StateStore = SQLiteStateStore(path, default_last_sync=default_last_sync)
+            store: StateStore = SQLiteStateStore(
+                path, default_last_sync=default_last_sync
+            )
         else:
             from apilinker.core.state_store import FileStateStore
 

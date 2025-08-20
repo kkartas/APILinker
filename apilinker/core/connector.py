@@ -362,7 +362,9 @@ class ApiConnector:
                             all_items.append({"value": elem})
                 else:
                     all_items.append(
-                        page_items if isinstance(page_items, dict) else {"value": page_items}
+                        page_items
+                        if isinstance(page_items, dict)
+                        else {"value": page_items}
                     )
 
                 # Extract next page token

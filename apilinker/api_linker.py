@@ -454,7 +454,9 @@ class ApiLinker:
             for category_name, strategies in config["recovery_strategies"].items():
                 try:
                     error_category = ErrorCategory[category_name.upper()]
-                    strategy_list = [RecoveryStrategy[str(s).upper()] for s in strategies]
+                    strategy_list = [
+                        RecoveryStrategy[str(s).upper()] for s in strategies
+                    ]
 
                     self.error_recovery_manager.set_strategy(
                         error_category, strategy_list
