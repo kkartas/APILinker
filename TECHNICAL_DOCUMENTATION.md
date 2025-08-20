@@ -1,6 +1,6 @@
 # ApiLinker Technical Documentation
 
-**Version 0.3.0** | **For Python Developers** | **Internal Architecture Reference**
+**Version 0.4.0** | **For Python Developers** | **Internal Architecture Reference**
 
 This document provides comprehensive technical documentation for Python developers working with or contributing to ApiLinker. It covers internal architecture, extension points, design patterns, and implementation details.
 
@@ -441,7 +441,7 @@ class PluginBase:
     
     plugin_type: str = "base"
     plugin_name: str = "unknown"
-    version: str = "0.3.0"
+    version: str = "0.4.0"
     author: str = "Unknown"
     
     @classmethod
@@ -628,7 +628,7 @@ class ResearchConnectorBase(ApiConnector):
     def _prepare_academic_headers(self) -> Dict[str, str]:
         """Prepare headers following academic API best practices."""
         headers = {
-            "User-Agent": f"ApiLinker/0.3.0 (mailto:{self.researcher_email})",
+            "User-Agent": f"ApiLinker/0.4.0 (mailto:{self.researcher_email})",
             "Accept": "application/json",
         }
         return headers
@@ -827,7 +827,7 @@ class ArXivConnector(ResearchConnectorBase):
     def __init__(self):
         super().__init__(
             base_url="http://export.arxiv.org/api",
-            headers={"User-Agent": "ApiLinker/0.3.0"}
+            headers={"User-Agent": "ApiLinker/0.4.0"}
         )
         
         # arXiv subject categories
@@ -2084,7 +2084,7 @@ class CustomConnector(ConnectorPlugin, ApiConnector):
             base_url=base_url,
             headers={
                 "Authorization": f"Bearer {api_key}",
-                "User-Agent": f"ApiLinker/0.3.0 CustomConnector/1.0.0"
+                "User-Agent": f"ApiLinker/0.4.0 CustomConnector/1.0.0"
             },
             **kwargs
         )
@@ -2571,4 +2571,4 @@ For additional technical support or questions about extending ApiLinker, refer t
 
 ---
 
-**ApiLinker v0.3.0** | **Technical Documentation** | **Last Updated: 2025-01-28**
+**ApiLinker v0.4.0** | **Technical Documentation** | **Last Updated: 2025-01-28**

@@ -35,7 +35,7 @@ class SemanticScholarConnector(ApiConnector):
         base_url = "https://api.semanticscholar.org/graph/v1"
         
         # Set up headers
-        headers = {"User-Agent": "ApiLinker/0.3.0"}
+        headers = {"User-Agent": "ApiLinker/0.4.0"}
         if api_key:
             headers["x-api-key"] = api_key
         

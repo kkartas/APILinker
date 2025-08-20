@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.4.0] - 2025-07-16
+
+### Added
+- JSON Schema validation for responses/requests with optional strict mode and readable diffs
+- Schema probing CLI (`apilinker probe_schema`) to infer minimal schemas and mapping templates
+- Provenance & audit: run metadata (config hash, git SHA, timings, events) to JSONL and sidecar JSON
+- Idempotency support with stable keys and in-memory de-duplication
+- State & resumability: file/SQLite stores; auto-inject `updated_since`; `apilinker state` CLI
+
+### Changed
+- Bump version to 0.4.0 across codebase and docs
+
 ## [0.3.0] - 2025-01-28
 
 - Updated version to 0.3.0
