@@ -240,6 +240,24 @@ logging:
   file: logs/apilinker.log  # Optional log file path
 ```
 
+## Provenance & Idempotency
+
+Add optional provenance capture and idempotency to improve reproducibility and safe replays:
+
+```yaml
+provenance:
+  output_dir: runs/                 # Write a sidecar JSON per run
+  jsonl_log: logs/runs.jsonl        # Append-only JSONL event log
+
+idempotency:
+  enabled: true
+  salt: "example-integration"       # Optional salt for key generation
+```
+
+Notes:
+- The config hash is computed from the active config file; git SHA is recorded when the repository is available.
+- Idempotency de-duplicates items within the same process. For distributed runs, use an external store or target-side idempotency.
+
 ## Environment Variables
 
 You can use environment variables in your configuration file:

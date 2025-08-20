@@ -228,6 +228,21 @@ linker.add_source(
 )
 ```
 
+## Provenance & Audit
+
+```yaml
+provenance:
+  output_dir: runs/   # Sidecar JSON per run written here
+  jsonl_log: logs/apilinker_runs.jsonl  # Append-only JSON lines log
+
+idempotency:
+  enabled: true
+  salt: "my-integration-v1"  # Optional salt for key stability across versions
+```
+
+- Each sync records config hash, git SHA (if available), timestamps, endpoints, and error/rate-limit events into the JSONL log and/or sidecar JSON.
+- When idempotency is enabled, repeated runs skip items already sent (per-endpoint) based on a stable key derived from the payload.
+
 ## Config File (YAML)
 
 ```yaml

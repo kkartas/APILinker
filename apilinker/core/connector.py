@@ -208,6 +208,7 @@ class ApiConnector:
                     endpoint_name,
                     pretty_print_diffs(diffs),
                 )
+                # Record as a rate-limit or validation event via logger context (provenance layer may hook logs)
 
         # Ensure we return a valid type
         if isinstance(data, (dict, list)):

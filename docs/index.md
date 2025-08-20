@@ -22,7 +22,11 @@ ApiLinker is an open-source Python package that makes it easy to connect, map, a
 - 📝 **Configure** via YAML/JSON or Python code
 - 🕒 **Schedule** data syncs on intervals or cron schedules
 - 📋 **Validate** data with schemas and custom rules
+- 🧾 **Provenance & Audit** capture run metadata (config hash, git SHA, timings, events)
+- ♻️ **Idempotency** for safe replays via de-duplication
 - 🔌 **Extend** with custom plugins for connectors and transforms
+
+See [Configuration Guide](configuration.md#provenance--idempotency) for usage.
 
 ## Installation
 

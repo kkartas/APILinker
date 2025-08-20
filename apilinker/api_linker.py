@@ -40,6 +40,8 @@ from apilinker.core.security_integration import (
 )
 from apilinker.core.validation import validate_payload_against_schema, pretty_print_diffs, is_validator_available
 from apilinker.core.schema_probe import infer_schema, suggest_mapping_template
+from apilinker.core.provenance import ProvenanceRecorder
+from apilinker.core.idempotency import InMemoryDeduplicator, generate_idempotency_key
 
 
 # Legacy error detail class kept for backward compatibility
@@ -126,6 +128,8 @@ class ApiLinker:
         self.mapper = FieldMapper()
         self.scheduler = Scheduler()
         self.validation_config = validation_config or {"strict_mode": False}
+        self.provenance = ProvenanceRecorder()
+        self.deduplicator = InMemoryDeduplicator()
         
         # Initialize security system
         self.security_manager = self._initialize_security(security_config)
@@ -207,6 +211,19 @@ class ApiLinker:
             log_level = log_config.get("level", "INFO")
             log_file = log_config.get("file")
             self.logger = setup_logger(log_level, log_file)
+
+        # Provenance options
+        if "provenance" in config:
+            prov_cfg = config["provenance"]
+            output_dir = prov_cfg.get("output_dir")
+            jsonl_log = prov_cfg.get("jsonl_log")
+            self.provenance = ProvenanceRecorder(output_dir=output_dir, jsonl_log_path=jsonl_log)
+
+        # Idempotency
+        if "idempotency" in config:
+            self.idempotency_config = config["idempotency"]
+        else:
+            self.idempotency_config = {"enabled": False, "salt": ""}
     
     def add_source(self, type: str, base_url: str, auth: Optional[Dict[str, Any]] = None, 
                   endpoints: Optional[Dict[str, Any]] = None, **kwargs: Any) -> None:
@@ -597,6 +614,13 @@ class ApiLinker:
         # Generate correlation ID for this sync operation
         correlation_id = str(uuid.uuid4())
         start_time = time.time()
+        # Start provenance
+        self.provenance.start_run(
+            correlation_id=correlation_id,
+            config_path=config_path if (config_path := getattr(self, "_last_config_path", None)) else None,
+            source_endpoint=source_endpoint,
+            target_endpoint=target_endpoint,
+        )
         
         # Default retry status codes if none provided
         if retry_status_codes is None:
@@ -691,10 +715,24 @@ class ApiLinker:
             target_circuit_name = f"target_{target_endpoint}"
             target_cb = self.error_recovery_manager.get_circuit_breaker(target_circuit_name)
             
+            # Idempotency: skip payloads we've already sent during replays
+            def _send():
+                # If idempotency enabled, de-duplicate per item
+                if self.idempotency_config.get("enabled") and isinstance(transformed_data, list):
+                    salt = self.idempotency_config.get("salt", "")
+                    filtered = []
+                    for item in transformed_data:
+                        key = generate_idempotency_key(item, salt=salt)
+                        if not self.deduplicator.has_seen(target_endpoint, key):
+                            self.deduplicator.mark_seen(target_endpoint, key)
+                            filtered.append(item)
+                    payload = filtered
+                else:
+                    payload = transformed_data
+                return self.target.send_data(target_endpoint, payload)
+
             # Always use standard non-encrypted call
-            target_result, target_error = target_cb.execute(
-                lambda: self.target.send_data(target_endpoint, transformed_data)
-            )
+            target_result, target_error = target_cb.execute(_send)
             
             # If circuit breaker failed, try recovery strategies
             if target_error:
@@ -743,6 +781,8 @@ class ApiLinker:
             self.logger.info(
                 f"[{correlation_id}] Sync completed successfully: {sync_result.count} items transferred in {sync_result.duration_ms}ms"
             )
+            # Complete provenance
+            self.provenance.complete_run(True, sync_result.count, sync_result.details)
             return sync_result
             
         except Exception as e:
@@ -764,7 +804,9 @@ class ApiLinker:
             sync_result.errors.append(error.to_dict())
             
             self.logger.error(f"[{correlation_id}] Sync failed during mapping: {error}")
-            
+            # Record error in provenance
+            self.provenance.record_error(error.message, category=error.error_category.value, status_code=error.status_code, endpoint=target_endpoint)
+            self.provenance.complete_run(False, 0, {})
             return sync_result
     
     def start_scheduled_sync(self) -> None:
