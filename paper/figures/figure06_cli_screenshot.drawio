@@ -1,0 +1,34 @@
+<mxfile host="app.diagrams.net" modified="2025-07-16" agent="APILinker Assistant" version="22.0.8">
+  <diagram id="cli-06" name="CLI Screenshot Mock">
+    <mxGraphModel dx="1200" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" page="1" pageScale="1" pageWidth="1600" pageHeight="1000">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        
+        <mxCell id="window" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#1e1e1e;strokeColor=#333333" vertex="1" parent="1">
+          <mxGeometry x="140" y="140" width="920" height="520" as="geometry"/>
+        </mxCell>
+        <mxCell id="title" value="PS C:\\> apilinker validate --config demo.yaml" style="whiteSpace=wrap;html=1;fillColor=#1e1e1e;strokeColor=none;fontColor=#d4d4d4;fontSize=14;align=left;verticalAlign=top" vertex="1" parent="1">
+          <mxGeometry x="160" y="160" width="880" height="40" as="geometry"/>
+        </mxCell>
+        <mxCell id="out1" value="[bold green]Configuration is valid![/bold green]\nConfiguration file: demo.yaml" style="whiteSpace=wrap;html=1;fillColor=#1e1e1e;strokeColor=none;fontColor=#b5cea8;fontSize=13;align=left;verticalAlign=top" vertex="1" parent="1">
+          <mxGeometry x="160" y="200" width="880" height="80" as="geometry"/>
+        </mxCell>
+        <mxCell id="cmd2" value="> apilinker sync --config demo.yaml --dry-run" style="whiteSpace=wrap;html=1;fillColor=#1e1e1e;strokeColor=none;fontColor=#d4d4d4;fontSize=14;align=left;verticalAlign=top" vertex="1" parent="1">
+          <mxGeometry x="160" y="300" width="880" height="40" as="geometry"/>
+        </mxCell>
+        <mxCell id="out2" value="DRY RUN MODE - No data will be transferred\nSource: https://api.example.com/v1\nTarget: https://api.destination.com/v2\nField Mappings: 4" style="whiteSpace=wrap;html=1;fillColor=#1e1e1e;strokeColor=none;fontColor=#9cdcfe;fontSize=13;align=left;verticalAlign=top" vertex="1" parent="1">
+          <mxGeometry x="160" y="340" width="880" height="120" as="geometry"/>
+        </mxCell>
+        <mxCell id="cmd3" value="> apilinker run --config demo.yaml" style="whiteSpace=wrap;html=1;fillColor=#1e1e1e;strokeColor=none;fontColor=#d4d4d4;fontSize=14;align=left;verticalAlign=top" vertex="1" parent="1">
+          <mxGeometry x="160" y="480" width="880" height="40" as="geometry"/>
+        </mxCell>
+        <mxCell id="out3" value="Starting scheduled sync. Press CTRL+C to stop." style="whiteSpace=wrap;html=1;fillColor=#1e1e1e;strokeColor=none;fontColor=#ce9178;fontSize=13;align=left;verticalAlign=top" vertex="1" parent="1">
+          <mxGeometry x="160" y="520" width="880" height="40" as="geometry"/>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
+
+
