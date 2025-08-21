@@ -107,12 +107,52 @@ def save_results(results: Dict[str, Any], out_dir: Path) -> None:
     (out_dir / "README.md").write_text("\n".join(md), encoding="utf-8")
 
 
+def _generate_charts(results: Dict[str, Any], out_dir: Path) -> None:
+    """Optionally generate simple charts if matplotlib is available."""
+    try:
+        import matplotlib.pyplot as plt  # type: ignore
+    except Exception:
+        # Skip chart generation if matplotlib isn't installed
+        note = (
+            "matplotlib not installed; skipping chart generation.\n"
+            "Install with: pip install matplotlib to enable charts.\n"
+        )
+        (out_dir / "CHARTS_NOTE.txt").write_text(note, encoding="utf-8")
+        return
+
+    # Prepare data
+    names = list(results.keys())
+    means = [results[n]["stats"]["mean_ms"] for n in names]
+    rps = [results[n]["stats"]["rps"] for n in names]
+
+    # Mean latency chart
+    plt.figure(figsize=(10, 5))
+    plt.bar(names, means, color="#4F81BD")
+    plt.ylabel("Mean latency (ms)")
+    plt.title("ApiLinker Benchmarks: Mean Latency")
+    plt.xticks(rotation=30, ha="right")
+    plt.tight_layout()
+    plt.savefig(out_dir / "mean_latency_ms.png", dpi=160)
+    plt.close()
+
+    # Throughput chart
+    plt.figure(figsize=(10, 5))
+    plt.bar(names, rps, color="#9BBB59")
+    plt.ylabel("Requests per second (higher is better)")
+    plt.title("ApiLinker Benchmarks: Throughput")
+    plt.xticks(rotation=30, ha="right")
+    plt.tight_layout()
+    plt.savefig(out_dir / "throughput_rps.png", dpi=160)
+    plt.close()
+
+
 def run_scenarios(scenarios: Dict[str, Callable[[], Any]], iterations: int, out_dir: Path) -> Dict[str, Any]:
     results: Dict[str, Any] = {}
     for name, scenario_func in scenarios.items():
         stats = time_function(lambda: scenario_func(), iterations=iterations)
         results[name] = {"stats": asdict(stats)}
     save_results(results, out_dir)
+    _generate_charts(results, out_dir)
     return results
 
 

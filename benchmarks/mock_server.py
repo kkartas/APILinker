@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import json
 import threading
-from http.server import BaseHTTPRequestHandler, HTTPServer
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from typing import Any, Dict
 
 
@@ -47,7 +47,7 @@ class MockServer:
     def __init__(self, host: str = "127.0.0.1", port: int = 8765) -> None:
         self.host = host
         self.port = port
-        self._server = HTTPServer((host, port), _Handler)
+        self._server = ThreadingHTTPServer((host, port), _Handler)
         self._thread: threading.Thread | None = None
 
     def route(self, method: str, path: str, response: Any) -> None:

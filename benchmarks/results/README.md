@@ -1,39 +1,63 @@
 # ApiLinker Benchmarks
 
-Total scenarios: 3
+Total scenarios: 5
 
 ## small_batch
 
-- iterations: 3
-- duration_seconds: 2.7625
-- mean_ms: 920.81
-- median_ms: 929.12
-- p95_ms: 929.12
-- min_ms: 898.04
-- max_ms: 935.28
-- rps: 1.09
-- peak_memory_mb: 0.18
+- iterations: 5
+- duration_seconds: 7.3473
+- mean_ms: 1469.43
+- median_ms: 1372.47
+- p95_ms: 1433.91
+- min_ms: 1174.78
+- max_ms: 2006.91
+- rps: 0.68
+- peak_memory_mb: 0.21
 
 ## medium_batch
 
-- iterations: 3
-- duration_seconds: 2.8731
-- mean_ms: 957.69
-- median_ms: 954.27
-- p95_ms: 954.27
-- min_ms: 948.54
-- max_ms: 970.26
-- rps: 1.04
-- peak_memory_mb: 0.74
+- iterations: 5
+- duration_seconds: 7.7947
+- mean_ms: 1558.91
+- median_ms: 1564.81
+- p95_ms: 1762.75
+- min_ms: 1132.59
+- max_ms: 1956.67
+- rps: 0.64
+- peak_memory_mb: 0.83
 
 ## large_batch
 
-- iterations: 3
-- duration_seconds: 3.6418
-- mean_ms: 1213.92
-- median_ms: 1188.00
-- p95_ms: 1188.00
-- min_ms: 1154.03
-- max_ms: 1299.73
-- rps: 0.82
-- peak_memory_mb: 6.71
+- iterations: 5
+- duration_seconds: 7.8531
+- mean_ms: 1570.60
+- median_ms: 1547.47
+- p95_ms: 1565.55
+- min_ms: 1477.61
+- max_ms: 1782.13
+- rps: 0.64
+- peak_memory_mb: 7.40
+
+## async_small_batch
+
+- iterations: 5
+- duration_seconds: 4.3350
+- mean_ms: 866.97
+- median_ms: 862.75
+- p95_ms: 865.81
+- min_ms: 832.95
+- max_ms: 917.04
+- rps: 1.15
+- peak_memory_mb: 0.60
+
+## async_large_batch
+
+- iterations: 5
+- duration_seconds: 13.2034
+- mean_ms: 2640.67
+- median_ms: 2680.04
+- p95_ms: 2795.29
+- min_ms: 1998.26
+- max_ms: 3389.82
+- rps: 0.38
+- peak_memory_mb: 18.23

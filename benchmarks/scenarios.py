@@ -12,6 +12,7 @@ from __future__ import annotations
 from typing import Any, Callable, Dict
 
 from apilinker.api_linker import ApiLinker
+from apilinker.core.async_connector import AsyncApiConnector
 from .mock_server import MockServer
 
 
@@ -41,6 +42,54 @@ def _setup_linker(base_url: str) -> ApiLinker:
         },
     )
     return linker
+async def _setup_async_connectors(base_url: str) -> AsyncApiConnector:
+    connector = AsyncApiConnector(
+        connector_type="rest",
+        base_url=base_url,
+        endpoints={
+            "list_users": {"path": "/users", "method": "GET"},
+            "create_user": {"path": "/users", "method": "POST"},
+        },
+    )
+    return connector
+
+def scenario_async_small_batch() -> None:
+    server = MockServer()
+    server.route("GET", "/users", {"data": [{"id": i, "name": f"user-{i}"} for i in range(10)]})
+    server.route("POST", "/users", {"ok": True})
+    server.start()
+    try:
+        async def run():
+            connector = await _setup_async_connectors(f"http://{server.host}:{server.port}")
+            try:
+                src = await connector.fetch_data("list_users")
+                data = src if isinstance(src, list) else src.get("data", [])
+                await connector.send_data("create_user", data, concurrency_limit=32, batch_size=10)
+            finally:
+                await connector.aclose()
+        import asyncio as _asyncio
+        _asyncio.run(run())
+    finally:
+        server.stop()
+
+def scenario_async_large_batch() -> None:
+    server = MockServer()
+    server.route("GET", "/users", {"data": [{"id": i, "name": f"user-{i}"} for i in range(10000)]})
+    server.route("POST", "/users", {"ok": True})
+    server.start()
+    try:
+        async def run():
+            connector = await _setup_async_connectors(f"http://{server.host}:{server.port}")
+            try:
+                src = await connector.fetch_data("list_users")
+                data = src if isinstance(src, list) else src.get("data", [])
+                await connector.send_data("create_user", data, concurrency_limit=256, batch_size=100)
+            finally:
+                await connector.aclose()
+        import asyncio as _asyncio
+        _asyncio.run(run())
+    finally:
+        server.stop()
 
 
 def scenario_small_batch() -> None:
@@ -83,6 +132,8 @@ SCENARIOS: Dict[str, Callable[[], None]] = {
     "small_batch": scenario_small_batch,
     "medium_batch": scenario_medium_batch,
     "large_batch": scenario_large_batch,
+    "async_small_batch": scenario_async_small_batch,
+    "async_large_batch": scenario_async_large_batch,
 }
 
 
