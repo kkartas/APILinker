@@ -9,6 +9,7 @@ Defines small end-to-end runs against a local mock server to measure:
 
 from __future__ import annotations
 
+import os
 from typing import Any, Callable, Dict
 
 from apilinker.api_linker import ApiLinker
@@ -53,6 +54,13 @@ async def _setup_async_connectors(base_url: str) -> AsyncApiConnector:
     )
     return connector
 
+def _env_int(name: str, default: int) -> int:
+    try:
+        return int(os.getenv(name, str(default)))
+    except Exception:
+        return default
+
+
 def scenario_async_small_batch() -> None:
     server = MockServer()
     server.route("GET", "/users", {"data": [{"id": i, "name": f"user-{i}"} for i in range(10)]})
@@ -64,7 +72,12 @@ def scenario_async_small_batch() -> None:
             try:
                 src = await connector.fetch_data("list_users")
                 data = src if isinstance(src, list) else src.get("data", [])
-                await connector.send_data("create_user", data, concurrency_limit=32, batch_size=10)
+                await connector.send_data(
+                    "create_user",
+                    data,
+                    concurrency_limit=_env_int("APILINKER_ASYNC_CONCURRENCY", 32),
+                    batch_size=_env_int("APILINKER_ASYNC_BATCH", 10),
+                )
             finally:
                 await connector.aclose()
         import asyncio as _asyncio
@@ -83,7 +96,12 @@ def scenario_async_large_batch() -> None:
             try:
                 src = await connector.fetch_data("list_users")
                 data = src if isinstance(src, list) else src.get("data", [])
-                await connector.send_data("create_user", data, concurrency_limit=256, batch_size=100)
+                await connector.send_data(
+                    "create_user",
+                    data,
+                    concurrency_limit=_env_int("APILINKER_ASYNC_CONCURRENCY", 256),
+                    batch_size=_env_int("APILINKER_ASYNC_BATCH", 100),
+                )
             finally:
                 await connector.aclose()
         import asyncio as _asyncio
