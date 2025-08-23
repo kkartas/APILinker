@@ -120,7 +120,9 @@ class AsyncApiConnector:
         # Validate against response schema if provided
         endpoint = self.endpoints[endpoint_name]
         if endpoint.response_schema and is_validator_available():
-            valid, diffs = validate_payload_against_schema(data, endpoint.response_schema)
+            valid, diffs = validate_payload_against_schema(
+                data, endpoint.response_schema
+            )
             if not valid:
                 logger.warning(
                     "Response schema validation failed for %s\n%s",
@@ -191,8 +193,11 @@ class AsyncApiConnector:
 
         # Validate request schema if provided
         if endpoint.request_schema and is_validator_available():
+
             def _validate_item(item: Any) -> None:
-                valid, diffs = validate_payload_against_schema(item, endpoint.request_schema)
+                valid, diffs = validate_payload_against_schema(
+                    item, endpoint.request_schema
+                )
                 if not valid:
                     logger.error(
                         "Request schema validation failed for %s\n%s",
@@ -275,7 +280,10 @@ class AsyncApiConnector:
                         response_body=response_body,
                         request_url=str(request["url"]),
                         request_method=request["method"],
-                        additional_context={"endpoint": endpoint_name, "item_index": item_index},
+                        additional_context={
+                            "endpoint": endpoint_name,
+                            "item_index": item_index,
+                        },
                     )
                     failures.append(error.to_dict())
                     logger.error(f"Error sending data item {item_index}: {error}")
@@ -308,7 +316,10 @@ class AsyncApiConnector:
                         response_body=response_body,
                         request_url=str(request["url"]),
                         request_method=request["method"],
-                        additional_context={"endpoint": endpoint_name, "batch_size": len(chunk)},
+                        additional_context={
+                            "endpoint": endpoint_name,
+                            "batch_size": len(chunk),
+                        },
                     )
                     failures.append(error.to_dict())
                     logger.error(f"Error sending batch {chunk_index}: {error}")
@@ -351,7 +362,9 @@ class AsyncApiConnector:
         if isinstance(exc, httpx.TimeoutException):
             category = ErrorCategory.TIMEOUT
             status_code = 0
-        elif isinstance(exc, httpx.TransportError) or isinstance(exc, httpx.RequestError):
+        elif isinstance(exc, httpx.TransportError) or isinstance(
+            exc, httpx.RequestError
+        ):
             category = ErrorCategory.NETWORK
             status_code = 0
         elif isinstance(exc, httpx.HTTPStatusError):
@@ -367,5 +380,3 @@ class AsyncApiConnector:
             elif status_code >= 400:
                 category = ErrorCategory.CLIENT
         return category, status_code
-
-
