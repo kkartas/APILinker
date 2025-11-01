@@ -48,3 +48,8 @@ CLI_CORRECTION.md
 FIXES_APPLIED.md
 JORS_REVIEW.md
 apilinker/core/__pycache__/mapper.cpython-311.pyc
+FINAL_STATUS.md
+IMPLEMENTATION_PLAN.md
+REVIEW_SUMMARY.md
+scripts/pre_submission_check.sh
+scripts/pre_submission_check.ps1
