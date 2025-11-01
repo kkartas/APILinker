@@ -63,6 +63,19 @@ class FieldMapper:
         self.transformers[name] = func
         logger.debug(f"Registered transformer: {name}")
 
+    def transform(self, value: Any, transformer: Union[str, Dict[str, Any]]) -> Any:
+        """
+        Convenience wrapper to apply a single transformer to a value.
+
+        Args:
+            value: Input value
+            transformer: Transformer name or transformer dict {name, params}
+
+        Returns:
+            Transformed value
+        """
+        return self.apply_transform(value, transformer)
+
     def load_custom_transformer(
         self, module_path: str, function_name: str, alias: Optional[str] = None
     ) -> None:

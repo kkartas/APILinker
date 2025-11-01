@@ -18,23 +18,88 @@ Requirements:
     - numpy
 """
 
+import json
 import matplotlib.pyplot as plt
 import numpy as np
 from pathlib import Path
 
 
+def _load_results_from_json():
+    """
+    Try to load paper-style scenario results from benchmarks/results/results.json.
+    Supports the structure documented in REPRODUCTION.md. Returns None if
+    unavailable or incompatible.
+    """
+    path = Path('benchmarks/results/results.json')
+    if not path.exists():
+        return None
+    try:
+        with path.open('r', encoding='utf-8') as f:
+            data = json.load(f)
+        if not isinstance(data, dict) or 'scenarios' not in data:
+            return None
+        scenarios = data.get('scenarios', [])
+        labels = []
+        nominal_mean = []
+        nominal_std = []
+        fault_mean = []
+        fault_std = []
+        success_rates = []
+        for sc in scenarios:
+            name = sc.get('name')
+            nom = sc.get('nominal', {})
+            flt = sc.get('fault_injected', {})
+            if name is None:
+                continue
+            labels.append({
+                'bibliographic_enrichment': 'Bibliographic\nEnrichment',
+                'pubmed_sampling': 'Literature\nSampling',
+                'issue_migration': 'Issue\nMigration',
+            }.get(name, name))
+            nominal_mean.append(nom.get('throughput_rps'))
+            nominal_std.append(nom.get('throughput_std', 0.0))
+            fault_mean.append(flt.get('throughput_rps'))
+            fault_std.append(flt.get('throughput_std', 0.0))
+            sr = nom.get('success_rate')
+            if isinstance(sr, (int, float)) and sr <= 1.0:
+                sr = sr * 100.0
+            success_rates.append(sr)
+        # Validate we have consistent numeric arrays
+        if not labels or any(v is None for v in nominal_mean + fault_mean + success_rates):
+            return None
+        return {
+            'labels': labels,
+            'nominal_mean': nominal_mean,
+            'nominal_std': nominal_std,
+            'fault_mean': fault_mean,
+            'fault_std': fault_std,
+            'success_rates': success_rates,
+        }
+    except Exception:
+        return None
+
+
 def generate_figure4():
     """Generate Figure 4: Benchmark throughput comparison."""
     
-    # Data from Table 1 in paper
-    scenarios = ['Bibliographic\nEnrichment', 'Literature\nSampling', 'Issue\nMigration']
-    
-    # Throughput data (records/second)
-    nominal_mean = [45.3, 32.8, 18.4]
-    nominal_std = [3.2, 2.5, 1.9]
-    
-    fault_mean = [12.1, 8.3, 14.2]
-    fault_std = [2.1, 1.8, 2.3]
+    # Prefer data from results.json if available; otherwise fall back to paper constants
+    loaded = _load_results_from_json()
+
+    if loaded is not None:
+        scenarios = loaded['labels']
+        nominal_mean = loaded['nominal_mean']
+        nominal_std = loaded['nominal_std']
+        fault_mean = loaded['fault_mean']
+        fault_std = loaded['fault_std']
+        success_rates = loaded['success_rates']
+    else:
+        # Data from Table 1 in paper (fallback)
+        scenarios = ['Bibliographic\nEnrichment', 'Literature\nSampling', 'Issue\nMigration']
+        nominal_mean = [45.3, 32.8, 18.4]
+        nominal_std = [3.2, 2.5, 1.9]
+        fault_mean = [12.1, 8.3, 14.2]
+        fault_std = [2.1, 1.8, 2.3]
+        success_rates = [99.7, 98.9, 96.1]
     
     # Create figure with 2 subplots
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 5))
@@ -68,7 +133,6 @@ def generate_figure4():
                     ha='center', va='bottom', fontsize=9, fontweight='bold')
     
     # Right panel: Success rate comparison
-    success_rates = [99.7, 98.9, 96.1]  # From Table 1
     colors_gradient = ['#27AE60', '#2ECC71', '#58D68D']
     
     bars3 = ax2.bar(scenarios, success_rates, color=colors_gradient, 
@@ -110,15 +174,15 @@ def generate_figure4():
     
     # Standard resolution for paper
     plt.savefig(output_dir / 'figure04_benchmarks.png', dpi=150, bbox_inches='tight')
-    print(f"✓ Saved: {output_dir / 'figure04_benchmarks.png'} (150 DPI)")
+    print(f"Saved: {output_dir / 'figure04_benchmarks.png'} (150 DPI)")
     
     # High resolution for publication
     plt.savefig(output_dir / 'figure04_benchmarks_hires.png', dpi=300, bbox_inches='tight')
-    print(f"✓ Saved: {output_dir / 'figure04_benchmarks_hires.png'} (300 DPI)")
+    print(f"Saved: {output_dir / 'figure04_benchmarks_hires.png'} (300 DPI)")
     
     # PDF version (vector graphics)
     plt.savefig(output_dir / 'figure04_benchmarks.pdf', bbox_inches='tight')
-    print(f"✓ Saved: {output_dir / 'figure04_benchmarks.pdf'} (vector)")
+    print(f"Saved: {output_dir / 'figure04_benchmarks.pdf'} (vector)")
     
     print("\nFigure 4 generated successfully!")
     print("Use figure04_benchmarks_hires.png for paper submission.")

@@ -661,6 +661,45 @@ class ApiLinker:
         )
         return dict(results)
 
+    def fetch(
+        self,
+        endpoint: str,
+        params: Optional[Dict[str, Any]] = None,
+    ) -> Any:
+        """
+        Convenience wrapper to fetch data from the configured source connector.
+
+        Args:
+            endpoint: Source endpoint name to fetch from
+            params: Optional parameters for the request
+
+        Returns:
+            Parsed response payload from the source API
+        """
+        if not self.source:
+            raise ValueError("Source connector is not configured")
+        return self.source.fetch_data(endpoint, params)
+
+    def send(
+        self,
+        endpoint: str,
+        data: Union[Dict[str, Any], List[Dict[str, Any]]],
+        **kwargs: Any,
+    ) -> Any:
+        """
+        Convenience wrapper to send data to the configured target connector.
+
+        Args:
+            endpoint: Target endpoint name to send to
+            data: Payload to send (single item or list)
+
+        Returns:
+            Target connector response (if any)
+        """
+        if not self.target:
+            raise ValueError("Target connector is not configured")
+        return self.target.send_data(endpoint, data, **kwargs)
+
     def sync(
         self,
         source_endpoint: Optional[str] = None,

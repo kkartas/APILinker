@@ -46,12 +46,12 @@ def main():
     )
     
     result = linker.fetch("get_test")
-    print(f"✓ Successfully fetched data from httpbin.org")
+    print("[OK] Successfully fetched data from httpbin.org")
     print(f"  - Response URL: {result.get('url', 'N/A')}")
     print(f"  - Test parameter received: {result.get('args', {}).get('test_param', 'N/A')}")
     print()
     # Expected output:
-    #   ✓ Successfully fetched data from httpbin.org
+    #   [OK] Successfully fetched data from httpbin.org
     #   - Response URL: https://httpbin.org/get?test_param=verification
     #   - Test parameter received: verification
     
@@ -95,16 +95,17 @@ def main():
     # Fetch and map (dry run - don't actually POST)
     source_data = linker2.fetch("get_user_agent")
     mapped_data = linker2.mapper.map_data(
-        source_data,
-        mapping_name="get_user_agent->echo"
+        "get_user_agent",
+        "echo",
+        source_data
     )
     
-    print(f"✓ Field mapping successful")
+    print("[OK] Field mapping successful")
     print(f"  - Source field 'user-agent': Present")
     print(f"  - Mapped to 'browser': {mapped_data.get('browser', 'N/A')[:50]}...")
     print()
     # Expected output:
-    #   ✓ Field mapping successful
+    #   [OK] Field mapping successful
     #   - Source field 'user-agent': Present
     #   - Mapped to 'browser': python-httpx/... (or similar)
     
@@ -127,13 +128,13 @@ def main():
     json_result = linker3.fetch("get_json")
     slideshow = json_result.get("slideshow", {})
     
-    print(f"✓ JSON parsing successful")
+    print("[OK] JSON parsing successful")
     print(f"  - Slideshow title: {slideshow.get('title', 'N/A')}")
     print(f"  - Slideshow author: {slideshow.get('author', 'N/A')}")
     print(f"  - Nested data access: {type(slideshow.get('slides', [])).__name__}")
     print()
     # Expected output:
-    #   ✓ JSON parsing successful
+    #   [OK] JSON parsing successful
     #   - Slideshow title: Sample Slide Show
     #   - Slideshow author: Yours Truly
     #   - Nested data access: list
@@ -153,12 +154,12 @@ def main():
     test_value = "hello world"
     transformed = linker4.mapper.transform(test_value, "to_uppercase")
     
-    print(f"✓ Custom transformer registered and working")
+    print("[OK] Custom transformer registered and working")
     print(f"  - Original: '{test_value}'")
     print(f"  - Transformed: '{transformed}'")
     print()
     # Expected output:
-    #   ✓ Custom transformer registered and working
+    #   [OK] Custom transformer registered and working
     #   - Original: 'hello world'
     #   - Transformed: 'HELLO WORLD'
     
@@ -180,7 +181,7 @@ if __name__ == "__main__":
     try:
         main()
     except Exception as e:
-        print(f"\n❌ Verification failed with error: {e}")
+        print(f"\n[ERROR] Verification failed with error: {e}")
         print("\nTroubleshooting:")
         print("  1. Ensure ApiLinker is installed: pip install apilinker")
         print("  2. Check internet connection (httpbin.org must be accessible)")

@@ -58,6 +58,9 @@ class TestCLIIntegration:
         self.config_fd, self.config_path = tempfile.mkstemp(suffix=".yaml")
         with os.fdopen(self.config_fd, "w") as f:
             yaml.dump(self.test_config, f)
+        # Ensure UTF-8 decoding for subprocess output on Windows
+        self._env = dict(os.environ)
+        self._env["PYTHONIOENCODING"] = "utf-8"
     
     def teardown_method(self):
         """Clean up after each test."""
@@ -72,7 +75,10 @@ class TestCLIIntegration:
             [sys.executable, "-m", "apilinker", "--help"],
             capture_output=True,
             text=True,
-            cwd=Path(__file__).parent.parent
+            encoding="utf-8",
+            errors="replace",
+            cwd=Path(__file__).parent.parent,
+            env=self._env,
         )
         
         assert result.returncode == 0
@@ -85,7 +91,10 @@ class TestCLIIntegration:
             [sys.executable, "-m", "apilinker", "version"],  # Use "version" subcommand, not "--version" flag
             capture_output=True,
             text=True,
-            cwd=Path(__file__).parent.parent
+            encoding="utf-8",
+            errors="replace",
+            cwd=Path(__file__).parent.parent,
+            env=self._env,
         )
         
         # Version command should work (exit code 0)
@@ -104,8 +113,11 @@ class TestCLIIntegration:
             ],
             capture_output=True,
             text=True,
+            encoding="utf-8",
+            errors="replace",
             cwd=Path(__file__).parent.parent,
-            timeout=30  # Prevent hanging
+            timeout=30,  # Prevent hanging
+            env=self._env,
         )
         
         # Should not fail completely, though might have network issues
@@ -133,8 +145,11 @@ class TestCLIIntegration:
                 ],
                 capture_output=True,
                 text=True,
+                encoding="utf-8",
+                errors="replace",
                 cwd=Path(__file__).parent.parent,
-                timeout=15
+                timeout=15,
+                env=self._env,
             )
             
             # Should fail with non-zero exit code due to invalid config
@@ -153,8 +168,11 @@ class TestCLIIntegration:
             ],
             capture_output=True,
             text=True,
+            encoding="utf-8",
+            errors="replace",
             cwd=Path(__file__).parent.parent,
-            timeout=10
+            timeout=10,
+            env=self._env,
         )
         
         # Should fail with non-zero exit code
@@ -219,8 +237,11 @@ class TestCLIIntegration:
                 ],
                 capture_output=True,
                 text=True,
+                encoding="utf-8",
+                errors="replace",
                 cwd=Path(__file__).parent.parent,
-                timeout=60
+                timeout=60,
+                env=self._env,
             )
             
             # Should succeed or at least not crash
@@ -240,7 +261,10 @@ class TestCLIIntegration:
             [sys.executable, "-m", "apilinker", "--help"],
             capture_output=True,
             text=True,
-            cwd=Path(__file__).parent.parent
+            encoding="utf-8",
+            errors="replace",
+            cwd=Path(__file__).parent.parent,
+            env=self._env,
         )
         
         assert result.returncode == 0
@@ -275,8 +299,11 @@ class TestCLIIntegration:
                 ],
                 capture_output=True,
                 text=True,
+                encoding="utf-8",
+                errors="replace",
                 cwd=Path(__file__).parent.parent,
-                timeout=15
+                timeout=15,
+                env=self._env,
             )
             
             output = result.stdout + result.stderr

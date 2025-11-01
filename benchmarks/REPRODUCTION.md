@@ -21,7 +21,7 @@ This document provides instructions for reproducing the benchmark results report
 
 ```bash
 cd benchmarks
-python run_benchmarks.py
+python -m benchmarks.run_benchmarks
 ```
 
 **Expected output**: JSON results file and PNG charts in `benchmarks/results/`
@@ -201,9 +201,36 @@ python benchmarks/generate_figure4.py
 
 **Output**: `benchmarks/results/figure04_benchmarks.png`
 
-The script reads `results/results.json` and generates a dual-panel chart:
-- Panel A: Throughput comparison (nominal vs. fault-injected)
-- Panel B: Latency distribution (box plots for p50, p95, p99)
+Behavior:
+- If `benchmarks/results/results.json` contains paper-style scenario results (as shown below), the figure is generated from those values.
+- Otherwise, the script falls back to the paper’s Table 1 constants to ensure a reproducible figure for the manuscript.
+
+The expected results structure for Figure 4 is:
+
+```json
+{
+  "scenarios": [
+    {
+      "name": "bibliographic_enrichment",
+      "nominal": {
+        "throughput_rps": 45.3,
+        "throughput_std": 3.2,
+        "latency_p50_ms": 185,
+        "latency_p95_ms": 420,
+        "latency_p99_ms": 650,
+        "success_rate": 0.997
+      },
+      "fault_injected": {
+        "throughput_rps": 12.1,
+        "throughput_std": 2.1,
+        "success_rate": 0.947,
+        "dlq_items": 3,
+        "circuit_breaker_activations": 2
+      }
+    }
+  ]
+}
+```
 
 ## Troubleshooting
 
