@@ -4,60 +4,60 @@ Total scenarios: 5
 
 ## small_batch
 
-- iterations: 5
-- duration_seconds: 8.3118
-- mean_ms: 1662.34
-- median_ms: 1597.28
-- p95_ms: 1758.53
-- min_ms: 1387.06
-- max_ms: 2074.19
-- rps: 0.60
-- peak_memory_mb: 0.19
+- iterations: 1
+- duration_seconds: 0.9810
+- mean_ms: 981.02
+- median_ms: 981.02
+- p95_ms: 981.02
+- min_ms: 981.02
+- max_ms: 981.02
+- rps: 1.02
+- peak_memory_mb: 0.13
 
 ## medium_batch
 
-- iterations: 5
-- duration_seconds: 8.3305
-- mean_ms: 1666.08
-- median_ms: 1607.81
-- p95_ms: 1796.56
-- min_ms: 1371.33
-- max_ms: 1975.75
-- rps: 0.60
-- peak_memory_mb: 0.83
+- iterations: 1
+- duration_seconds: 1.5533
+- mean_ms: 1553.30
+- median_ms: 1553.30
+- p95_ms: 1553.30
+- min_ms: 1553.30
+- max_ms: 1553.30
+- rps: 0.64
+- peak_memory_mb: 0.68
 
 ## large_batch
 
-- iterations: 5
-- duration_seconds: 8.8797
-- mean_ms: 1775.92
-- median_ms: 1804.67
-- p95_ms: 1826.00
-- min_ms: 1554.29
-- max_ms: 1903.90
-- rps: 0.56
-- peak_memory_mb: 7.40
+- iterations: 1
+- duration_seconds: 1.9686
+- mean_ms: 1968.59
+- median_ms: 1968.59
+- p95_ms: 1968.59
+- min_ms: 1968.59
+- max_ms: 1968.59
+- rps: 0.51
+- peak_memory_mb: 6.01
 
 ## async_small_batch
 
-- iterations: 5
-- duration_seconds: 5.5577
-- mean_ms: 1111.52
-- median_ms: 1141.53
-- p95_ms: 1152.14
-- min_ms: 961.75
-- max_ms: 1311.15
-- rps: 0.90
-- peak_memory_mb: 0.60
+- iterations: 1
+- duration_seconds: 0.7973
+- mean_ms: 797.27
+- median_ms: 797.27
+- p95_ms: 797.27
+- min_ms: 797.27
+- max_ms: 797.27
+- rps: 1.25
+- peak_memory_mb: 0.21
 
 ## async_large_batch
 
-- iterations: 5
-- duration_seconds: 12.9435
-- mean_ms: 2588.68
-- median_ms: 2820.99
-- p95_ms: 2990.40
-- min_ms: 1673.45
-- max_ms: 3026.81
-- rps: 0.39
-- peak_memory_mb: 16.67
+- iterations: 1
+- duration_seconds: 2.8946
+- mean_ms: 2894.57
+- median_ms: 2894.57
+- p95_ms: 2894.57
+- min_ms: 2894.57
+- max_ms: 2894.57
+- rps: 0.35
+- peak_memory_mb: 15.07

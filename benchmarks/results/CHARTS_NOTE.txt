@@ -1,0 +1,2 @@
+matplotlib not installed; skipping chart generation.
+Install with: pip install matplotlib to enable charts.

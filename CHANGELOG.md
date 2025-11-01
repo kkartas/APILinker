@@ -4,7 +4,7 @@
 
 ### Added
 - JSON Schema validation for responses/requests with optional strict mode and readable diffs
-- Schema probing CLI (`apilinker probe_schema`) to infer minimal schemas and mapping templates
+- Schema probing CLI (`apilinker probe-schema`) to infer minimal schemas and mapping templates
 - Provenance & audit: run metadata (config hash, git SHA, timings, events) to JSONL and sidecar JSON
 - Idempotency support with stable keys and in-memory de-duplication
 - State & resumability: file/SQLite stores; auto-inject `updated_since`; `apilinker state` CLI

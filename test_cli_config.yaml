@@ -1,0 +1,49 @@
+# ApiLinker Configuration
+
+source:
+  type: rest
+  base_url: https://api.example.com/v1
+  auth:
+    type: bearer
+    token: ${SOURCE_API_TOKEN}
+  endpoints:
+    list_items:
+      path: /items
+      method: GET
+      params:
+        updated_since: "{{last_sync}}"
+
+target:
+  type: rest
+  base_url: https://api.destination.com/v2
+  auth:
+    type: api_key
+    header: X-API-Key
+    key: ${TARGET_API_KEY}
+  endpoints:
+    create_item:
+      path: /items
+      method: POST
+
+mapping:
+  - source: list_items
+    target: create_item
+    fields:
+      - source: id
+        target: external_id
+      - source: name
+        target: title
+      - source: description
+        target: body.content
+      - source: created_at
+        target: metadata.created
+        transform: iso_to_timestamp
+
+# Optional schedule configuration
+schedule:
+  type: interval
+  minutes: 60
+
+logging:
+  level: INFO
+  file: apilinker.log

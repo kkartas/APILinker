@@ -285,7 +285,7 @@ apilinker run --config config.yaml
 Probe schemas and suggest a starter mapping from example payloads:
 
 ```bash
-apilinker probe_schema --source source_sample.json --target target_sample.json
+apilinker probe-schema --source source_sample.json --target target_sample.json
 ```
 
 ### Using as a Python Library
@@ -423,23 +423,23 @@ mapping:
       # Simple field mapping
       - source: id
         target: external_id
-      
+
       # Nested field mapping
       - source: user.profile.name
         target: user_name
-      
+
       # With transformation
       - source: created_at
         target: timestamp
         transform: iso_to_timestamp
-      
+
       # Multiple transformations
       - source: description
         target: summary
         transform:
           - strip
           - lowercase
-      
+
       # Conditional mapping
       - source: status
         target: active_status
@@ -489,7 +489,7 @@ validation:
 CLI to infer minimal schemas and a starter mapping from samples:
 
 ```bash
-apilinker probe_schema --source src_sample.json --target tgt_sample.json
+apilinker probe-schema --source src_sample.json --target tgt_sample.json
 ```
 
 ## 🔄 Data Transformations
@@ -533,7 +533,7 @@ ApiLinker includes **8 specialized research connectors** covering scientific lit
 
 ### 🔬 Scientific Literature & Data
 - **NCBI (PubMed, GenBank)** - Biomedical literature and genetic sequences
-- **arXiv** - Academic preprints across all sciences  
+- **arXiv** - Academic preprints across all sciences
 - **CrossRef** - Citation data and DOI resolution
 - **Semantic Scholar** - AI-powered academic search with citation analysis
 
@@ -549,7 +549,7 @@ ApiLinker includes **8 specialized research connectors** covering scientific lit
 
 ```python
 from apilinker import (
-    NCBIConnector, ArXivConnector, CrossRefConnector, 
+    NCBIConnector, ArXivConnector, CrossRefConnector,
     SemanticScholarConnector, PubChemConnector, ORCIDConnector,
     GitHubConnector, NASAConnector
 )
@@ -568,7 +568,7 @@ topic = "BRCA1 inhibitors"
 pubmed_papers = ncbi.search_pubmed(topic, max_results=50)
 ai_papers = semantic.search_papers(f"machine learning {topic}", max_results=30)
 
-# Chemical compound analysis  
+# Chemical compound analysis
 compounds = pubchem.search_compounds("BRCA1 inhibitor")
 
 # Implementation code
@@ -714,7 +714,7 @@ linker.add_target(
     base_url="https://api.marketing-platform.com/v1",
     auth={
         "type": "api_key",
-        "header": "Authorization", 
+        "header": "Authorization",
         "key": "${MARKETING_API_KEY}"  # Uses environment variable
     },
     endpoints={
@@ -772,16 +772,16 @@ import os
 # Create a function to handle the collected data
 def save_weather_data(data, city):
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    
+
     # Create CSV if it doesn't exist
     file_exists = os.path.isfile(f"{city}_weather.csv")
     with open(f"{city}_weather.csv", mode='a', newline='') as file:
         writer = csv.writer(file)
-        
+
         # Write header if file is new
         if not file_exists:
             writer.writerow(["timestamp", "temperature", "humidity", "conditions"])
-        
+
         # Write data
         writer.writerow([
             timestamp,
@@ -822,7 +822,7 @@ linker.add_source(
 def collect_weather():
     london_data = linker.fetch("get_london_weather")
     nyc_data = linker.fetch("get_nyc_weather")
-    
+
     save_weather_data(london_data, "London")
     save_weather_data(nyc_data, "NYC")
 
@@ -853,29 +853,29 @@ from apilinker.core.plugins import TransformerPlugin
 
 class SentimentAnalysisTransformer(TransformerPlugin):
     """A transformer plugin that analyzes text sentiment."""
-    
+
     plugin_name = "sentiment_analysis"  # This name is used to reference the plugin
     version = "1.0.0"                   # Optional version information
     author = "Your Name"                # Optional author information
-    
+
     def transform(self, value, **kwargs):
         # Simple sentiment analysis (example)
         if not value or not isinstance(value, str):
             return {"sentiment": "neutral", "score": 0.0}
-        
+
         # Add your sentiment analysis logic here
         positive_words = ["good", "great", "excellent"]
         negative_words = ["bad", "poor", "terrible"]
-        
+
         # Count positive and negative words
         text = value.lower()
         positive_count = sum(1 for word in positive_words if word in text)
         negative_count = sum(1 for word in negative_words if word in text)
-        
+
         # Calculate sentiment score
         total = positive_count + negative_count
         score = 0.0 if total == 0 else (positive_count - negative_count) / total
-        
+
         return {
             "sentiment": "positive" if score > 0 else "negative" if score < 0 else "neutral",
             "score": score
