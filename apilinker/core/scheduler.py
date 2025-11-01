@@ -134,7 +134,7 @@ class Scheduler:
 
         Args:
             callback: Function to call on schedule
-            *args, **kwargs: Arguments to pass to the callback
+            ``*args``, ``**kwargs``: Arguments to pass to the callback
         """
         self.running = True
 
@@ -199,7 +199,7 @@ class Scheduler:
 
         Args:
             callback: Function to call on schedule
-            *args, **kwargs: Arguments to pass to the callback
+            ``*args``, ``**kwargs``: Arguments to pass to the callback
         """
         if not self.schedule_type:
             raise ValueError("Schedule not configured")

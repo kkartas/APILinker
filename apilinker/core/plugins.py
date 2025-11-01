@@ -94,13 +94,13 @@ class TransformerPlugin(PluginBase):
     during the mapping process between source and target APIs.
 
     Example:
-        ```python
-        class LowercaseTransformer(TransformerPlugin):
-            plugin_name = "lowercase"
+        .. code-block:: python
 
-            def transform(self, value: str, **kwargs) -> str:
-                return value.lower() if isinstance(value, str) else value
-        ```
+            class LowercaseTransformer(TransformerPlugin):
+                plugin_name = "lowercase"
+
+                def transform(self, value: str, **kwargs) -> str:
+                    return value.lower() if isinstance(value, str) else value
     """
 
     plugin_type: str = "transformer"
@@ -146,20 +146,20 @@ class ConnectorPlugin(PluginBase):
     including connection management, data fetching, and sending.
 
     Example:
-        ```python
-        class RestConnector(ConnectorPlugin):
-            plugin_name = "rest"
+        .. code-block:: python
 
-            def connect(self, base_url: str, **kwargs) -> dict:
-                session = requests.Session()
-                return {"session": session, "base_url": base_url}
+            class RestConnector(ConnectorPlugin):
+                plugin_name = "rest"
 
-            def fetch(self, connection: dict, endpoint: str, **kwargs) -> dict:
-                url = f"{connection['base_url']}/{endpoint}"
-                response = connection['session'].get(url, **kwargs)
-                response.raise_for_status()
-                return response.json()
-        ```
+                def connect(self, base_url: str, **kwargs) -> dict:
+                    session = requests.Session()
+                    return {"session": session, "base_url": base_url}
+
+                def fetch(self, connection: dict, endpoint: str, **kwargs) -> dict:
+                    url = f"{connection['base_url']}/{endpoint}"
+                    response = connection['session'].get(url, **kwargs)
+                    response.raise_for_status()
+                    return response.json()
     """
 
     plugin_type: str = "connector"
@@ -252,15 +252,15 @@ class AuthPlugin(PluginBase):
     such as API keys, OAuth2, JWT tokens, etc.
 
     Example:
-        ```python
-        class BearerTokenAuth(AuthPlugin):
-            plugin_name = "bearer"
+        .. code-block:: python
 
-            def authenticate(self, token: str, **kwargs) -> Dict[str, Any]:
-                if not token:
-                    raise ValueError("Bearer token cannot be empty")
-                return {"type": "bearer", "headers": {"Authorization": f"Bearer {token}"}}
-        ```
+            class BearerTokenAuth(AuthPlugin):
+                plugin_name = "bearer"
+
+                def authenticate(self, token: str, **kwargs) -> Dict[str, Any]:
+                    if not token:
+                        raise ValueError("Bearer token cannot be empty")
+                    return {"type": "bearer", "headers": {"Authorization": f"Bearer {token}"}}
     """
 
     plugin_type: str = "auth"
@@ -310,21 +310,21 @@ class PluginManager:
     for extending ApiLinker functionality.
 
     Example:
-        ```python
-        # Initialize the manager
-        manager = PluginManager()
+        .. code-block:: python
 
-        # Discover available plugins
-        discovered = manager.discover_plugins()
-        print(f"Found {len(discovered)} plugins")
+            # Initialize the manager
+            manager = PluginManager()
 
-        # Register a custom plugin class
-        manager.register_plugin(MyCustomTransformer)
+            # Discover available plugins
+            discovered = manager.discover_plugins()
+            print(f"Found {len(discovered)} plugins")
 
-        # Get a transformer instance
-        transformer = manager.instantiate_plugin("transformer", "my_custom")
-        result = transformer.transform("input data")
-        ```
+            # Register a custom plugin class
+            manager.register_plugin(MyCustomTransformer)
+
+            # Get a transformer instance
+            transformer = manager.instantiate_plugin("transformer", "my_custom")
+            result = transformer.transform("input data")
     """
 
     def __init__(self):

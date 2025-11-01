@@ -1,5 +1,5 @@
 ApiLinker Documentation
-======================
+=======================
 
 .. toctree::
    :maxdepth: 2
@@ -24,7 +24,7 @@ Overview
 ApiLinker is a universal bridge for REST API integrations that simplifies connecting, mapping, and automating data transfer between any two REST APIs.
 
 Key Features
------------
+------------
 
 * Universal Connectivity - Connect any two REST APIs with simple configuration
 * Powerful Mapping - Transform data between APIs with field mapping and path expressions

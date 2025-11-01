@@ -1,13 +1,11 @@
 Plugins Module
-=============
+==============
 
 .. automodule:: apilinker.core.plugins
-   :members:
-   :undoc-members:
-   :show-inheritance:
+   :noindex:
 
 Plugin Base Classes
-------------------
+-------------------
 
 PluginBase
 ~~~~~~~~~~
@@ -18,7 +16,7 @@ PluginBase
    :special-members: __init__
 
 TransformerPlugin
-~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~
 
 .. autoclass:: apilinker.core.plugins.TransformerPlugin
    :members:
@@ -26,7 +24,7 @@ TransformerPlugin
    :show-inheritance:
 
 ConnectorPlugin
-~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~
 
 .. autoclass:: apilinker.core.plugins.ConnectorPlugin
    :members:
@@ -34,7 +32,7 @@ ConnectorPlugin
    :show-inheritance:
 
 AuthPlugin
-~~~~~~~~~
+~~~~~~~~~~
 
 .. autoclass:: apilinker.core.plugins.AuthPlugin
    :members:
@@ -42,10 +40,10 @@ AuthPlugin
    :show-inheritance:
 
 Plugin Management
----------------
+-----------------
 
 PluginManager
-~~~~~~~~~~~~
+~~~~~~~~~~~~~
 
 .. autoclass:: apilinker.core.plugins.PluginManager
    :members:
@@ -53,7 +51,7 @@ PluginManager
    :special-members: __init__
 
 Exceptions
----------
+----------
 
 .. autoclass:: apilinker.core.plugins.PluginError
    :members:
