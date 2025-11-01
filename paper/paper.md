@@ -1,5 +1,5 @@
 ---
-title: 'ApiLinker: A Universal Bridge for REST API Integrations'
+title: 'ApiLinker: A Universal Bridge for Reproducible REST API Integrations'
 tags:
   - Python
   - REST API
@@ -14,7 +14,7 @@ authors:
 affiliations:
   - name: Independent Researcher
     index: 1
-date: 01 November 2024
+date: 01 November 2025
 bibliography: paper.bib
 ---
 
@@ -24,21 +24,33 @@ Software-driven research increasingly relies on the integration of heterogeneous
 
 Keywords: REST, research software, data integration, API mapping, reproducibility, FAIR, Python
 
-# Overview
+# Statement of Need
 
 Modern computational research increasingly depends on integrating heterogeneous web services. Each service exposes idiosyncratic REST interfaces, authentication schemes, pagination models, and data representations, which collectively impose significant engineering overhead on researchers. While ad hoc client libraries abstract individual services, researchers typically resort to bespoke glue code to connect systems, undermining reproducibility and maintainability. ApiLinker is an open-source Python framework that systematizes this integration layer. It provides a declarative, configuration-first approach to authenticate, retrieve, transform, and transmit data between arbitrary REST endpoints with strong guarantees for robustness and auditability. The framework supports both one-off migrations and long-running synchronisation pipelines, and is designed to be embedded within scientific workflows as well as operated via a command-line interface.
 
-# Introduction
+# Background
 
 The proliferation of microservices has increased inter-service communication complexity [@Fowler2014]. In practice, each API embodies local assumptions concerning authentication (API keys, bearer tokens, OAuth 2.0 variants), pagination (page/size, cursor-based, next-link), payload schemas (flat vs. deeply nested JSON), and rate limiting. Researchers repeatedly re-implement authentication, pagination, and structural transformations across domains—bioinformatics [@Ison2013], environmental science [@Vitolo2015], and computational social science [@Lomborg2014]—often with limited reuse potential and fragile error handling [@Verborgh2013]. These bespoke scripts resist review, are brittle under provider changes, and are difficult to archive or share in a manner that supports exact procedural reproducibility.
 
 ApiLinker addresses this methodological gap by: (i) elevating integrations to versionable, declarative configurations; (ii) providing a principled mapping model for heterogeneously nested structures and value-level transformations; and (iii) embedding resilience patterns (retries, circuit breakers, dead-letter queues) to sustain long-running acquisition under real-world API volatility. This design enables rigorous, reproducible pipelines consistent with FAIR principles [@Wilkinson2016]. In addition to a Python application programming interface (API), a command-line interface (CLI) supports scripted execution in containerised and scheduled environments. The architecture emphasises deterministic behaviour, explicit configuration of side effects (e.g., rate limiting, retries), and composable extensions (connectors, transformers) to support domain specialisation without core modifications.
 
-# Design goals and key capabilities
+# Software Description
 
 ApiLinker is built with a modular architecture that separates concerns into logical components:
 
-## Security Features
+## Design Goals
+
+The software was designed to meet the following goals typical of research software engineering:
+
+- Reproducibility: Express integrations as declarative, version-controlled configuration rather than imperative glue code; provide deterministic mapping and optional strict schema validation.
+- Robustness: Incorporate explicit retry and backoff strategies, circuit breakers, and a dead-letter queue to cope with real-world API volatility without silent data loss.
+- Extensibility: Enable domain-specific adaptation through plugins (connectors, transformers, auth handlers) without modifying the core; keep extension points narrow and well-documented.
+- Minimal operational footprint: Avoid mandatory external services (databases, brokers) for common use; run as a simple Python library or CLI with optional scheduling.
+- Transparency and auditability: Provide clear logs, provenance hooks, and structured error analytics for inspection, review, and publication of data acquisition steps.
+
+These goals inform the separation into connectors (transport), mapper (schema transformation), authentication, scheduler (orchestration), and error handling/analytics. Together they support rigorous, maintainable, and portable pipelines suitable for publication and reuse.
+
+### Security Features
 
 APILinker provides security capabilities for handling sensitive data:
 
@@ -46,7 +58,7 @@ APILinker provides security capabilities for handling sensitive data:
 - **OAuth Support**: Implementation of modern OAuth flows including PKCE (for mobile/SPA) and Device Flow (for IoT/CLI)
 - **Role-Based Access Control**: Fine-grained permissions for multi-user environments
 
-## API Connectors
+### API Connectors
 
 The connector module handles communication with REST APIs, supporting various HTTP methods, customizable endpoints, and automatic pagination. Each endpoint is configured with its path, method, headers, and optional parameters.
 
@@ -65,7 +77,7 @@ connector = ApiConnector(
 )
 ```
 
-## Field Mapping
+### Field Mapping
 
 The mapper module translates data structures between source and target formats using a flexible mapping system. It supports nested field paths, conditional mappings, and data transformations.
 
@@ -80,7 +92,7 @@ mapper.add_mapping(
 )
 ```
 
-## Authentication
+### Authentication
 
 Multiple authentication methods are supported, with secure environment variable handling:
 
@@ -93,7 +105,7 @@ auth:
   scope: read write
 ```
 
-## Scheduling
+### Scheduling
 
 The scheduler component enables recurring synchronizations with interval or cron-based timing:
 
@@ -102,7 +114,7 @@ scheduler.add_schedule(type="cron", expression="0 */6 * * *")  # Every 6 hours
 scheduler.start(sync_function)
 ```
 
-# Methods and results
+# Evaluation Methods and Results
 
 Methods: We evaluate ApiLinker by constructing representative pipelines spanning (i) bibliographic retrieval and normalisation (CrossRef → Semantic Scholar), (ii) literature sampling and metadata export (NCBI/PubMed → CSV), and (iii) issue migration between software repositories (GitHub → GitLab). Each pipeline is specified declaratively; correctness is assessed via schema conformance and record-level invariants (e.g., identifier preservation, date normalisation). Robustness is probed through induced transient failures (timeout, 5xx, 429) to verify retry, backoff, and circuit-breaking behaviour. Performance metrics include end-to-end throughput (records/second) and error-handled latency under controlled network perturbations using the included benchmark harness. Benchmarks execute on reference hardware (Intel i7-9750H, 16GB RAM, 100 Mbps network) with sample sizes of 1,000 records per scenario; results report mean ± standard deviation across 5 runs.
 
@@ -124,7 +136,7 @@ Under fault injection (10% rate of 5xx/timeout/429 errors), retry mechanisms wit
 
 ![Figure 4: Benchmark throughput (records/second) under nominal and fault-injected conditions for representative scenarios.](paper/figures/figure04_benchmarks.png)
 
-# Implementation and architecture
+# Implementation and Architecture
 
 ApiLinker is implemented in Python (3.8+) with a deliberately small dependency surface to facilitate long-term maintainability and ease of installation. The implementation comprises approximately 3,200 lines of Python code (core library, excluding tests, documentation, and examples), with an additional 2,800 lines of test code across 38 test modules. Development began in 2023 and is ongoing, with contributions tracked via version control. The architecture adheres to separation-of-concerns and explicit dependency boundaries:
 
@@ -142,7 +154,7 @@ Figure 1 depicts the system architecture, emphasising the separation between tra
 
 Implementation constraints: ApiLinker targets RESTful JSON APIs with synchronous request/response semantics. Binary payload handling and streaming/event-driven paradigms (e.g., Server-Sent Events, WebSockets, webhook choreography) are not first-class in the current release; users may wrap such patterns via custom connectors. Concurrency is conservative by design to minimise provider-side rate-limit violations; advanced concurrency models can be layered externally if providers permit.
 
-## Mapping semantics and transformers
+## Mapping Semantics and Transformers
 
 The mapping subsystem formalises the transformation from source records to target payloads using four core constructs:
 
@@ -153,7 +165,7 @@ The mapping subsystem formalises the transformation from source records to targe
 
 Determinism: Given an input document and a fixed mapping specification, the mapper is deterministic. Side-effects are confined to logging. Complexity is linear in the number of mapping rules and input records; path resolution is linear in path depth.
 
-# Quality control
+# Quality Control
 
 The codebase includes unit and integration tests spanning connectors, mapping, security, scheduling, CLI, and end-to-end sync flows (see `tests/`). The test suite comprises 38 test modules with over 250 individual test cases, achieving 82% code coverage across core modules (connector, mapper, auth, error handling, validation). Tests can be executed via `pytest` and coverage reporting enabled via `pytest --cov=apilinker --cov-report=term-missing`. Continuous integration executes tests across supported Python versions (3.8, 3.9, 3.10, 3.11) with static checks (mypy type checking and flake8 linting). Coverage instrumentation enforces minimum thresholds during CI execution (see `docs/coverage.md`).
 
@@ -165,7 +177,7 @@ Verification protocol: Reviewers can reproduce core behaviours by (1) installing
 
 ![Figure 5: Error-handling flow including detection, categorisation, retry/backoff, circuit breaker state transitions, and DLQ capture for audit/replay.](paper/figures/figure05_error_flow.png)
 
-# Availability
+# Availability of Source Code and Data
 
 ## Operating system
 Platform-independent; tested on Linux, macOS, and Windows.
@@ -232,7 +244,7 @@ This script uses the public httpbin.org API to test: (1) basic HTTP requests, (2
 
 For users with API keys, additional end-to-end examples are available in `examples/` covering GitHub→GitLab migrations, literature retrieval from NCBI/arXiv, and chemical compound lookups via PubChem. These examples can be executed by setting appropriate environment variables as documented in each script.
 
-# Reuse potential
+# Reuse Potential
 
 ApiLinker is intended as a reusable substrate for constructing research data acquisition and interoperability pipelines across domains. Reuse is facilitated by:
 
@@ -245,13 +257,13 @@ Typical scientific uses include: citation graph construction (CrossRef, Semantic
 
 Guidance for extension: New connectors can subclass the connector interface, implement endpoint specification, and optionally provide response-path extraction and pagination strategies. Transformers can be registered at runtime or packaged as plugins. For governance, we recommend contributors include unit tests, minimal reproducible examples, and documentation snippets so that new extensions preserve the library’s guarantees of determinism and reproducibility.
 
-# Limitations and future work
+# Limitations and Future Work
 
 ApiLinker currently assumes REST-style JSON APIs and relies on user-provided mappings; semi-automated schema inference and validation would further reduce configuration effort. Native support for streaming endpoints and event-driven choreography (e.g., webhooks, message queues) is limited and is an area for future extension. While OAuth variants are supported, pluggable integrations with enterprise secret managers could improve operational security in some deployments. Finally, richer telemetry (metrics/tracing) and policy-driven backpressure could enhance observability and stability in high-throughput scenarios.
 
 Planned enhancements include: (i) schema probing utilities to auto-suggest initial mapping templates; (ii) first-class webhook and message-queue connectors to support event-driven pipelines; (iii) optional integrations with secret management systems (e.g., HashiCorp Vault, AWS Secrets Manager) with least-privilege defaults; and (iv) structured metrics/trace emission (OpenTelemetry) for production observability.
 
-# Comparison with existing tools
+# Comparison with Related Software
 
 ApiLinker occupies a unique position in the API integration ecosystem, balancing simplicity with research-specific requirements. Table 2 compares ApiLinker with established integration tools across key dimensions relevant to research workflows.
 
@@ -267,11 +279,11 @@ ApiLinker occupies a unique position in the API integration ecosystem, balancing
 | Python-native library | ✓ | ✓ | ✗ | ✗ |
 | Research workflow focus | ✓ | Partial⁶ | ✗ | ✗ |
 
-¹ Airflow requires Python DAG definitions rather than declarative configuration  
-² Limited to Python operators; no built-in declarative transformations  
-³ GUI-based transformation limited to predefined operations  
-⁴ Core open source (Apache 2.0) with commercial "Enterprise" edition  
-⁵ Requires database (PostgreSQL/MySQL) and additional infrastructure  
+¹ Airflow requires Python DAG definitions rather than declarative configuration
+² Limited to Python operators; no built-in declarative transformations
+³ GUI-based transformation limited to predefined operations
+⁴ Core open source (Apache 2.0) with commercial "Enterprise" edition
+⁵ Requires database (PostgreSQL/MySQL) and additional infrastructure
 ⁶ Designed for general workflow orchestration, not API-specific mappings
 
 **Distinctive advantages** for research applications:
@@ -284,7 +296,7 @@ Limitations of comparators: Airflow targets workflow orchestration at cluster sc
 
 ![Figure 3: Comparative positioning of ApiLinker relative to orchestration frameworks and GUI automation tools along axes of reproducibility and transformation expressiveness.](paper/figures/figure03_positioning.png)
 
-# Conclusion
+# Conclusions
 
 ApiLinker fills a significant gap in the open-source ecosystem by providing a flexible, configuration-driven approach to REST API integration specifically designed for research workflows. The software addresses common pain points in research computing: the need for reproducible data pipelines, minimal infrastructure dependencies, and robust handling of the diverse API patterns encountered in interdisciplinary research.
 
