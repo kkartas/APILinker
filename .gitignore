@@ -17,6 +17,7 @@ dlq
 
 # Documentation
 docs/_build/
+docs/sphinx_setup/_build/
 site/
 
 # Environment
@@ -37,6 +38,11 @@ ENV/
 *.config.yaml
 *.config.yml
 
+# Generated artifacts / results
+benchmarks/results/
+probe_src.json
+probe_tgt.json
+
 # OS specific
 .DS_Store
 Thumbs.db
@@ -53,3 +59,4 @@ IMPLEMENTATION_PLAN.md
 REVIEW_SUMMARY.md
 scripts/pre_submission_check.sh
 scripts/pre_submission_check.ps1
+.pre-commit-config.yaml
