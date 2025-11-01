@@ -10,7 +10,7 @@ New in version 1.1: Scientific API connectors for research workflows including
 NCBI (PubMed, GenBank) and arXiv connectors.
 """
 
-__version__ = "0.4.0"
+__version__ = "0.4.1"
 
 # Core components
 from apilinker.core.connector import ApiConnector

@@ -31,7 +31,7 @@ class TestCLIIntegration:
                 }
             },
             "target": {
-                "type": "rest", 
+                "type": "rest",
                 "base_url": "https://httpbin.org",
                 "endpoints": {
                     "post_data": {
@@ -53,7 +53,7 @@ class TestCLIIntegration:
                 "level": "INFO"
             }
         }
-        
+
         # Create temporary config file
         self.config_fd, self.config_path = tempfile.mkstemp(suffix=".yaml")
         with os.fdopen(self.config_fd, "w") as f:
@@ -61,7 +61,7 @@ class TestCLIIntegration:
         # Ensure UTF-8 decoding for subprocess output on Windows
         self._env = dict(os.environ)
         self._env["PYTHONIOENCODING"] = "utf-8"
-    
+
     def teardown_method(self):
         """Clean up after each test."""
         try:
@@ -80,7 +80,7 @@ class TestCLIIntegration:
             cwd=Path(__file__).parent.parent,
             env=self._env,
         )
-        
+
         assert result.returncode == 0
         assert "ApiLinker" in result.stdout
         assert "Commands" in result.stdout  # Could be "Commands:" or "Commands" depending on typer version
@@ -96,18 +96,19 @@ class TestCLIIntegration:
             cwd=Path(__file__).parent.parent,
             env=self._env,
         )
-        
+
         # Version command should work (exit code 0)
         assert result.returncode == 0
         output = result.stdout + result.stderr
-        assert "0.4.0" in output and "ApiLinker" in output
+        from apilinker import __version__
+        assert __version__ in output and "ApiLinker" in output
 
     def test_cli_sync_dry_run(self):
         """Test CLI sync with dry-run flag."""
         result = subprocess.run(
             [
-                sys.executable, "-m", "apilinker", 
-                "sync", 
+                sys.executable, "-m", "apilinker",
+                "sync",
                 "--config", self.config_path,
                 "--dry-run"
             ],
@@ -119,11 +120,11 @@ class TestCLIIntegration:
             timeout=30,  # Prevent hanging
             env=self._env,
         )
-        
+
         # Should not fail completely, though might have network issues
         # The important thing is that the CLI interface works
         output = result.stdout + result.stderr
-        
+
         # Should show some indication it's processing the config
         assert any(word in output.lower() for word in ["config", "dry", "sync", "apilinker"])
 
@@ -131,12 +132,12 @@ class TestCLIIntegration:
         """Test CLI config validation with invalid config."""
         # Create invalid config (missing required fields)
         invalid_config = {"source": {"type": "invalid"}}
-        
+
         invalid_config_fd, invalid_config_path = tempfile.mkstemp(suffix=".yaml")
         try:
             with os.fdopen(invalid_config_fd, "w") as f:
                 yaml.dump(invalid_config, f)
-            
+
             result = subprocess.run(
                 [
                     sys.executable, "-m", "apilinker",
@@ -151,10 +152,10 @@ class TestCLIIntegration:
                 timeout=15,
                 env=self._env,
             )
-            
+
             # Should fail with non-zero exit code due to invalid config
             assert result.returncode != 0
-            
+
         finally:
             os.unlink(invalid_config_path)
 
@@ -163,7 +164,7 @@ class TestCLIIntegration:
         result = subprocess.run(
             [
                 sys.executable, "-m", "apilinker",
-                "sync", 
+                "sync",
                 "--config", "/nonexistent/path/config.yaml"
             ],
             capture_output=True,
@@ -174,10 +175,10 @@ class TestCLIIntegration:
             timeout=10,
             env=self._env,
         )
-        
+
         # Should fail with non-zero exit code
         assert result.returncode != 0
-        
+
         # Error message should mention the missing file
         output = result.stdout + result.stderr
         assert any(word in output.lower() for word in ["not found", "file", "error", "exist"])
@@ -190,7 +191,7 @@ class TestCLIIntegration:
         """Test CLI with a real HTTP request (requires network)."""
         # This test only runs if explicitly enabled via environment variable
         # Uses httpbin.org which is designed for testing HTTP requests
-        
+
         # Create config that uses httpbin.org (reliable test service)
         httpbin_config = {
             "source": {
@@ -205,7 +206,7 @@ class TestCLIIntegration:
             },
             "target": {
                 "type": "rest",
-                "base_url": "https://httpbin.org", 
+                "base_url": "https://httpbin.org",
                 "endpoints": {
                     "echo_post": {
                         "path": "/post",
@@ -223,12 +224,12 @@ class TestCLIIntegration:
                 }
             ]
         }
-        
+
         httpbin_fd, httpbin_path = tempfile.mkstemp(suffix=".yaml")
         try:
             with os.fdopen(httpbin_fd, "w") as f:
                 yaml.dump(httpbin_config, f)
-            
+
             result = subprocess.run(
                 [
                     sys.executable, "-m", "apilinker",
@@ -243,15 +244,15 @@ class TestCLIIntegration:
                 timeout=60,
                 env=self._env,
             )
-            
+
             # Should succeed or at least not crash
             output = result.stdout + result.stderr
             print(f"CLI output: {output}")  # For debugging
-            
-            # Even if the sync fails due to data structure, 
+
+            # Even if the sync fails due to data structure,
             # the CLI should not crash completely
             assert "Traceback" not in output or result.returncode == 0
-            
+
         finally:
             os.unlink(httpbin_path)
 
@@ -266,13 +267,13 @@ class TestCLIIntegration:
             cwd=Path(__file__).parent.parent,
             env=self._env,
         )
-        
+
         assert result.returncode == 0
         output = result.stdout
-        
+
         # Check for main commands that should be available
         expected_commands = ["sync"]  # Add more as they're implemented
-        
+
         for command in expected_commands:
             assert command in output, f"Command '{command}' not found in CLI help"
 
@@ -284,16 +285,16 @@ class TestCLIIntegration:
             "level": "DEBUG",
             "format": "%(levelname)s: %(message)s"
         }
-        
+
         log_config_fd, log_config_path = tempfile.mkstemp(suffix=".yaml")
         try:
             with os.fdopen(log_config_fd, "w") as f:
                 yaml.dump(config_with_logs, f)
-            
+
             result = subprocess.run(
                 [
                     sys.executable, "-m", "apilinker",
-                    "sync", 
+                    "sync",
                     "--config", log_config_path,
                     "--dry-run"
                 ],
@@ -305,12 +306,12 @@ class TestCLIIntegration:
                 timeout=15,
                 env=self._env,
             )
-            
+
             output = result.stdout + result.stderr
-            
+
             # Should show some log output indicating the configuration was processed
             # The exact format depends on implementation
             assert len(output.strip()) > 0, "Expected some output from CLI"
-            
+
         finally:
             os.unlink(log_config_path)

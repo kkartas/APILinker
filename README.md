@@ -1068,7 +1068,7 @@ If you use ApiLinker in your research, please cite:
   author = {Kartas, Kyriakos},
   title = {ApiLinker: A Universal Bridge for REST API Integrations},
   url = {https://github.com/kkartas/apilinker},
-  version = {0.4.0},
+  version = {0.4.1},
   year = {2025}
 }
 ```
