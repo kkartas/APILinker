@@ -261,7 +261,7 @@ def init(
     # Check if output file exists
     if output.exists() and not force:
         console.print(
-            "[bold red]Error:[/bold red] File {output} already exists. Use --force to overwrite."
+            f"[bold red]Error:[/bold red] File {output} already exists. Use --force to overwrite."
         )
         sys.exit(1)
 
