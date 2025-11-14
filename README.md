@@ -68,6 +68,7 @@ For more details, see the [Security Documentation](docs/security.md). Note: ApiL
 - [Python API](#python-api)
 - [Examples](#examples)
 - [Extending ApiLinker](#extending-apilinker)
+- [Roadmap](#-roadmap)
 - [Contributing](#contributing)
 - [Documentation](#documentation)
 - [License](#license)
@@ -1051,13 +1052,26 @@ When working with APIs that require authentication, follow these security best p
      security_audit: true
    ```
 
+## 🗺️ Roadmap
+
+See [ROADMAP.md](ROADMAP.md) for a detailed view of planned features and version releases.
+
+**Upcoming Highlights:**
+- **v0.5.0**: OpenTelemetry integration, Secret Management (Vault, AWS, Azure, GCP)
+- **v0.6.0**: Webhook connectors, Message Queue support (RabbitMQ, Redis, SQS, Kafka)
+- **v0.7.0**: Multi-source aggregation, Enhanced incremental sync
+- **v0.8.0**: GraphQL support, API versioning
+- **v0.9.0**: Testing framework, Configuration templates
+- **v1.0.0**: Production-ready milestone with performance optimizations
+
 ## 🤝 Contributing
 
 Contributions are welcome! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
 
-- Use GitHub “New issue” to open a bug report or feature request (templates provided)
+- Use GitHub "New issue" to open a bug report or feature request (templates provided)
 - Fork the repo and create a focused branch for changes
 - Add tests and docs where applicable, then open a Pull Request
+- Check [ROADMAP.md](ROADMAP.md) for features we're planning to implement
 
 ## 📄 Citation
 

@@ -23,7 +23,7 @@ By participating in this project, you agree to abide by our Code of Conduct. Ple
    # Create and activate a virtual environment (optional but recommended)
    python -m venv venv
    source venv/bin/activate  # On Windows: venv\Scripts\activate
-   
+
    # Install development dependencies
    pip install -e ".[dev]"
    ```
@@ -31,6 +31,18 @@ By participating in this project, you agree to abide by our Code of Conduct. Ple
 4. **Set up pre-commit hooks** (optional but recommended):
    ```bash
    pre-commit install
+   ```
+
+5. **Fix formatting issues before committing** (if you encounter pre-commit errors):
+   ```bash
+   # Windows PowerShell
+   .\scripts\pre_commit_helper.ps1
+
+   # Unix/Linux/Mac
+   ./scripts/pre_commit_helper.sh
+
+   # Or manually
+   python scripts/fix_formatting.py
    ```
 
 ### Development Workflow
@@ -57,8 +69,20 @@ By participating in this project, you agree to abide by our Code of Conduct. Ple
    black apilinker --check
    ```
 
-5. **Commit your changes** using clear commit messages:
+5. **Stage and commit your changes** using clear commit messages:
    ```bash
+   # Stage all changes (recommended to avoid pre-commit hook conflicts)
+   git add .
+
+   # Or stage specific files
+   git add file1.py file2.py
+
+   # Commit with a clear message
+   git commit -m "Add feature: concise description of your changes"
+
+   # If pre-commit hooks fail, run the formatting fix script and try again
+   python scripts/fix_formatting.py
+   git add .
    git commit -m "Add feature: concise description of your changes"
    ```
 

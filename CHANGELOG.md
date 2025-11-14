@@ -63,11 +63,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+See [ROADMAP.md](ROADMAP.md) for planned features and version roadmap.
+
 ### Added
-- Placeholder for future additions
+- See ROADMAP.md for upcoming features
 
 ### Changed
-- Placeholder for future changes
+- See ROADMAP.md for planned changes
 
 ### Fixed
-- Placeholder for future fixes
+- Bug fixes will be documented here as they are addressed

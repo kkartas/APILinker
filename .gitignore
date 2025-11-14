@@ -59,4 +59,4 @@ IMPLEMENTATION_PLAN.md
 REVIEW_SUMMARY.md
 scripts/pre_submission_check.sh
 scripts/pre_submission_check.ps1
-.pre-commit-config.yaml
+# .pre-commit-config.yaml should be tracked, not ignored
