@@ -13,7 +13,3 @@ repos:
         exclude: '^(docs/sphinx_setup/_build|docs/_build|benchmarks/results)'
       - id: check-added-large-files
         exclude: '^(docs/sphinx_setup/_build|docs/_build|benchmarks/results)'
-
-# Configuration to reduce conflicts with unstaged changes
-default_stages: [commit]
-fail_fast: false
