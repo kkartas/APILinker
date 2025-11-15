@@ -18,7 +18,8 @@ setup(
     author="K. Kartas",
     author_email="kkartas@users.noreply.github.com",
     url="https://github.com/kkartas/APILinker",
-    packages=find_packages(),
+    packages=find_packages(include=['apilinker', 'apilinker.*']),
+    include_package_data=True,
     install_requires=[
         "httpx>=0.23.0",
         "pyyaml>=6.0",

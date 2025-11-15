@@ -21,8 +21,12 @@ if [ -f "$REPO_ROOT/pyproject.toml" ] || [ -f "$REPO_ROOT/setup.py" ]; then
     # Uninstall any existing apilinker to avoid conflicts
     pip uninstall -y apilinker 2>/dev/null || true
 
-    # Install from repository
-    pip install -e . --no-deps || pip install -e .
+    # Clean any existing build artifacts
+    rm -rf build/ dist/ *.egg-info/ 2>/dev/null || true
+
+    # Install from repository (editable mode ensures connectors are included)
+    echo "Building and installing package..."
+    pip install -e . --force-reinstall --no-deps || pip install -e . --force-reinstall
 
     echo "✅ ApiLinker installed successfully from repository!"
     echo ""
