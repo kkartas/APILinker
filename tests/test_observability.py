@@ -48,7 +48,7 @@ class TestTelemetryManager:
         """Test manager initialization when disabled."""
         config = ObservabilityConfig(enabled=False)
         manager = TelemetryManager(config)
-        
+
         assert manager.config.enabled is False
         assert manager.tracer is None
         assert manager.meter is None
@@ -56,10 +56,10 @@ class TestTelemetryManager:
     def test_initialization_without_otel(self):
         """Test manager initialization without OpenTelemetry installed."""
         config = ObservabilityConfig(enabled=True)
-        
+
         with patch('apilinker.core.observability.OTEL_AVAILABLE', False):
             manager = TelemetryManager(config)
-            
+
             assert manager.config.enabled is False
             assert manager.tracer is None
 
@@ -71,7 +71,7 @@ class TestTelemetryManager:
             export_to_console=True
         )
         manager = TelemetryManager(config)
-        
+
         assert manager._initialized is True
         assert manager.tracer is not None
 
@@ -79,7 +79,7 @@ class TestTelemetryManager:
         """Test trace_sync context manager when disabled."""
         config = ObservabilityConfig(enabled=False)
         manager = TelemetryManager(config)
-        
+
         with manager.trace_sync("source", "target", "correlation-123") as span:
             assert span is None
 
@@ -87,7 +87,7 @@ class TestTelemetryManager:
         """Test trace_api_call context manager when disabled."""
         config = ObservabilityConfig(enabled=False)
         manager = TelemetryManager(config)
-        
+
         with manager.trace_api_call("endpoint", "GET", "http://api.com", "source") as span:
             assert span is None
 
@@ -95,7 +95,7 @@ class TestTelemetryManager:
         """Test trace_transformation context manager when disabled."""
         config = ObservabilityConfig(enabled=False)
         manager = TelemetryManager(config)
-        
+
         with manager.trace_transformation("lowercase", "email") as span:
             assert span is None
 
@@ -103,7 +103,7 @@ class TestTelemetryManager:
         """Test record_sync_completion when disabled."""
         config = ObservabilityConfig(enabled=False)
         manager = TelemetryManager(config)
-        
+
         # Should not raise any errors
         manager.record_sync_completion("source", "target", True, 10)
 
@@ -111,7 +111,7 @@ class TestTelemetryManager:
         """Test record_error when disabled."""
         config = ObservabilityConfig(enabled=False)
         manager = TelemetryManager(config)
-        
+
         # Should not raise any errors
         manager.record_error("validation", "sync", "Test error")
 
@@ -119,22 +119,22 @@ class TestTelemetryManager:
         """Test instrument_function decorator when disabled."""
         config = ObservabilityConfig(enabled=False)
         manager = TelemetryManager(config)
-        
+
         @manager.instrument_function("test_operation")
         def test_func():
             return "result"
-        
+
         assert test_func() == "result"
 
     def test_instrument_function_with_exception(self):
         """Test instrument_function decorator with exception."""
         config = ObservabilityConfig(enabled=False)
         manager = TelemetryManager(config)
-        
+
         @manager.instrument_function("test_operation")
         def test_func():
             raise ValueError("Test error")
-        
+
         with pytest.raises(ValueError, match="Test error"):
             test_func()
 
@@ -151,7 +151,7 @@ class TestGlobalTelemetryManager:
         """Test initializing global telemetry manager."""
         config = ObservabilityConfig(enabled=False)
         initialize_telemetry(config)
-        
+
         manager = get_telemetry_manager()
         assert manager.config.enabled is False
 
@@ -159,7 +159,7 @@ class TestGlobalTelemetryManager:
         """Test shutting down global telemetry manager."""
         initialize_telemetry(ObservabilityConfig(enabled=False))
         shutdown_telemetry()
-        
+
         # Getting manager after shutdown should create a new one
         manager = get_telemetry_manager()
         assert isinstance(manager, TelemetryManager)
@@ -176,7 +176,7 @@ class TestTelemetryManagerWithOtel:
             export_to_console=False
         )
         manager = TelemetryManager(config)
-        
+
         with manager.trace_sync("source", "target", "test-123") as span:
             assert span is not None
 
@@ -187,7 +187,7 @@ class TestTelemetryManagerWithOtel:
             export_to_console=False
         )
         manager = TelemetryManager(config)
-        
+
         with pytest.raises(ValueError):
             with manager.trace_sync("source", "target", "test-123"):
                 raise ValueError("Test error")
@@ -199,7 +199,7 @@ class TestTelemetryManagerWithOtel:
             export_to_console=False
         )
         manager = TelemetryManager(config)
-        
+
         with manager.trace_api_call("get_users", "GET", "https://api.com/users", "source") as span:
             assert span is not None
 
@@ -210,7 +210,7 @@ class TestTelemetryManagerWithOtel:
             export_to_console=False
         )
         manager = TelemetryManager(config)
-        
+
         with manager.trace_transformation("lowercase", "email") as span:
             assert span is not None
 
@@ -222,7 +222,7 @@ class TestTelemetryManagerWithOtel:
             export_to_console=True
         )
         manager = TelemetryManager(config)
-        
+
         assert manager.sync_counter is not None
         assert manager.sync_duration_histogram is not None
         assert manager.api_call_counter is not None
@@ -236,7 +236,7 @@ class TestTelemetryManagerWithOtel:
             export_to_console=True
         )
         manager = TelemetryManager(config)
-        
+
         # Should not raise any errors
         manager.record_sync_completion("source", "target", True, 10)
 
@@ -248,6 +248,6 @@ class TestTelemetryManagerWithOtel:
             export_to_console=True
         )
         manager = TelemetryManager(config)
-        
+
         # Should not raise any errors
         manager.record_error("validation", "sync", "Test error")

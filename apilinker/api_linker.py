@@ -779,7 +779,7 @@ class ApiLinker:
         # Generate correlation ID for this sync operation
         correlation_id = str(uuid.uuid4())
         start_time = time.time()
-        
+
         # Wrap entire sync operation in distributed tracing
         with self.telemetry.trace_sync(source_endpoint, target_endpoint, correlation_id):
             # Start provenance
@@ -797,18 +797,18 @@ class ApiLinker:
             # Default retry status codes if none provided
             if retry_status_codes is None:
                 retry_status_codes = [429, 502, 503, 504]  # Common transient failures
-    
+
             self.logger.info(
                 f"[{correlation_id}] Starting sync from {source_endpoint} to {target_endpoint}"
             )
-    
+
             # Initialize result object
             sync_result = SyncResult(correlation_id=correlation_id)
-    
+
             # Get circuit breaker for source endpoint
             source_circuit_name = f"source_{source_endpoint}"
             source_cb = self.error_recovery_manager.get_circuit_breaker(source_circuit_name)
-    
+
             # Check if user has permission for this operation
             if self.security_manager.enable_access_control:
                 current_user = getattr(self, "current_user", None)
@@ -818,7 +818,7 @@ class ApiLinker:
                     raise PermissionError(
                         f"User {current_user} does not have permission to run sync operations"
                     )
-    
+
             # Merge last_sync into params from state store if not provided
             if params is None:
                 effective_params = None
@@ -834,17 +834,17 @@ class ApiLinker:
                     if last_sync:
                         effective_params = dict(effective_params or {})
                         effective_params["updated_since"] = last_sync
-    
+
             # Always use standard non-encrypted call
             source_data, source_error = source_cb.execute(
                 lambda: self.source.fetch_data(source_endpoint, effective_params)
             )
-    
+
             # If circuit breaker failed, try recovery strategies
             if source_error:
                 # Create payload for retry
                 fetch_payload = {"endpoint": source_endpoint, "params": params}
-    
+
                 # Apply recovery strategies
                 success, result, error = self.error_recovery_manager.handle_error(
                     error=source_error,
@@ -855,13 +855,13 @@ class ApiLinker:
                     retry_delay=retry_delay,
                     retry_backoff_factor=retry_backoff_factor,
                 )
-    
+
                 if success:
                     source_data = result
                 else:
                     # Record the error for analytics
                     self.error_analytics.record_error(error)
-    
+
                     # Update result with error details
                     end_time = time.time()
                     sync_result.duration_ms = int((end_time - start_time) * 1000)
@@ -869,13 +869,13 @@ class ApiLinker:
                     sync_result.errors.append(error.to_dict())
                     self.logger.error(f"[{correlation_id}] Sync failed: {error}")
                     return sync_result
-    
+
             try:
                 # Map fields according to configuration
                 transformed_data = self.mapper.map_data(
                     source_endpoint, target_endpoint, source_data
                 )
-    
+
                 # Optional strict validation against target request schema (if defined in connector)
                 if self.validation_config.get("strict_mode") and is_validator_available():
                     target_endpoint_cfg = (
@@ -905,17 +905,17 @@ class ApiLinker:
                                     status_code=0,
                                     additional_context={"diffs": diffs},
                                 )
-    
+
                 # Record source data metrics
                 source_count = len(source_data) if isinstance(source_data, list) else 1
                 sync_result.details["source_count"] = source_count
-    
+
                 # Get circuit breaker for target endpoint
                 target_circuit_name = f"target_{target_endpoint}"
                 target_cb = self.error_recovery_manager.get_circuit_breaker(
                     target_circuit_name
                 )
-    
+
                 # Idempotency: skip payloads we've already sent during replays
                 def _send():
                     # If idempotency enabled, de-duplicate per item
@@ -933,15 +933,15 @@ class ApiLinker:
                     else:
                         payload = transformed_data
                     return self.target.send_data(target_endpoint, payload)
-    
+
                 # Always use standard non-encrypted call
                 target_result, target_error = target_cb.execute(_send)
-    
+
                 # If circuit breaker failed, try recovery strategies
                 if target_error:
                     # Create payload for retry
                     send_payload = {"endpoint": target_endpoint, "data": transformed_data}
-    
+
                     # Apply recovery strategies
                     success, result, error = self.error_recovery_manager.handle_error(
                         error=target_error,
@@ -952,13 +952,13 @@ class ApiLinker:
                         retry_delay=retry_delay,
                         retry_backoff_factor=retry_backoff_factor,
                     )
-    
+
                     if success:
                         target_result = result
                     else:
                         # Record the error for analytics
                         self.error_analytics.record_error(error)
-    
+
                         # Update result with error details
                         end_time = time.time()
                         sync_result.duration_ms = int((end_time - start_time) * 1000)
@@ -966,23 +966,23 @@ class ApiLinker:
                         sync_result.errors.append(error.to_dict())
                         self.logger.error(f"[{correlation_id}] Sync failed: {error}")
                         return sync_result
-    
+
                 # Update result with success information
                 sync_result.count = (
                     len(transformed_data) if isinstance(transformed_data, list) else 1
                 )
                 sync_result.success = True
-    
+
                 # Set target response directly
                 if isinstance(target_result, dict):
                     sync_result.target_response = target_result
                 else:
                     sync_result.target_response = {}
-    
+
                 # Calculate duration
                 end_time = time.time()
                 sync_result.duration_ms = int((end_time - start_time) * 1000)
-    
+
                 self.logger.info(
                     f"[{correlation_id}] Sync completed successfully: {sync_result.count} items transferred in {sync_result.duration_ms}ms"
                 )
@@ -991,14 +991,14 @@ class ApiLinker:
                     self.state_store.set_last_sync(source_endpoint, now_iso())
                 # Complete provenance
                 self.provenance.complete_run(True, sync_result.count, sync_result.details)
-                
+
                 # Record telemetry metrics
                 self.telemetry.record_sync_completion(
                     source_endpoint, target_endpoint, True, sync_result.count
                 )
-                
+
                 return sync_result
-    
+
             except Exception as e:
                 # Convert to ApiLinkerError
                 error = ApiLinkerError.from_exception(
@@ -1007,16 +1007,16 @@ class ApiLinker:
                     correlation_id=correlation_id,
                     operation_id=f"mapping_{source_endpoint}_to_{target_endpoint}",
                 )
-    
+
                 # Record the error for analytics
                 self.error_analytics.record_error(error)
-    
+
                 # Update result
                 end_time = time.time()
                 sync_result.duration_ms = int((end_time - start_time) * 1000)
                 sync_result.success = False
                 sync_result.errors.append(error.to_dict())
-    
+
                 self.logger.error(f"[{correlation_id}] Sync failed during mapping: {error}")
                 # Record error in provenance
                 self.provenance.record_error(
@@ -1026,7 +1026,7 @@ class ApiLinker:
                     endpoint=target_endpoint,
                 )
                 self.provenance.complete_run(False, 0, {})
-                
+
                 # Record telemetry metrics
                 self.telemetry.record_sync_completion(
                     source_endpoint, target_endpoint, False, 0
@@ -1034,7 +1034,7 @@ class ApiLinker:
                 self.telemetry.record_error(
                     error.error_category.value, "sync", error.message
                 )
-                
+
             return sync_result
 
     def start_scheduled_sync(self) -> None:

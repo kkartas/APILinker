@@ -1393,7 +1393,7 @@ class DeadLetterQueue:
 class TelemetryManager:
     """
     OpenTelemetry-based observability system.
-    
+
     Features:
     - Distributed tracing with correlation IDs
     - Prometheus metrics export
@@ -1402,37 +1402,37 @@ class TelemetryManager:
     - Custom metric recording
     - Console export for debugging
     """
-    
+
     def __init__(self, config: ObservabilityConfig):
         self.config = config
         self.tracer = None
         self.meter = None
-        
+
         if config.enabled and OPENTELEMETRY_AVAILABLE:
             self._initialize_opentelemetry()
-        
+
     def _initialize_opentelemetry(self):
         """Initialize OpenTelemetry SDK with TracerProvider and MeterProvider."""
         # Set up TracerProvider
         resource = Resource(attributes={"service.name": self.config.service_name})
         provider = TracerProvider(resource=resource)
-        
+
         # Configure exporters
         if self.config.export_to_console:
             provider.add_span_processor(BatchSpanProcessor(ConsoleSpanExporter()))
-            
+
         trace.set_tracer_provider(provider)
         self.tracer = trace.get_tracer(__name__)
-        
+
         # Set up MeterProvider for Prometheus
         if self.config.export_to_prometheus:
             metric_reader = PrometheusMetricReader()
             meter_provider = MeterProvider(resource=resource, metric_readers=[metric_reader])
             metrics.set_meter_provider(meter_provider)
-            
+
             # Start Prometheus HTTP server
             start_http_server(port=self.config.prometheus_port)
-            
+
         self.meter = metrics.get_meter(__name__)
         self._create_metrics()
 ```
@@ -1446,7 +1446,7 @@ class TelemetryManager:
 def trace_sync(self, source_endpoint: str, target_endpoint: str, correlation_id: str):
     """
     Trace a complete sync operation.
-    
+
     Creates a span with:
     - correlation_id
     - source_endpoint
@@ -1457,7 +1457,7 @@ def trace_sync(self, source_endpoint: str, target_endpoint: str, correlation_id:
     if not self.tracer:
         yield
         return
-        
+
     with self.tracer.start_as_current_span(
         "sync_operation",
         attributes={
@@ -1612,12 +1612,12 @@ class ApiLinker:
     def __init__(self, ..., observability_config: Optional[Dict[str, Any]] = None):
         # Initialize observability
         self.telemetry = self._initialize_observability(observability_config)
-        
+
     def _initialize_observability(self, config: Optional[Dict[str, Any]]) -> TelemetryManager:
         """Initialize observability system."""
         if not config:
             config = {}
-            
+
         obs_config = ObservabilityConfig(
             enabled=config.get("enabled", True),
             service_name=config.get("service_name", "apilinker"),
@@ -1628,7 +1628,7 @@ class ApiLinker:
             prometheus_host=config.get("prometheus_host", "0.0.0.0"),
             prometheus_port=config.get("prometheus_port", 9090),
         )
-        
+
         return TelemetryManager(obs_config)
 ```
 
@@ -1639,19 +1639,19 @@ def sync(self, source_endpoint: str, target_endpoint: str, ...) -> SyncResult:
     """Execute sync with distributed tracing."""
     correlation_id = str(uuid.uuid4())
     start_time = time.time()
-    
+
     # Wrap entire sync in trace span
     with self.telemetry.trace_sync(source_endpoint, target_endpoint, correlation_id):
         try:
             # ... sync logic ...
-            
+
             # Record success metrics
             self.telemetry.record_sync_completion(
                 source_endpoint, target_endpoint, True, sync_result.count
             )
-            
+
             return sync_result
-            
+
         except Exception as e:
             # Record error metrics
             self.telemetry.record_sync_completion(
@@ -1682,12 +1682,12 @@ groups:
         expr: rate(apilinker_error_count[5m]) > 0.1
         annotations:
           summary: "High error rate detected"
-          
+
       - alert: HighLatency
         expr: histogram_quantile(0.95, apilinker_sync_duration_bucket) > 5000
         annotations:
           summary: "High sync latency detected (>5s)"
-          
+
       - alert: LowSuccessRate
         expr: rate(apilinker_sync_count{success="true"}[5m]) < 0.9
         annotations:
@@ -1742,7 +1742,7 @@ def test_trace_sync_disabled():
     """Test trace_sync when observability is disabled."""
     config = ObservabilityConfig(enabled=False)
     manager = TelemetryManager(config)
-    
+
     with manager.trace_sync("source", "target", "correlation-123") as span:
         assert span is None  # No-op
 ```

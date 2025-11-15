@@ -24,7 +24,7 @@ try:
     from opentelemetry.sdk.resources import Resource, SERVICE_NAME
     from opentelemetry.trace import Status, StatusCode
     from opentelemetry.metrics import CallbackOptions, Observation
-    
+
     OTEL_AVAILABLE = True
 except ImportError:
     OTEL_AVAILABLE = False
@@ -75,7 +75,7 @@ class ObservabilityConfig:
 class TelemetryManager:
     """
     Manages OpenTelemetry tracing and metrics for APILinker.
-    
+
     Provides distributed tracing for sync operations and metrics collection
     for monitoring API calls, transformations, and errors.
     """
@@ -91,7 +91,7 @@ class TelemetryManager:
         self.tracer = None
         self.meter = None
         self._initialized = False
-        
+
         # Metrics
         self.sync_counter = None
         self.sync_duration_histogram = None
@@ -100,7 +100,7 @@ class TelemetryManager:
         self.error_counter = None
         self.transformation_counter = None
         self.item_counter = None
-        
+
         if self.config.enabled:
             self._initialize()
 
@@ -137,36 +137,36 @@ class TelemetryManager:
     def _initialize_tracing(self, resource):
         """Initialize distributed tracing."""
         trace_provider = TracerProvider(resource=resource)
-        
+
         # Add exporters
         if self.config.export_to_console:
             trace_provider.add_span_processor(
                 BatchSpanProcessor(ConsoleSpanExporter())
             )
-        
+
         # Set the global tracer provider
         trace.set_tracer_provider(trace_provider)
         self.tracer = trace.get_tracer(__name__)
-        
+
         logger.info("Distributed tracing enabled")
 
     def _initialize_metrics(self, resource):
         """Initialize metrics collection."""
         # Create metric readers
         readers = []
-        
+
         if self.config.export_to_console:
             readers.append(
                 PeriodicExportingMetricReader(
                     ConsoleMetricExporter(), export_interval_millis=10000
                 )
             )
-        
+
         if self.config.export_to_prometheus:
             try:
                 from opentelemetry.exporter.prometheus import PrometheusMetricReader
                 from prometheus_client import start_http_server
-                
+
                 # Start Prometheus HTTP server
                 start_http_server(
                     port=self.config.prometheus_port,
@@ -182,16 +182,16 @@ class TelemetryManager:
                     "Prometheus exporter not available. Install with: "
                     "pip install opentelemetry-exporter-prometheus"
                 )
-        
+
         # Create meter provider
         if readers:
             meter_provider = MeterProvider(resource=resource, metric_readers=readers)
             metrics.set_meter_provider(meter_provider)
             self.meter = metrics.get_meter(__name__)
-            
+
             # Create metrics
             self._create_metrics()
-            
+
             logger.info("Metrics collection enabled")
 
     def _create_metrics(self):
@@ -205,40 +205,40 @@ class TelemetryManager:
             description="Number of sync operations",
             unit="1",
         )
-        
+
         self.sync_duration_histogram = self.meter.create_histogram(
             name="apilinker.sync.duration",
             description="Duration of sync operations",
             unit="ms",
         )
-        
+
         # API calls
         self.api_call_counter = self.meter.create_counter(
             name="apilinker.api.calls",
             description="Number of API calls",
             unit="1",
         )
-        
+
         self.api_call_duration_histogram = self.meter.create_histogram(
             name="apilinker.api.duration",
             description="Duration of API calls",
             unit="ms",
         )
-        
+
         # Errors
         self.error_counter = self.meter.create_counter(
             name="apilinker.errors",
             description="Number of errors",
             unit="1",
         )
-        
+
         # Transformations
         self.transformation_counter = self.meter.create_counter(
             name="apilinker.transformations",
             description="Number of data transformations",
             unit="1",
         )
-        
+
         # Items processed
         self.item_counter = self.meter.create_counter(
             name="apilinker.items.processed",
@@ -404,7 +404,7 @@ class TelemetryManager:
                 "success": str(success).lower(),
             },
         )
-        
+
         if self.item_counter:
             self.item_counter.add(
                 count,

@@ -12,7 +12,7 @@ from apilinker import ApiLinker
 
 def main():
     """Demonstrate observability during a sync operation."""
-    
+
     # Configure APILinker with observability enabled
     config = {
         "source": {
@@ -45,18 +45,18 @@ def main():
             "prometheus_port": 9090
         }
     }
-    
+
     # Create APILinker instance with observability
     linker = ApiLinker(
         source_config=config["source"],
         target_config=config["target"],
         observability_config=config["observability"]
     )
-    
+
     # Add mapping
     for mapping in config["mappings"]:
         linker.add_mapping(**mapping)
-    
+
     print("=" * 70)
     print("APILinker Observability Demo")
     print("=" * 70)
@@ -65,10 +65,10 @@ def main():
     print("- Metrics collection: ENABLED")
     print("- Console export: ENABLED")
     print("\n" + "=" * 70 + "\n")
-    
+
     # Perform sync operation (this will be traced and metrics will be recorded)
     result = linker.sync()
-    
+
     print("\n" + "=" * 70)
     print("Sync Result:")
     print("=" * 70)
@@ -76,24 +76,24 @@ def main():
     print(f"Items transferred: {result.count}")
     print(f"Duration: {result.duration_ms}ms")
     print(f"Correlation ID: {result.correlation_id}")
-    
+
     if result.errors:
         print(f"\nErrors: {len(result.errors)}")
         for error in result.errors:
             print(f"  - {error.get('message', 'Unknown error')}")
-    
+
     print("\n" + "=" * 70)
     print("Telemetry Information:")
     print("=" * 70)
     print(f"Service Name: {linker.telemetry.config.service_name}")
     print(f"Tracing Enabled: {linker.telemetry.config.enable_tracing}")
     print(f"Metrics Enabled: {linker.telemetry.config.enable_metrics}")
-    
+
     if linker.telemetry.tracer:
         print(f"OpenTelemetry Status: ACTIVE")
     else:
         print(f"OpenTelemetry Status: Not installed (graceful degradation)")
-    
+
     print("\n" + "=" * 70)
     print("\nNOTE: To enable full OpenTelemetry functionality:")
     print("  1. Install: pip install opentelemetry-api opentelemetry-sdk")
