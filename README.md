@@ -609,6 +609,11 @@ print(f"Researchers found: {len(climate_researchers.get('result', []))}")
 
 ## 📊 Examples
 
+### Jupyter Notebook Tutorial
+
+For an interactive tutorial with visualizations, check out the Jupyter notebook:
+- **[ApiLinker Research Tutorial](examples/ApiLinker_Research_Tutorial.ipynb)** - Interactive notebook demonstrating research workflows, data visualization, and cross-platform research
+
 ### GitHub to GitLab Issue Migration
 
 ```python
@@ -668,6 +673,9 @@ print(f"Migrated {result.count} issues from GitHub to GitLab")
 ### More Examples
 
 See the `examples` directory for more use cases:
+
+- **[Jupyter Notebook Tutorial](examples/ApiLinker_Research_Tutorial.ipynb)** - Interactive research workflow examples with visualizations
+- **[Comprehensive Research Examples](examples/comprehensive_research_examples.py)** - All 8 research connectors in action
 
 - Salesforce to HubSpot contact sync
 - CSV file to REST API import
