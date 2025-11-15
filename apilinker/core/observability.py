@@ -8,7 +8,7 @@ instrumentation.
 
 import logging
 import time
-from typing import Callable, Optional, Iterator, Any
+from typing import Callable, Optional
 from functools import wraps
 from contextlib import contextmanager, nullcontext
 
