@@ -28,23 +28,6 @@ By participating in this project, you agree to abide by our Code of Conduct. Ple
    pip install -e ".[dev]"
    ```
 
-4. **Set up pre-commit hooks** (optional but recommended):
-   ```bash
-   pre-commit install
-   ```
-
-5. **Fix formatting issues before committing** (if you encounter pre-commit errors):
-   ```bash
-   # Windows PowerShell
-   .\scripts\pre_commit_helper.ps1
-
-   # Unix/Linux/Mac
-   ./scripts/pre_commit_helper.sh
-
-   # Or manually
-   python scripts/fix_formatting.py
-   ```
-
 ### Development Workflow
 
 1. **Create a branch** for your feature or bugfix:
@@ -71,7 +54,7 @@ By participating in this project, you agree to abide by our Code of Conduct. Ple
 
 5. **Stage and commit your changes** using clear commit messages:
    ```bash
-   # Stage all changes (recommended to avoid pre-commit hook conflicts)
+   # Stage all changes
    git add .
 
    # Or stage specific files
@@ -79,10 +62,6 @@ By participating in this project, you agree to abide by our Code of Conduct. Ple
 
    # Commit with a clear message
    git commit -m "Add feature: concise description of your changes"
-
-   # If pre-commit hooks fail, run the formatting fix script and try again
-   python scripts/fix_formatting.py
-   git add .
    git commit -m "Add feature: concise description of your changes"
    ```
 

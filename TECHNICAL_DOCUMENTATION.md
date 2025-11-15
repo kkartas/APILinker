@@ -2755,10 +2755,7 @@ venv\Scripts\activate  # Windows
 # 3. Install development dependencies
 pip install -e ".[dev]"
 
-# 4. Setup pre-commit hooks
-pre-commit install
-
-# 5. Run initial tests
+# 4. Run initial tests
 pytest
 
 # 6. Start development server (if applicable)
