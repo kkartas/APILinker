@@ -8,9 +8,9 @@ instrumentation.
 
 import logging
 import time
-from typing import Callable, Optional
+from typing import Callable, Optional, Iterator, Any
 from functools import wraps
-from contextlib import contextmanager
+from contextlib import contextmanager, nullcontext
 
 try:
     from opentelemetry import trace, metrics
@@ -192,13 +192,13 @@ class TelemetryManager:
 
             logger.info("Metrics collection enabled")
 
-    def _create_metrics(self):
+    def _create_metrics(self) -> None:
         """Create metric instruments."""
         if not self.meter:
             return
 
         # Sync operations
-        self.sync_counter = self.meter.create_counter(
+        self.sync_counter = self.meter.create_counter(  # type: ignore[unreachable]
             name="apilinker.sync.count",
             description="Number of sync operations",
             unit="1",
@@ -258,35 +258,35 @@ class TelemetryManager:
             Span context
         """
         if not self.config.enabled or not self.tracer:
-            yield None
-            return
-
-        with self.tracer.start_as_current_span(
-            "sync_operation",
-            attributes={
-                "sync.source": source,
-                "sync.target": target,
-                "sync.correlation_id": correlation_id,
-            },
-        ) as span:
-            start_time = time.time()
-            try:
-                yield span
-                span.set_status(Status(StatusCode.OK))
-            except Exception as e:
-                span.set_status(Status(StatusCode.ERROR, str(e)))
-                span.record_exception(e)
-                raise
-            finally:
-                duration_ms = (time.time() - start_time) * 1000
-                if self.sync_duration_histogram:
-                    self.sync_duration_histogram.record(
-                        duration_ms,
-                        attributes={
-                            "source": source,
-                            "target": target,
-                        },
-                    )
+            with nullcontext():
+                yield None
+        else:
+            with self.tracer.start_as_current_span(  # type: ignore[unreachable]
+                "sync_operation",
+                attributes={
+                    "sync.source": source,
+                    "sync.target": target,
+                    "sync.correlation_id": correlation_id,
+                },
+            ) as span:
+                start_time = time.time()
+                try:
+                    yield span
+                    span.set_status(Status(StatusCode.OK))
+                except Exception as e:
+                    span.set_status(Status(StatusCode.ERROR, str(e)))
+                    span.record_exception(e)
+                    raise
+                finally:
+                    duration_ms = (time.time() - start_time) * 1000
+                    if self.sync_duration_histogram:
+                        self.sync_duration_histogram.record(
+                            duration_ms,
+                            attributes={
+                                "source": source,
+                                "target": target,
+                            },
+                        )
 
     @contextmanager
     def trace_api_call(
@@ -305,46 +305,46 @@ class TelemetryManager:
             Span context
         """
         if not self.config.enabled or not self.tracer:
-            yield None
-            return
-
-        with self.tracer.start_as_current_span(
-            f"api_call_{call_type}",
-            attributes={
-                "http.method": method,
-                "http.url": url,
-                "api.endpoint": endpoint,
-                "api.type": call_type,
-            },
-        ) as span:
-            start_time = time.time()
-            try:
-                yield span
-                span.set_status(Status(StatusCode.OK))
-            except Exception as e:
-                span.set_status(Status(StatusCode.ERROR, str(e)))
-                span.record_exception(e)
-                raise
-            finally:
-                duration_ms = (time.time() - start_time) * 1000
-                if self.api_call_duration_histogram:
-                    self.api_call_duration_histogram.record(
-                        duration_ms,
-                        attributes={
-                            "endpoint": endpoint,
-                            "method": method,
-                            "type": call_type,
-                        },
-                    )
-                if self.api_call_counter:
-                    self.api_call_counter.add(
-                        1,
-                        attributes={
-                            "endpoint": endpoint,
-                            "method": method,
-                            "type": call_type,
-                        },
-                    )
+            with nullcontext():
+                yield None
+        else:
+            with self.tracer.start_as_current_span(  # type: ignore[unreachable]
+                f"api_call_{call_type}",
+                attributes={
+                    "http.method": method,
+                    "http.url": url,
+                    "api.endpoint": endpoint,
+                    "api.type": call_type,
+                },
+            ) as span:
+                start_time = time.time()
+                try:
+                    yield span
+                    span.set_status(Status(StatusCode.OK))
+                except Exception as e:
+                    span.set_status(Status(StatusCode.ERROR, str(e)))
+                    span.record_exception(e)
+                    raise
+                finally:
+                    duration_ms = (time.time() - start_time) * 1000
+                    if self.api_call_duration_histogram:
+                        self.api_call_duration_histogram.record(
+                            duration_ms,
+                            attributes={
+                                "endpoint": endpoint,
+                                "method": method,
+                                "type": call_type,
+                            },
+                        )
+                    if self.api_call_counter:
+                        self.api_call_counter.add(
+                            1,
+                            attributes={
+                                "endpoint": endpoint,
+                                "method": method,
+                                "type": call_type,
+                            },
+                        )
 
     @contextmanager
     def trace_transformation(self, transformer: str, field: str):
@@ -359,31 +359,31 @@ class TelemetryManager:
             Span context
         """
         if not self.config.enabled or not self.tracer:
-            yield None
-            return
-
-        with self.tracer.start_as_current_span(
-            "transformation",
-            attributes={
-                "transform.name": transformer,
-                "transform.field": field,
-            },
-        ) as span:
-            try:
-                yield span
-                span.set_status(Status(StatusCode.OK))
-                if self.transformation_counter:
-                    self.transformation_counter.add(
-                        1, attributes={"transformer": transformer}
-                    )
-            except Exception as e:
-                span.set_status(Status(StatusCode.ERROR, str(e)))
-                span.record_exception(e)
-                raise
+            with nullcontext():
+                yield None
+        else:
+            with self.tracer.start_as_current_span(  # type: ignore[unreachable]
+                "transformation",
+                attributes={
+                    "transform.name": transformer,
+                    "transform.field": field,
+                },
+            ) as span:
+                try:
+                    yield span
+                    span.set_status(Status(StatusCode.OK))
+                    if self.transformation_counter:
+                        self.transformation_counter.add(
+                            1, attributes={"transformer": transformer}
+                        )
+                except Exception as e:
+                    span.set_status(Status(StatusCode.ERROR, str(e)))
+                    span.record_exception(e)
+                    raise
 
     def record_sync_completion(
         self, source: str, target: str, success: bool, count: int
-    ):
+    ) -> None:
         """
         Record completion of a sync operation.
 
@@ -396,7 +396,7 @@ class TelemetryManager:
         if not self.config.enabled or not self.sync_counter:
             return
 
-        self.sync_counter.add(
+        self.sync_counter.add(  # type: ignore[unreachable]
             1,
             attributes={
                 "source": source,
@@ -414,7 +414,7 @@ class TelemetryManager:
                 },
             )
 
-    def record_error(self, error_type: str, operation: str, details: str = ""):
+    def record_error(self, error_type: str, operation: str, details: str = "") -> None:
         """
         Record an error occurrence.
 
@@ -426,7 +426,7 @@ class TelemetryManager:
         if not self.config.enabled or not self.error_counter:
             return
 
-        self.error_counter.add(
+        self.error_counter.add(  # type: ignore[unreachable]
             1,
             attributes={
                 "error.type": error_type,
@@ -451,7 +451,7 @@ class TelemetryManager:
                 if not self.config.enabled or not self.tracer:
                     return func(*args, **kwargs)
 
-                with self.tracer.start_as_current_span(operation_name) as span:
+                with self.tracer.start_as_current_span(operation_name) as span:  # type: ignore[unreachable]
                     try:
                         result = func(*args, **kwargs)
                         span.set_status(Status(StatusCode.OK))
