@@ -47,7 +47,6 @@ from apilinker.core.state_store import (
 from apilinker.core.observability import (
     ObservabilityConfig,
     TelemetryManager,
-    get_telemetry_manager,
 )
 
 
@@ -781,7 +780,9 @@ class ApiLinker:
         start_time = time.time()
 
         # Wrap entire sync operation in distributed tracing
-        with self.telemetry.trace_sync(source_endpoint, target_endpoint, correlation_id):
+        with self.telemetry.trace_sync(
+            source_endpoint, target_endpoint, correlation_id
+        ):
             # Start provenance
             self.provenance.start_run(
                 correlation_id=correlation_id,
@@ -807,7 +808,9 @@ class ApiLinker:
 
             # Get circuit breaker for source endpoint
             source_circuit_name = f"source_{source_endpoint}"
-            source_cb = self.error_recovery_manager.get_circuit_breaker(source_circuit_name)
+            source_cb = self.error_recovery_manager.get_circuit_breaker(
+                source_circuit_name
+            )
 
             # Check if user has permission for this operation
             if self.security_manager.enable_access_control:
@@ -849,7 +852,9 @@ class ApiLinker:
                 success, result, error = self.error_recovery_manager.handle_error(
                     error=source_error,
                     payload=fetch_payload,
-                    operation=lambda p: self.source.fetch_data(p["endpoint"], p["params"]),
+                    operation=lambda p: self.source.fetch_data(
+                        p["endpoint"], p["params"]
+                    ),
                     operation_type=source_circuit_name,
                     max_retries=max_retries,
                     retry_delay=retry_delay,
@@ -877,9 +882,14 @@ class ApiLinker:
                 )
 
                 # Optional strict validation against target request schema (if defined in connector)
-                if self.validation_config.get("strict_mode") and is_validator_available():
+                if (
+                    self.validation_config.get("strict_mode")
+                    and is_validator_available()
+                ):
                     target_endpoint_cfg = (
-                        self.target.endpoints.get(target_endpoint) if self.target else None
+                        self.target.endpoints.get(target_endpoint)
+                        if self.target
+                        else None
                     )
                     if target_endpoint_cfg and target_endpoint_cfg.request_schema:
                         if isinstance(transformed_data, list):
@@ -940,13 +950,18 @@ class ApiLinker:
                 # If circuit breaker failed, try recovery strategies
                 if target_error:
                     # Create payload for retry
-                    send_payload = {"endpoint": target_endpoint, "data": transformed_data}
+                    send_payload = {
+                        "endpoint": target_endpoint,
+                        "data": transformed_data,
+                    }
 
                     # Apply recovery strategies
                     success, result, error = self.error_recovery_manager.handle_error(
                         error=target_error,
                         payload=send_payload,
-                        operation=lambda p: self.target.send_data(p["endpoint"], p["data"]),
+                        operation=lambda p: self.target.send_data(
+                            p["endpoint"], p["data"]
+                        ),
                         operation_type=target_circuit_name,
                         max_retries=max_retries,
                         retry_delay=retry_delay,
@@ -990,7 +1005,9 @@ class ApiLinker:
                 if self.state_store:
                     self.state_store.set_last_sync(source_endpoint, now_iso())
                 # Complete provenance
-                self.provenance.complete_run(True, sync_result.count, sync_result.details)
+                self.provenance.complete_run(
+                    True, sync_result.count, sync_result.details
+                )
 
                 # Record telemetry metrics
                 self.telemetry.record_sync_completion(
@@ -1017,7 +1034,9 @@ class ApiLinker:
                 sync_result.success = False
                 sync_result.errors.append(error.to_dict())
 
-                self.logger.error(f"[{correlation_id}] Sync failed during mapping: {error}")
+                self.logger.error(
+                    f"[{correlation_id}] Sync failed during mapping: {error}"
+                )
                 # Record error in provenance
                 self.provenance.record_error(
                     error.message,

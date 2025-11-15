@@ -8,7 +8,7 @@ instrumentation.
 
 import logging
 import time
-from typing import Any, Callable, Dict, Optional
+from typing import Callable, Optional
 from functools import wraps
 from contextlib import contextmanager
 
@@ -23,7 +23,6 @@ try:
     )
     from opentelemetry.sdk.resources import Resource, SERVICE_NAME
     from opentelemetry.trace import Status, StatusCode
-    from opentelemetry.metrics import CallbackOptions, Observation
 
     OTEL_AVAILABLE = True
 except ImportError:
@@ -128,7 +127,9 @@ class TelemetryManager:
                 self._initialize_metrics(resource)
 
             self._initialized = True
-            logger.info(f"Observability initialized for service: {self.config.service_name}")
+            logger.info(
+                f"Observability initialized for service: {self.config.service_name}"
+            )
 
         except Exception as e:
             logger.error(f"Failed to initialize observability: {e}")
@@ -140,9 +141,7 @@ class TelemetryManager:
 
         # Add exporters
         if self.config.export_to_console:
-            trace_provider.add_span_processor(
-                BatchSpanProcessor(ConsoleSpanExporter())
-            )
+            trace_provider.add_span_processor(BatchSpanProcessor(ConsoleSpanExporter()))
 
         # Set the global tracer provider
         trace.set_tracer_provider(trace_provider)
@@ -169,8 +168,7 @@ class TelemetryManager:
 
                 # Start Prometheus HTTP server
                 start_http_server(
-                    port=self.config.prometheus_port,
-                    addr=self.config.prometheus_host
+                    port=self.config.prometheus_port, addr=self.config.prometheus_host
                 )
                 readers.append(PrometheusMetricReader())
                 logger.info(
@@ -383,7 +381,9 @@ class TelemetryManager:
                 span.record_exception(e)
                 raise
 
-    def record_sync_completion(self, source: str, target: str, success: bool, count: int):
+    def record_sync_completion(
+        self, source: str, target: str, success: bool, count: int
+    ):
         """
         Record completion of a sync operation.
 
@@ -444,6 +444,7 @@ class TelemetryManager:
         Returns:
             Decorator function
         """
+
         def decorator(func: Callable) -> Callable:
             @wraps(func)
             def wrapper(*args, **kwargs):
@@ -461,6 +462,7 @@ class TelemetryManager:
                         raise
 
             return wrapper
+
         return decorator
 
     def shutdown(self):
