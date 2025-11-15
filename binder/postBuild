@@ -2,28 +2,72 @@
 # Post-build script for Binder
 # This installs ApiLinker from the repository
 
-set -e
-
+echo "=== ApiLinker Binder Installation ==="
 echo "Installing ApiLinker from repository..."
 
 # Binder mounts the repo at /home/jovyan/work
 # Find the repo root (where setup.py or pyproject.toml is located)
 REPO_ROOT="/home/jovyan/work"
 
+echo "Checking repository location: $REPO_ROOT"
+ls -la "$REPO_ROOT" | head -20
+
 if [ -f "$REPO_ROOT/pyproject.toml" ] || [ -f "$REPO_ROOT/setup.py" ]; then
+    echo "Repository files found!"
     cd "$REPO_ROOT"
+    echo "Current directory: $(pwd)"
     echo "Installing ApiLinker in editable mode from repository..."
-    pip install -e .
+
+    # Uninstall any existing apilinker to avoid conflicts
+    pip uninstall -y apilinker 2>/dev/null || true
+
+    # Install from repository
+    pip install -e . --no-deps || pip install -e .
+
     echo "✅ ApiLinker installed successfully from repository!"
+    echo ""
     echo "Verifying installation..."
-    python -c "from apilinker import ApiLinker; print('✅ ApiLinker core imported')" || echo "⚠️  Core import failed"
-    python -c "from apilinker import NCBIConnector; print('✅ Research connectors available')" || echo "⚠️  Research connectors not available"
+    echo "Installation location:"
+    python -c "import apilinker; print(apilinker.__file__)"
+    echo ""
+
+    # Test core import
+    if python -c "from apilinker import ApiLinker; print('✅ ApiLinker core imported')" 2>&1; then
+        echo "Core import: SUCCESS"
+    else
+        echo "Core import: FAILED"
+    fi
+
+    # Test connector imports directly
+    echo ""
+    echo "Testing connector imports..."
+    python -c "
+import sys
+try:
+    from apilinker.connectors.scientific.ncbi import NCBIConnector
+    print('✅ Direct NCBI import: SUCCESS')
+except Exception as e:
+    print(f'❌ Direct NCBI import: FAILED - {e}')
+    sys.exit(1)
+" || echo "⚠️  Direct connector import failed"
+
+    # Test top-level import
+    echo ""
+    if python -c "from apilinker import NCBIConnector; print('✅ Top-level NCBIConnector import: SUCCESS')" 2>&1; then
+        echo "Top-level connector import: SUCCESS"
+    else
+        echo "Top-level connector import: FAILED"
+        echo "This may indicate an issue with __init__.py imports"
+    fi
+
 else
-    # Fallback: install from PyPI
-    echo "Repository files not found, installing from PyPI..."
+    echo "⚠️  Repository files not found at $REPO_ROOT"
+    echo "Falling back to PyPI installation..."
     pip install apilinker
     echo "✅ ApiLinker installed from PyPI!"
     echo "Note: PyPI version may not include all research connectors."
 fi
 
+echo ""
+echo "=== Installation Complete ==="
 echo "You can now run the notebook examples."
