@@ -1,0 +1,24 @@
+#!/bin/bash
+# Post-build script for Binder
+# This installs ApiLinker from the repository
+
+set -e
+
+echo "Installing ApiLinker from repository..."
+
+# Binder mounts the repo at /home/jovyan/work
+# Find the repo root (where setup.py or pyproject.toml is located)
+REPO_ROOT="/home/jovyan/work"
+
+if [ -f "$REPO_ROOT/pyproject.toml" ] || [ -f "$REPO_ROOT/setup.py" ]; then
+    cd "$REPO_ROOT"
+    pip install -e .
+    echo "✅ ApiLinker installed successfully from repository!"
+else
+    # Fallback: install from PyPI
+    echo "Repository files not found, installing from PyPI..."
+    pip install apilinker
+    echo "✅ ApiLinker installed from PyPI!"
+fi
+
+echo "You can now run the notebook examples."

@@ -5,6 +5,7 @@
 [![build](https://github.com/kkartas/APILinker/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/kkartas/APILinker/actions/workflows/ci.yml)
 ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/apilinker)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/kkartas/APILinker/HEAD?labpath=examples%2FApiLinker_Research_Tutorial.ipynb)
 
 
 <div align="center">
@@ -612,7 +613,11 @@ print(f"Researchers found: {len(climate_researchers.get('result', []))}")
 ### Jupyter Notebook Tutorial
 
 For an interactive tutorial with visualizations, check out the Jupyter notebook:
+
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/kkartas/APILinker/HEAD?labpath=examples%2FApiLinker_Research_Tutorial.ipynb)
+
 - **[ApiLinker Research Tutorial](examples/ApiLinker_Research_Tutorial.ipynb)** - Interactive notebook demonstrating research workflows, data visualization, and cross-platform research
+  - **Try it online**: Click the Binder badge above to run the notebook in your browser (no installation required!)
 
 ### GitHub to GitLab Issue Migration
 
