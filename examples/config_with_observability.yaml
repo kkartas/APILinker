@@ -1,0 +1,40 @@
+# Example configuration with OpenTelemetry observability
+
+source:
+  type: rest
+  base_url: https://api.example.com
+  endpoints:
+    get_users:
+      path: /users
+      method: GET
+
+target:
+  type: rest
+  base_url: https://api.target.com
+  endpoints:
+    create_user:
+      path: /users
+      method: POST
+
+mapping:
+  - source: get_users
+    target: create_user
+    fields:
+      - source: id
+        target: user_id
+      - source: name
+        target: full_name
+
+# Observability configuration
+observability:
+  enabled: true
+  service_name: "my-apilinker-service"
+  enable_tracing: true
+  enable_metrics: true
+  export_to_console: false  # Set to true for debugging
+  export_to_prometheus: true
+  prometheus_host: "0.0.0.0"
+  prometheus_port: 9090
+
+logging:
+  level: INFO

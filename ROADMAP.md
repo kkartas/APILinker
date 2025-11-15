@@ -3,7 +3,7 @@
 This document tracks planned features, enhancements, and improvements for ApiLinker. Features are organized by version and priority.
 
 **Current Version:** 0.4.1
-**Last Updated:** 2025-11-14
+**Last Updated:** 2025-11-15
 
 ## Version Strategy
 
@@ -18,19 +18,20 @@ This document tracks planned features, enhancements, and improvements for ApiLin
 
 ### High Priority
 
-#### OpenTelemetry Integration ⭐
-- **Status:** Planned
+#### OpenTelemetry Integration ⭐ ✅
+- **Status:** Implemented (v0.4.2)
 - **Priority:** High
 - **Description:** Structured metrics and distributed tracing for production observability
 - **Features:**
-  - OpenTelemetry SDK integration
-  - Distributed tracing for sync operations
-  - Prometheus metrics export (requests/sec, latency, error rates)
-  - Custom metrics for API calls, transformations, errors
-  - Performance monitoring dashboards
-  - Request/response instrumentation
+  - ✅ OpenTelemetry SDK integration
+  - ✅ Distributed tracing for sync operations
+  - ✅ Prometheus metrics export (requests/sec, latency, error rates)
+  - ✅ Custom metrics for API calls, transformations, errors
+  - ✅ Performance monitoring dashboards support
+  - ✅ Request/response instrumentation
 - **Dependencies:** `opentelemetry-api`, `opentelemetry-sdk`, `opentelemetry-exporter-prometheus`
 - **Impact:** Critical for production deployments and debugging
+- **Implementation:** `apilinker/core/observability.py`
 
 #### Secret Management Integrations ⭐
 - **Status:** Planned

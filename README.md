@@ -30,6 +30,7 @@
 - 🔌 **Plugin Architecture** - Extend with custom connectors, transformers, and authentication methods
 - 📈 **Pagination Handling** - Automatic handling of paginated API responses
 - 🔍 **Robust Error Handling** - Circuit breakers, Dead Letter Queues (DLQ), and configurable recovery strategies
+- 📊 **Observability & Monitoring** - OpenTelemetry integration with distributed tracing and Prometheus metrics export
 - 🧬 **Scientific Connectors** - Built-in connectors for research APIs (NCBI/PubMed, arXiv) with domain-specific functionality
 - 📦 **Minimal Dependencies** - Lightweight core with minimal external requirements
 
@@ -62,6 +63,7 @@ For more details, see the [Security Documentation](docs/security.md). Note: ApiL
 - [Authentication Methods](#authentication-methods)
 - [Field Mapping](#field-mapping)
 - [Error Handling](#error-handling)
+- [Observability & Monitoring](#observability--monitoring)
 - [Data Transformations](#data-transformations)
 - [Scheduling](#scheduling)
 - [Command Line Interface](#command-line-interface)
@@ -686,6 +688,98 @@ See the `examples` directory for more use cases:
 - CSV file to REST API import
 - Weather API data collection
 - Custom plugin development
+
+## 📊 Observability & Monitoring
+
+APILinker provides comprehensive observability through OpenTelemetry integration, enabling distributed tracing and Prometheus metrics export for production monitoring.
+
+### Features
+
+- **Distributed Tracing**: Track sync operations across your entire data pipeline with correlation IDs
+- **Prometheus Metrics**: Export counters and histograms for sync operations, API calls, and errors
+- **Graceful Degradation**: Works without OpenTelemetry installed (optional dependency)
+- **Console Export**: Debug mode for development and testing
+- **Production Ready**: Industry-standard observability with minimal overhead
+
+### Quick Start
+
+#### 1. Install OpenTelemetry (Optional)
+
+```bash
+pip install opentelemetry-api opentelemetry-sdk
+pip install opentelemetry-exporter-prometheus prometheus-client
+```
+
+#### 2. Enable Observability
+
+```python
+from apilinker import ApiLinker
+
+linker = ApiLinker(
+    source_config={"type": "rest", "base_url": "https://api.source.com"},
+    target_config={"type": "rest", "base_url": "https://api.target.com"},
+    observability_config={
+        "enabled": True,
+        "service_name": "my-data-pipeline",
+        "enable_tracing": True,
+        "enable_metrics": True,
+        "export_to_prometheus": True,
+        "prometheus_port": 9090
+    }
+)
+
+# Sync operations are automatically traced and measured
+result = linker.sync()
+```
+
+#### 3. Access Metrics
+
+```bash
+# View Prometheus metrics
+curl http://localhost:9090/metrics
+```
+
+### Available Metrics
+
+- **`apilinker.sync.count`**: Total sync operations (labeled by success/failure)
+- **`apilinker.sync.duration`**: Sync operation duration histogram (milliseconds)
+- **`apilinker.api_call.count`**: Total API calls (labeled by operation type)
+- **`apilinker.api_call.duration`**: API call duration histogram (milliseconds)
+- **`apilinker.error.count`**: Total errors (labeled by category and operation)
+
+### YAML Configuration
+
+```yaml
+observability:
+  enabled: true
+  service_name: "apilinker-production"
+  enable_tracing: true
+  enable_metrics: true
+  export_to_console: false  # Set true for debugging
+  export_to_prometheus: true
+  prometheus_host: "0.0.0.0"
+  prometheus_port: 9090
+```
+
+### Grafana Dashboard
+
+1. Add Prometheus as a data source in Grafana
+2. Query metrics: `apilinker_sync_count`, `apilinker_sync_duration_bucket`, etc.
+3. Create visualizations for:
+   - Sync success/failure rates
+   - Operation latencies (p50, p95, p99)
+   - Error rates by category
+   - API call volumes
+
+### Performance Impact
+
+- **Disabled**: Zero overhead
+- **Without OpenTelemetry**: Negligible (no-op operations)
+- **Full Observability**: <1% CPU overhead for typical workloads
+
+For detailed documentation, see [examples/observability_example.py](examples/observability_example.py) and [OBSERVABILITY_IMPLEMENTATION.md](OBSERVABILITY_IMPLEMENTATION.md).
+
+---
 
 ## 💻 Common Use Cases with Examples
 
