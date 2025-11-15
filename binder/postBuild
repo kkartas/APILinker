@@ -12,13 +12,18 @@ REPO_ROOT="/home/jovyan/work"
 
 if [ -f "$REPO_ROOT/pyproject.toml" ] || [ -f "$REPO_ROOT/setup.py" ]; then
     cd "$REPO_ROOT"
+    echo "Installing ApiLinker in editable mode from repository..."
     pip install -e .
     echo "✅ ApiLinker installed successfully from repository!"
+    echo "Verifying installation..."
+    python -c "from apilinker import ApiLinker; print('✅ ApiLinker core imported')" || echo "⚠️  Core import failed"
+    python -c "from apilinker import NCBIConnector; print('✅ Research connectors available')" || echo "⚠️  Research connectors not available"
 else
     # Fallback: install from PyPI
     echo "Repository files not found, installing from PyPI..."
     pip install apilinker
     echo "✅ ApiLinker installed from PyPI!"
+    echo "Note: PyPI version may not include all research connectors."
 fi
 
 echo "You can now run the notebook examples."
