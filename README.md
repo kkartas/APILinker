@@ -23,7 +23,8 @@
 - 🔄 **Universal Connectivity** - Connect any two REST APIs with simple configuration
 - 🗺️ **Powerful Mapping** - Transform data between APIs with field mapping and path expressions
 - 📊 **Data Transformation** - Apply built-in or custom transformations to your data
- - 🔒 **Authentication & Security** - Support for API Key, Bearer Token, Basic Auth, and multiple OAuth2 flows (including PKCE and Device Flow). Optional secure credential storage and role-based access control.
+- 🔒 **Authentication & Security** - Support for API Key, Bearer Token, Basic Auth, and multiple OAuth2 flows (including PKCE and Device Flow). Optional secure credential storage and role-based access control.
+- 🔐 **Enterprise Secret Management** - Integrate with HashiCorp Vault, AWS Secrets Manager, Azure Key Vault, and Google Secret Manager for secure credential storage
 - 📝 **Flexible Configuration** - Use YAML/JSON or configure programmatically in Python
 - 🕒 **Automated Scheduling** - Run syncs once, on intervals, or using cron expressions
 - 📋 **Schema Validation** - JSON Schema validation for responses and requests, with optional strict mode and readable diffs
@@ -61,6 +62,7 @@ For more details, see the [Security Documentation](docs/security.md). Note: ApiL
 - [Quick Start](#quick-start)
 - [Configuration](#configuration)
 - [Authentication Methods](#authentication-methods)
+- [Secret Management](#secret-management)
 - [Field Mapping](#field-mapping)
 - [Error Handling](#error-handling)
 - [Observability & Monitoring](#observability--monitoring)
@@ -414,6 +416,171 @@ auth:
   token_url: https://auth.example.com/token
   scope: read write  # Optional
 ```
+
+## 🔐 Secret Management
+
+APILinker provides enterprise-grade secret management with support for multiple cloud secret storage providers. This feature enables you to securely store and retrieve API credentials without hardcoding them in configuration files.
+
+### Supported Providers
+
+- **HashiCorp Vault** - Enterprise secret management with KV v1/v2 support
+- **AWS Secrets Manager** - AWS native secret storage with automatic rotation
+- **Azure Key Vault** - Azure native secret management with managed identity support
+- **Google Secret Manager** - GCP native secret storage with workload identity
+- **Environment Variables** - Fallback for development (not recommended for production)
+
+### Quick Start
+
+1. **Install secret provider dependencies** (optional):
+
+```bash
+# HashiCorp Vault
+pip install hvac
+
+# AWS Secrets Manager
+pip install boto3
+
+# Azure Key Vault
+pip install azure-keyvault-secrets azure-identity
+
+# Google Secret Manager
+pip install google-cloud-secret-manager
+```
+
+2. **Configure secret management in your YAML**:
+
+```yaml
+# Secret Management Configuration
+secrets:
+  provider: vault  # or aws, azure, gcp, env
+  vault:
+    url: "http://localhost:8200"
+    token: "hvs.CAESI..."
+    mount_point: "secret"
+    kv_version: 2
+  rotation_strategy: "manual"
+  enable_least_privilege: true
+
+# Reference secrets using secret:// prefix
+source:
+  type: rest
+  base_url: "https://api.source.com"
+  auth:
+    type: api_key
+    key: "secret://apilinker/source-api-key"  # Vault path
+    header: "X-API-Key"
+
+target:
+  type: rest
+  base_url: "https://api.target.com"
+  auth:
+    type: oauth2
+    client_id: "secret://target-oauth-client-id"
+    client_secret: "secret://target-oauth-client-secret"
+    token_url: "https://auth.target.com/token"
+```
+
+3. **Or use programmatically in Python**:
+
+```python
+from apilinker import ApiLinker
+
+linker = ApiLinker(
+    secret_manager_config={
+        "provider": "aws",
+        "aws": {
+            "region_name": "us-east-1",
+            # Uses IAM role automatically
+        },
+        "rotation_strategy": "auto",
+    },
+    source_config={
+        "type": "rest",
+        "base_url": "https://api.example.com",
+        "auth": {\n            "type": "api_key",\n            "key": "secret://my-api-key",\n            "header": "X-API-Key",\n        },,
+    },
+)
+```
+
+### Provider-Specific Setup
+
+#### HashiCorp Vault
+
+```yaml
+secrets:
+  provider: vault
+  vault:
+    url: "http://localhost:8200"
+    token: "hvs.CAESI..."  # Or use AppRole
+    # role_id: "your-role-id"
+    # secret_id: "your-secret-id"
+    mount_point: "secret"
+    kv_version: 2
+    cache_ttl_seconds: 300
+```
+
+#### AWS Secrets Manager
+
+```yaml
+secrets:
+  provider: aws
+  aws:
+    region_name: "us-east-1"
+    # Uses IAM role/instance profile automatically
+    # Or provide explicit credentials (not recommended for production)
+```
+
+**IAM Policy (Least Privilege)**:
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [{
+    "Effect": "Allow",
+    "Action": ["secretsmanager:GetSecretValue"],
+    "Resource": "arn:aws:secretsmanager:us-east-1:*:secret:apilinker/*"
+  }]
+}
+```
+
+#### Azure Key Vault
+
+```yaml
+secrets:
+  provider: azure
+  azure:
+    vault_url: "https://mykeyvault.vault.azure.net/"
+    # Uses Managed Identity automatically
+    # Or provide service principal credentials
+```
+
+**RBAC Permission**: Assign `Key Vault Secrets User` role to your managed identity.
+
+#### Google Secret Manager
+
+```yaml
+secrets:
+  provider: gcp
+  gcp:
+    project_id: "my-gcp-project"
+    # Uses Workload Identity/Application Default Credentials
+```
+
+**IAM Permission**: Grant `roles/secretmanager.secretAccessor` role.
+
+### Security Best Practices
+
+1. **Use Managed Identities**: Prefer workload identity, IAM roles, and managed identities over static credentials
+2. **Enable Rotation**: Use automatic rotation for production secrets
+3. **Least Privilege**: Grant only necessary permissions (read-only for most cases)
+4. **Never Commit Secrets**: Always use secret references (`secret://`), never hardcode credentials
+5. **Use TLS**: Always use HTTPS for production API connections
+6. **Cache Wisely**: Balance security (shorter cache) vs performance (longer cache)
+
+For more details, see the [Secret Management Examples](examples/secret_management_demo.py) and provider-specific configurations:
+- [Vault Example](examples/config_with_vault_secrets.yaml)
+- [AWS Example](examples/config_with_aws_secrets.yaml)
+- [Azure Example](examples/config_with_azure_secrets.yaml)
+- [GCP Example](examples/config_with_gcp_secrets.yaml)
 
 ### Field Mapping
 

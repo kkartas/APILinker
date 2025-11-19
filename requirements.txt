@@ -8,8 +8,17 @@ typer>=0.7.0
 pydantic>=1.10.2
 croniter>=1.3.8
 rich>=12.6.0
+
 # OpenTelemetry (optional, for observability)
 opentelemetry-api>=1.20.0
 opentelemetry-sdk>=1.20.0
 opentelemetry-exporter-prometheus>=0.41b0
 prometheus-client>=0.18.0
+
+# Secret Management (optional, for enterprise secret storage)
+hvac>=1.2.0  # HashiCorp Vault
+boto3>=1.28.0  # AWS Secrets Manager
+azure-keyvault-secrets>=4.7.0  # Azure Key Vault
+azure-identity>=1.14.0  # Azure authentication
+google-cloud-secret-manager>=2.16.0  # Google Secret Manager
+

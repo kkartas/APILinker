@@ -48,6 +48,12 @@ from apilinker.core.observability import (
     ObservabilityConfig,
     TelemetryManager,
 )
+from apilinker.core.secrets import (
+    SecretManager,
+    SecretManagerConfig,
+    SecretNotFoundError,
+    SecretAccessError,
+)
 
 
 # Legacy error detail class kept for backward compatibility
@@ -122,6 +128,7 @@ class ApiLinker:
         security_config: Optional[Dict[str, Any]] = None,
         validation_config: Optional[Dict[str, Any]] = None,
         observability_config: Optional[Dict[str, Any]] = None,
+        secret_manager_config: Optional[Dict[str, Any]] = None,
         log_level: str = "INFO",
         log_file: Optional[str] = None,
     ) -> None:
@@ -141,6 +148,9 @@ class ApiLinker:
 
         # Initialize observability
         self.telemetry = self._initialize_observability(observability_config)
+
+        # Initialize secret management
+        self.secret_manager = self._initialize_secret_manager(secret_manager_config)
 
         # Initialize security system
         self.security_manager = self._initialize_security(security_config)
@@ -215,6 +225,10 @@ class ApiLinker:
         if "security" in config:
             self._configure_security(config["security"])
 
+        # Configure secret management if specified
+        if "secrets" in config:
+            self.secret_manager = self._initialize_secret_manager(config["secrets"])
+
         # Validation configuration
         if "validation" in config:
             self.validation_config = config["validation"]
@@ -277,8 +291,9 @@ class ApiLinker:
         """
         self.logger.info(f"Adding source connector: {type} for {base_url}")
 
-        # Set up authentication if provided
+        # Resolve secrets in authentication configuration
         if auth:
+            auth = self._resolve_auth_secrets(auth)
             auth_config = self.auth_manager.configure_auth(auth)
         else:
             auth_config = None
@@ -312,8 +327,9 @@ class ApiLinker:
         """
         self.logger.info(f"Adding target connector: {type} for {base_url}")
 
-        # Set up authentication if provided
+        # Resolve secrets in authentication configuration
         if auth:
+            auth = self._resolve_auth_secrets(auth)
             auth_config = self.auth_manager.configure_auth(auth)
         else:
             auth_config = None
@@ -425,6 +441,126 @@ class ApiLinker:
         )
 
         return TelemetryManager(obs_config)
+
+    def _initialize_secret_manager(
+        self, config: Optional[Dict[str, Any]] = None
+    ) -> Optional[SecretManager]:
+        """
+        Initialize the secret management system based on provided configuration.
+
+        Args:
+            config: Secret manager configuration dictionary
+
+        Returns:
+            SecretManager instance or None if not configured
+        """
+        if not config:
+            return None
+
+        try:
+            # Create secret manager configuration
+            from apilinker.core.secrets import SecretProvider, RotationStrategy
+
+            provider_str = config.get("provider", "env")
+            provider = SecretProvider(provider_str)
+
+            rotation_str = config.get("rotation_strategy", "manual")
+            rotation_strategy = RotationStrategy(rotation_str)
+
+            secret_config = SecretManagerConfig(
+                provider=provider,
+                vault_config=config.get("vault"),
+                aws_config=config.get("aws"),
+                azure_config=config.get("azure"),
+                gcp_config=config.get("gcp"),
+                rotation_strategy=rotation_strategy,
+                rotation_interval_days=config.get("rotation_interval_days", 90),
+                cache_ttl_seconds=config.get("cache_ttl_seconds", 300),
+                enable_least_privilege=config.get("enable_least_privilege", True),
+            )
+
+            self.logger.info(f"Initialized secret manager with provider: {provider}")
+            return SecretManager(secret_config)
+
+        except Exception as e:
+            self.logger.warning(f"Failed to initialize secret manager: {e}")
+            return None
+
+    def _resolve_secret(self, value: Any) -> Any:
+        """
+        Resolve a secret reference to its actual value.
+
+        Secret references can be specified as:
+        - String starting with "secret://" (e.g., "secret://api-key")
+        - Dict with "secret" key (e.g., {"secret": "api-key"})
+
+        Args:
+            value: Value that may contain a secret reference
+
+        Returns:
+            Resolved secret value or original value if not a secret reference
+        """
+        if not self.secret_manager:
+            return value
+
+        # Handle string secret references
+        if isinstance(value, str) and value.startswith("secret://"):
+            secret_name = value[9:]  # Remove "secret://" prefix
+            try:
+                secret_value = self.secret_manager.get_secret(secret_name)
+                self.logger.debug(f"Retrieved secret: {secret_name}")
+                return secret_value
+            except (SecretNotFoundError, SecretAccessError) as e:
+                self.logger.error(f"Failed to retrieve secret '{secret_name}': {e}")
+                raise
+
+        # Handle dict secret references
+        if isinstance(value, dict) and "secret" in value:
+            secret_name = value["secret"]
+            version = value.get("version")
+            try:
+                secret_value = self.secret_manager.get_secret(secret_name, version)
+                self.logger.debug(f"Retrieved secret: {secret_name}")
+                return secret_value
+            except (SecretNotFoundError, SecretAccessError) as e:
+                self.logger.error(f"Failed to retrieve secret '{secret_name}': {e}")
+                raise
+
+        return value
+
+    def _resolve_auth_secrets(self, auth_config: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Recursively resolve secret references in authentication configuration.
+
+        Args:
+            auth_config: Authentication configuration that may contain secret references
+
+        Returns:
+            Authentication configuration with resolved secrets
+        """
+        if not self.secret_manager:
+            return auth_config
+
+        resolved_config = {}
+        for key, value in auth_config.items():
+            if isinstance(value, dict):
+                # Recursively resolve nested dicts
+                resolved_config[key] = self._resolve_auth_secrets(value)
+            elif isinstance(value, list):
+                # Resolve each item in list
+                resolved_config[key] = [  # type: ignore[assignment]
+                    (
+                        self._resolve_secret(item)
+                        if isinstance(item, (str, dict))
+                        else item
+                    )
+                    for item in value
+                ]
+            else:
+                # Resolve individual value
+                resolved_config[key] = self._resolve_secret(value)
+
+        return resolved_config
 
     def _configure_security(self, config: Dict[str, Any]) -> None:
         """
