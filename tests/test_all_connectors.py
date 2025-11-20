@@ -209,8 +209,10 @@ class TestConnectorErrorHandling:
         with pytest.raises(TypeError):
             NCBIConnector()  # Missing email parameter
         
-        with pytest.raises(TypeError):
-            NASAConnector()  # Missing api_key parameter
+        # NASAConnector now has optional api_key with DEMO_KEY default
+        # This should work without raising TypeError
+        nasa = NASAConnector()
+        assert nasa.api_key == "DEMO_KEY"
 
 
 class TestConnectorEndpoints:
