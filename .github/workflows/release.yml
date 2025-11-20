@@ -4,28 +4,12 @@ on:
   push:
     tags:
       - 'v*.*.*'
-  release:
-    types: [published]
 
 permissions:
   contents: write
 
 jobs:
-  create-release:
-    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-      
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v1
-        with:
-          generate_release_notes: true
-          draft: false
-
-  build-and-publish:
-    if: github.event_name == 'release'
+  release-and-publish:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -44,15 +28,17 @@ jobs:
       - name: Build distribution packages
         run: python -m build
       
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: dist/*
+          generate_release_notes: true
+          draft: false
+      
       - name: Publish to PyPI
         env:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
         run: python -m twine upload dist/*
-      
-      - name: Upload distributions to GitHub Release
-        uses: softprops/action-gh-release@v1
-        with:
-          files: dist/*
 
 
