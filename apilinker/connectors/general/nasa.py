@@ -28,7 +28,7 @@ class NASAConnector(ApiConnector):
         Initialize NASA connector.
 
         Args:
-            api_key: NASA API key (get from https://api.nasa.gov/). 
+            api_key: NASA API key (get from https://api.nasa.gov/).
                     Defaults to "DEMO_KEY" for testing (limited rate).
             **kwargs: Additional connector arguments
         """
