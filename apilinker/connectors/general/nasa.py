@@ -23,12 +23,13 @@ class NASAConnector(ApiConnector):
         apod = connector.get_astronomy_picture_of_day()
     """
 
-    def __init__(self, api_key: str, **kwargs):
+    def __init__(self, api_key: Optional[str] = "DEMO_KEY", **kwargs):
         """
         Initialize NASA connector.
 
         Args:
-            api_key: NASA API key (get from https://api.nasa.gov/)
+            api_key: NASA API key (get from https://api.nasa.gov/). 
+                    Defaults to "DEMO_KEY" for testing (limited rate).
             **kwargs: Additional connector arguments
         """
         # NASA API base URL
