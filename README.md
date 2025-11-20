@@ -1294,6 +1294,52 @@ sphinx-build -b html . _build/html
 
 The generated documentation will be available in `docs/sphinx_setup/_build/html/index.html`
 
+## 👨‍💻 Development
+
+### Version Management
+
+APILinker uses **bump-my-version** for automated version bumping. See [VERSION_MANAGEMENT.md](VERSION_MANAGEMENT.md) for details.
+
+```powershell
+# Quick version bump (Windows)
+.\bump.ps1 patch   # 0.5.0 -> 0.5.1
+.\bump.ps1 minor   # 0.5.0 -> 0.6.0
+.\bump.ps1 major   # 0.5.0 -> 1.0.0
+```
+
+```bash
+# Quick version bump (Linux/Mac)
+./bump.sh patch
+```
+
+This automatically updates version in all 14 files, creates a git commit, and tags the release.
+
+### Running Tests
+
+```bash
+# Run all tests with coverage
+pytest --cov=apilinker --cov-report=term
+
+# Run specific test file
+pytest tests/test_api_linker.py -v
+
+# Run with coverage threshold
+pytest --cov=apilinker --cov-fail-under=80
+```
+
+### Code Quality
+
+```bash
+# Format code
+black .
+
+# Lint
+flake8 apilinker tests
+
+# Type checking
+mypy apilinker
+```
+
 ### Community Support
 
 - [GitHub Issues](https://github.com/kkartas/apilinker/issues) - Report bugs or request features
