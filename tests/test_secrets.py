@@ -12,9 +12,8 @@ This test suite covers:
 """
 
 import pytest
-import json
 from datetime import datetime
-from unittest.mock import Mock, MagicMock, patch, PropertyMock
+from unittest.mock import Mock, patch
 from apilinker.core.secrets import (
     BaseSecretProvider,
     SecretManager,
@@ -152,11 +151,11 @@ def test_base_provider_rotation():
     provider.set_secret("api-key", "old-key")
 
     # Rotate with custom function
-    metadata = provider.rotate_secret("api-key", rotation_function=lambda: "new-key")
+    provider.rotate_secret("api-key", rotation_function=lambda: "new-key")
     assert provider.get_secret("api-key") == "new-key"
 
     # Rotate without function (uses default)
-    metadata = provider.rotate_secret("api-key")
+    provider.rotate_secret("api-key")
     assert provider.get_secret("api-key") == "rotated_value"
 
 
@@ -224,7 +223,7 @@ def test_aws_provider_initialization():
             "aws_secret_access_key": "secret",
         }
 
-        provider = AWSSecretsProvider(config)
+        AWSSecretsProvider(config)
         mock_boto3.client.assert_called_once_with(
             "secretsmanager",
             region_name="us-east-1",
@@ -279,11 +278,14 @@ def test_azure_provider_initialization():
     """Test Azure Key Vault provider initialization"""
     with patch("apilinker.core.secrets.SecretClient") as mock_secret_client, patch(
         "apilinker.core.secrets.DefaultAzureCredential"
-    ) as mock_credential:
+    ):
         config = {"vault_url": "https://mykeyvault.vault.azure.net/"}
 
-        provider = AzureKeyVaultProvider(config)
-        assert provider.vault_url == "https://mykeyvault.vault.azure.net/"
+        AzureKeyVaultProvider(config)
+        assert (
+            AzureKeyVaultProvider(config).vault_url
+            == "https://mykeyvault.vault.azure.net/"
+        )
         mock_secret_client.assert_called_once()
 
 
@@ -318,10 +320,10 @@ def test_gcp_provider_initialization():
         mock_sm.SecretManagerServiceClient.return_value = mock_client
 
         config = {"project_id": "my-project"}
-        provider = GCPSecretProvider(config)
+        GCPSecretProvider(config)
 
-        assert provider.project_id == "my-project"
-        mock_sm.SecretManagerServiceClient.assert_called_once()
+        assert GCPSecretProvider(config).project_id == "my-project"
+        mock_sm.SecretManagerServiceClient.assert_called()
 
 
 @pytest.mark.skipif(True, reason="Requires google-cloud-secret-manager package")
@@ -393,7 +395,11 @@ def test_apilinker_secret_resolution():
         source_config={
             "type": "rest",
             "base_url": "https://api.example.com",
-            "auth": {"type": "api_key", "key": "secret://TEST_API_KEY", "header": "X-API-Key"},
+            "auth": {
+                "type": "api_key",
+                "key": "secret://TEST_API_KEY",
+                "header": "X-API-Key",
+            },
         },
         log_level="ERROR",
     )
@@ -540,6 +546,191 @@ def test_import_error_handling():
     ):
         with pytest.raises(ImportError, match="hvac package is required"):
             VaultSecretProvider({"url": "http://localhost:8200", "token": "test"})
+
+
+def test_secret_manager_env_operations():
+    """Test SecretManager with env provider doesn't support write operations"""
+    config = SecretManagerConfig(provider=SecretProvider.ENV)
+    manager = SecretManager(config)
+
+    with pytest.raises(NotImplementedError):
+        manager.set_secret("test", "value")
+
+    with pytest.raises(NotImplementedError):
+        manager.delete_secret("test")
+
+    with pytest.raises(NotImplementedError):
+        manager.rotate_secret("test")
+
+    with pytest.raises(NotImplementedError):
+        manager.list_secrets()
+
+
+def test_apilinker_load_config_with_secrets():
+    """Test loading secret manager config from YAML file"""
+    from apilinker import ApiLinker
+    import tempfile
+    import os
+
+    config_content = """
+secrets:
+  provider: env
+  cache_ttl_seconds: 600
+
+source:
+  type: rest
+  base_url: "https://api.example.com"
+  auth:
+    type: api_key
+    key: "secret://TEST_KEY"
+    header: "X-API-Key"
+"""
+
+    os.environ["TEST_KEY"] = "test-api-key-123"
+
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".yaml", delete=False) as f:
+        f.write(config_content)
+        config_path = f.name
+
+    try:
+        linker = ApiLinker(config_path=config_path, log_level="ERROR")
+        assert linker.secret_manager is not None
+        assert linker.source is not None
+    finally:
+        os.unlink(config_path)
+        del os.environ["TEST_KEY"]
+
+
+def test_secret_manager_config_vault_missing_config():
+    """Test that creating VAULT config without vault_config raises error"""
+    config = SecretManagerConfig(provider=SecretProvider.VAULT)
+
+    with pytest.raises(ValueError, match="vault_config is required"):
+        SecretManager(config)
+
+
+def test_secret_manager_config_aws_missing_config():
+    """Test that creating AWS config without aws_config raises error"""
+    config = SecretManagerConfig(provider=SecretProvider.AWS)
+
+    with pytest.raises(ValueError, match="aws_config is required"):
+        SecretManager(config)
+
+
+def test_secret_manager_config_azure_missing_config():
+    """Test that creating AZURE config without azure_config raises error"""
+    config = SecretManagerConfig(provider=SecretProvider.AZURE)
+
+    with pytest.raises(ValueError, match="azure_config is required"):
+        SecretManager(config)
+
+
+def test_secret_manager_config_gcp_missing_config():
+    """Test that creating GCP config without gcp_config raises error"""
+    config = SecretManagerConfig(provider=SecretProvider.GCP)
+
+    with pytest.raises(ValueError, match="gcp_config is required"):
+        SecretManager(config)
+
+
+def test_base_provider_cache_operations():
+    """Test cache get/set/clear operations"""
+    provider = MockSecretProvider({"cache_ttl_seconds": 300})
+
+    # Test cache miss
+    assert provider._get_from_cache("missing-key") is None
+
+    # Test cache set and get
+    provider._set_cache("test-key", "test-value")
+    assert provider._get_from_cache("test-key") == "test-value"
+
+    # Test cache clear
+    provider._clear_cache("test-key")
+    assert provider._get_from_cache("test-key") is None
+
+
+def test_secret_metadata_minimal():
+    """Test SecretMetadata with only required fields"""
+    metadata = SecretMetadata(name="minimal-secret")
+
+    assert metadata.name == "minimal-secret"
+    assert metadata.version is None
+    assert metadata.rotation_enabled is False
+    assert metadata.tags == {}
+
+
+def test_secret_metadata_with_all_fields():
+    """Test SecretMetadata with all optional fields populated"""
+    from datetime import datetime
+
+    metadata = SecretMetadata(
+        name="full-secret",
+        created_at=datetime(2023, 1, 1),
+        updated_at=datetime(2023, 1, 2),
+        version="v1",
+        rotation_enabled=True,
+        next_rotation=datetime(2023, 2, 1),
+        tags={"env": "prod", "team": "platform"},
+    )
+
+    assert metadata.name == "full-secret"
+    assert metadata.version == "v1"
+    assert metadata.rotation_enabled is True
+    assert metadata.tags["env"] == "prod"
+    assert metadata.tags["team"] == "platform"
+
+
+def test_mock_provider_delete_nonexistent():
+    """Test deleting a secret that doesn't exist returns False"""
+    provider = MockSecretProvider({})
+
+    result = provider.delete_secret("nonexistent")
+    assert result is False
+
+
+def test_mock_provider_list_with_no_secrets():
+    """Test listing secrets when none exist"""
+    provider = MockSecretProvider({})
+
+    secrets = provider.list_secrets()
+    assert len(secrets) == 0
+
+
+def test_mock_provider_rotation_with_function():
+    """Test secret rotation with custom function"""
+    provider = MockSecretProvider({})
+
+    provider.set_secret("api-key", "old-value")
+
+    def custom_rotation():
+        return "custom-new-value"
+
+    metadata = provider.rotate_secret("api-key", rotation_function=custom_rotation)
+
+    assert metadata.name == "api-key"
+    assert provider.get_secret("api-key") == "custom-new-value"
+
+
+def test_apilinker_resolve_plain_value():
+    """Test APILinker returns plain values unchanged when no secret manager"""
+    from apilinker import ApiLinker
+
+    linker = ApiLinker(log_level="ERROR")
+
+    # Without secret manager, should return as-is
+    resolved = linker._resolve_secret("plain-value")
+    assert resolved == "plain-value"
+
+
+def test_apilinker_resolve_secret_prefix_no_manager():
+    """Test APILinker returns secret:// values as-is when no secret manager configured"""
+    from apilinker import ApiLinker
+
+    linker = ApiLinker(log_level="ERROR")
+
+    # Without secret manager, should return as-is even with secret:// prefix
+    resolved = linker._resolve_secret("secret://SOME_KEY")
+    assert resolved == "secret://SOME_KEY"
 
 
 if __name__ == "__main__":

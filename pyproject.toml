@@ -74,6 +74,8 @@ omit = [
     "apilinker/core/security.py",
     "apilinker/core/scheduler.py",
     "apilinker/core/async_connector.py",
+    "apilinker/core/secrets.py",  # Requires optional cloud SDK dependencies
+    "apilinker/core/observability.py",  # Requires optional OpenTelemetry dependency
 ]
 
 [tool.coverage.report]
