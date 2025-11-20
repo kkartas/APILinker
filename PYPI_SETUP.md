@@ -71,9 +71,10 @@ git push origin main --tags
 ```
 
 The GitHub Actions workflow will:
-- ✅ Build the package (sdist + wheel)
-- ✅ Upload to PyPI
-- ✅ Create GitHub release (with distribution files attached)
+1. ✅ **Tag pushed** → Create GitHub release (with auto-generated notes)
+2. ✅ **Release published** → Build package (sdist + wheel)
+3. ✅ **Build complete** → Publish to PyPI
+4. ✅ **PyPI published** → Attach distribution files to GitHub release
 
 ### Manual (for testing)
 
@@ -131,9 +132,9 @@ git push origin main --tags
 
 ## Workflow Files
 
-- **`release.yml`**: Handles both tag pushes and GitHub releases ✅ ACTIVE
-  - Triggers on: `v*.*.*` tags or GitHub release creation
-  - Actions: Build package → Publish to PyPI → Create GitHub release
+- **`release.yml`**: Two-stage release process ✅ ACTIVE
+  - **Stage 1 (Tag Push):** Tag `v*.*.*` → Create GitHub Release
+  - **Stage 2 (Release Published):** Build → Publish to PyPI → Attach artifacts
 
 ## Security Best Practices
 
