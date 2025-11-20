@@ -81,7 +81,7 @@ class PluginBase:
             "type": cls.plugin_type,
             "name": cls.plugin_name,
             "description": cls.__doc__,
-            "version": getattr(cls, "version", "0.4.1"),
+            "version": getattr(cls, "version", "0.5.0"),
             "author": getattr(cls, "author", "Unknown"),
         }
 

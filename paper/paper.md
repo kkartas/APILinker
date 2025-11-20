@@ -203,8 +203,8 @@ Kyriakos Kartas (lead developer and maintainer). Community contributions acknowl
 - Persistent identifier: DOI: 10.5281/zenodo.TBD
 - Licence: MIT
 - Publisher: Zenodo
-- Version published: 0.4.1
-- Date published: 2024-11-01
+- Version published: 0.5.0
+- Date published: 2025-01-20
 
 ## Software location: code repository
 - Name: GitHub
