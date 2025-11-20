@@ -155,7 +155,8 @@ If you need to manually update version:
 pytest --cov=apilinker --cov-fail-under=80
 
 # 2. Bump version (creates commit and tag)
-bump-my-version bump minor
+.\bump.ps1 minor   # Windows
+# ./bump.sh minor  # Linux/Mac
 
 # 3. Update CHANGELOG.md manually
 # Add release notes for the new version
@@ -164,9 +165,10 @@ bump-my-version bump minor
 git add CHANGELOG.md README.md
 git commit --amend --no-edit
 
-# 5. Push with tags
+# 5. Push with tags (triggers PyPI release via release.yml workflow)
 git push origin main --tags
 ```
+**Note:** Pushing tags triggers the GitHub Actions `release.yml` workflow which automatically publishes to PyPI (requires `PYPI_API_TOKEN` secret in GitHub repository settings).
 
 ### Hotfix Release
 
