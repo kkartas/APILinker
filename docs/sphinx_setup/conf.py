@@ -15,7 +15,7 @@ sys.path.insert(0, os.path.abspath('../..'))
 project = 'ApiLinker'
 copyright = f'{datetime.datetime.now().year}, Kyriakos Kartas'
 author = 'Kyriakos Kartas'
-version = '0.5.1'  # Update this with your actual version
+version = '0.5.2'  # Update this with your actual version
 release = version
 
 # -- General configuration ---------------------------------------------------

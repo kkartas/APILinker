@@ -2,7 +2,7 @@
 
 This document tracks planned features, enhancements, and improvements for ApiLinker. Features are organized by version and priority.
 
-**Current Version:** 0.5.1
+**Current Version:** 0.5.2
 **Last Updated:** 2025-01-20
 
 ## Version Strategy
