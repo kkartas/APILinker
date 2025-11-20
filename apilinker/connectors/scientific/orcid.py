@@ -35,7 +35,7 @@ class ORCIDConnector(ApiConnector):
         base_url = "https://pub.orcid.org/v3.0"
 
         # Set up headers
-        headers = {"Accept": "application/json", "User-Agent": "ApiLinker/0.5.0"}
+        headers = {"Accept": "application/json", "User-Agent": "ApiLinker/0.5.1"}
 
         if access_token:
             headers["Authorization"] = f"Bearer {access_token}"
