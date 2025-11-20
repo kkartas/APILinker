@@ -45,16 +45,18 @@ This means the `PYPI_API_TOKEN` secret is either missing or invalid.
 
 ### 4. Verify Workflow Configuration
 
-The `release.yml` workflow is configured correctly:
+The `release.yml` workflow handles both scenarios:
 
 ```yaml
-- name: Publish to PyPI
-  env:
-    TWINE_USERNAME: __token__
-    TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
-  run: |
-    python -m twine upload dist/*
+on:
+  push:
+    tags:
+      - 'v*.*.*'        # Triggers on version tags (from bump.ps1)
+  release:
+    types: [created]    # Triggers on GitHub releases
 ```
+
+Both trigger the same job that builds and publishes to PyPI.
 
 ## Publishing Process
 
@@ -69,9 +71,9 @@ git push origin main --tags
 ```
 
 The GitHub Actions workflow will:
-- ✅ Build the package
+- ✅ Build the package (sdist + wheel)
 - ✅ Upload to PyPI
-- ✅ Create GitHub release
+- ✅ Create GitHub release (with distribution files attached)
 
 ### Manual (for testing)
 
@@ -129,8 +131,9 @@ git push origin main --tags
 
 ## Workflow Files
 
-- **`release.yml`**: Auto-publishes when tags are pushed ✅ ACTIVE
-- **`publish-to-pypi.yml`**: Disabled (was duplicate) ❌ INACTIVE
+- **`release.yml`**: Handles both tag pushes and GitHub releases ✅ ACTIVE
+  - Triggers on: `v*.*.*` tags or GitHub release creation
+  - Actions: Build package → Publish to PyPI → Create GitHub release
 
 ## Security Best Practices
 
