@@ -7,7 +7,6 @@ site_author: K. Kartas
 
 theme:
   name: material
-  custom_dir: docs/overrides
   features:
     - navigation.instant
     - navigation.tracking
