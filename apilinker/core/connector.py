@@ -17,6 +17,7 @@ from apilinker.core.validation import (
     pretty_print_diffs,
     is_validator_available,
 )
+from apilinker.core.rate_limiting import RateLimitManager
 
 logger = logging.getLogger(__name__)
 
@@ -34,6 +35,7 @@ class EndpointConfig(BaseModel):
     # Optional JSON Schemas for validation
     response_schema: Optional[Dict[str, Any]] = None
     request_schema: Optional[Dict[str, Any]] = None
+    rate_limit: Optional[Dict[str, Any]] = None
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
@@ -95,6 +97,14 @@ class ApiConnector:
 
         # Create HTTP client with default settings
         self.client = self._create_client()
+
+        # Initialize Rate Limit Manager
+        self.rate_limit_manager = RateLimitManager()
+
+        # Configure rate limiters for endpoints
+        for name, config in self.endpoints.items():
+            if config.rate_limit:
+                self.rate_limit_manager.create_limiter(name, config.rate_limit)
 
         logger.debug(f"Initialized {connector_type} connector for {base_url}")
 
@@ -189,6 +199,9 @@ class ApiConnector:
         Returns:
             Parsed response data
         """
+        # Update rate limiter from response headers
+        self.rate_limit_manager.update_from_response(endpoint_name, response)
+
         # Raise for HTTP errors
         response.raise_for_status()
 
@@ -466,6 +479,9 @@ class ApiConnector:
         last_exception = None
         for attempt in range(1, self.retry_count + 1):
             try:
+                # Apply rate limiting
+                self.rate_limit_manager.acquire(endpoint_name)
+
                 response = self.client.request(
                     request["method"],
                     request["url"],
@@ -593,6 +609,9 @@ class ApiConnector:
 
             for item_index, item in enumerate(data):
                 try:
+                    # Apply rate limiting
+                    self.rate_limit_manager.acquire(endpoint_name)
+
                     response = self.client.request(
                         request["method"],
                         request["url"],
@@ -648,6 +667,9 @@ class ApiConnector:
 
             for attempt in range(1, self.retry_count + 1):
                 try:
+                    # Apply rate limiting
+                    self.rate_limit_manager.acquire(endpoint_name)
+
                     response = self.client.request(
                         request["method"],
                         request["url"],
