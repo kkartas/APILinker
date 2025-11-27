@@ -1,0 +1,93 @@
+site_name: ApiLinker
+site_url: https://kkartas.github.io/APILinker/
+repo_url: https://github.com/kkartas/APILinker
+repo_name: kkartas/APILinker
+site_description: A universal bridge to connect, map, and automate data transfer between any two REST APIs.
+site_author: K. Kartas
+
+theme:
+  name: material
+  custom_dir: docs/overrides
+  features:
+    - navigation.instant
+    - navigation.tracking
+    - navigation.tabs
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - toc.follow
+    - search.suggest
+    - search.highlight
+    - content.tabs.link
+    - content.code.copy
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/weather-night
+        name: Switch to light mode
+  font:
+    text: Roboto
+    code: Roboto Mono
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          paths: [.]
+          options:
+            docstring_style: google
+            show_source: true
+            show_root_heading: true
+  - minify:
+      minify_html: true
+  - git-revision-date-localized:
+      enable_creation_date: true
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - tables
+  - attr_list
+  - md_in_html
+
+nav:
+  - Home: index.md
+  - Getting Started:
+    - Installation: getting-started/installation.md
+    - Quick Start: getting-started/quickstart.md
+    - Tutorial: getting-started/tutorial.md
+  - User Guide:
+    - Configuration: user-guide/configuration.md
+    - Authentication: user-guide/authentication.md
+    - Mapping & Transformation: user-guide/mapping.md
+    - Connectors: user-guide/connectors.md
+    - Research Connectors: user-guide/research-connectors.md
+    - Secret Management: user-guide/secret-management.md
+    - Scheduling: user-guide/scheduling.md
+    - Error Handling: user-guide/error-handling.md
+  - Developer Guide:
+    - Architecture: developer-guide/architecture.md
+    - Core Components: developer-guide/core-components.md
+    - Plugin System: developer-guide/plugins.md
+    - Contributing: developer-guide/contributing.md
+    - Release Process: developer-guide/release-process.md
+  - Reference:
+    - API Reference: reference/api.md
