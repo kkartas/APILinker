@@ -73,6 +73,7 @@ nav:
     - Installation: getting-started/installation.md
     - Quick Start: getting-started/quickstart.md
     - Tutorial: getting-started/tutorial.md
+    - Interactive Tutorial: getting-started/interactive-tutorial.md
   - User Guide:
     - Configuration: user-guide/configuration.md
     - Authentication: user-guide/authentication.md
@@ -83,14 +84,19 @@ nav:
     - Scheduling: user-guide/scheduling.md
     - Error Handling: user-guide/error-handling.md
     - Security: user-guide/security.md
+    - Docker: user-guide/docker.md
     - Cookbook: user-guide/cookbook.md
+    - Comparison: user-guide/comparison.md
     - Troubleshooting: user-guide/troubleshooting.md
     - FAQ: user-guide/faq.md
   - Developer Guide:
     - Architecture: developer-guide/architecture.md
     - Core Components: developer-guide/core-components.md
     - Plugin System: developer-guide/plugins.md
+    - Testing: developer-guide/testing.md
+    - Benchmarks: developer-guide/benchmarks.md
     - Contributing: developer-guide/contributing.md
     - Release Process: developer-guide/release-process.md
   - Reference:
     - API Reference: reference/api.md
+  - Citation: citation.md
