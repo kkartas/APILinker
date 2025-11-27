@@ -10,7 +10,7 @@ import time
 import threading
 from abc import ABC, abstractmethod
 from enum import Enum
-from typing import Dict, Optional, Any, Tuple
+from typing import Dict, Optional, Any
 
 logger = logging.getLogger(__name__)
 
