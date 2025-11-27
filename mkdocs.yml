@@ -82,6 +82,10 @@ nav:
     - Secret Management: user-guide/secret-management.md
     - Scheduling: user-guide/scheduling.md
     - Error Handling: user-guide/error-handling.md
+    - Security: user-guide/security.md
+    - Cookbook: user-guide/cookbook.md
+    - Troubleshooting: user-guide/troubleshooting.md
+    - FAQ: user-guide/faq.md
   - Developer Guide:
     - Architecture: developer-guide/architecture.md
     - Core Components: developer-guide/core-components.md
