@@ -82,6 +82,7 @@ nav:
     - Research Connectors: user-guide/research-connectors.md
     - Secret Management: user-guide/secret-management.md
     - Scheduling: user-guide/scheduling.md
+    - Monitoring: user-guide/monitoring.md
     - Error Handling: user-guide/error-handling.md
     - Security: user-guide/security.md
     - Docker: user-guide/docker.md

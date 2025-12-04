@@ -1758,7 +1758,43 @@ def test_trace_sync_disabled():
 7. **Span Events:** Record detailed events within traces
 8. **Baggage Propagation:** Pass context across service boundaries
 
+### Alerting & Health Checks
+
+**Built-in monitoring and alerting system.**
+
+The `monitoring` module provides health checks and configurable alerts independent of OpenTelemetry.
+
+```python
+class MonitoringManager:
+    """
+    Manages health checks and alerts.
+    """
+    def __init__(self):
+        self.integrations = []
+        self.rules = []
+        self.health_checks = {}
+```
+
+**Key Features:**
+
+1. **Health Checks:**
+   - Component-level status checks
+   - Latency tracking
+   - Built-in connector health checks
+
+2. **Alert Rules:**
+   - `StatusAlertRule`: Trigger on component health changes
+   - `ThresholdAlertRule`: Trigger on metric thresholds
+   - Custom rule support via `AlertRule` base class
+
+3. **Integrations:**
+   - PagerDuty
+   - Slack
+   - Email
+   - Extensible `AlertIntegration` interface
+
 ---
+
 
 ## Data Flow & Processing
 

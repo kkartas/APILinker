@@ -12,4 +12,5 @@ __all__ = [
     "auth",
     "plugins",
     "logger",
+    "monitoring",
 ]

@@ -65,18 +65,19 @@ This document tracks planned features, enhancements, and improvements for ApiLin
 - **Dependencies:** None (built-in)
 - **Impact:** Improves reliability and prevents API bans
 
-#### Advanced Monitoring & Alerting
-- **Status:** Planned
+#### Advanced Monitoring & Alerting ✅
+- **Status:** Implemented (v0.5.4)
 - **Priority:** Medium
 - **Description:** Production-ready monitoring and alerting capabilities
 - **Features:**
-  - Health check endpoints
-  - Configurable alert rules
-  - Integration with PagerDuty, Slack, email
-  - Alert thresholds and conditions
-  - Alert history and deduplication
-- **Dependencies:** `requests` (for webhooks)
+  - ✅ Health check endpoints (HealthStatus, HealthCheckResult)
+  - ✅ Configurable alert rules (ThresholdAlertRule, StatusAlertRule)
+  - ✅ Integration with PagerDuty, Slack, email
+  - ✅ Alert thresholds and conditions
+  - ✅ Alert history and deduplication
+- **Dependencies:** `httpx` (for webhooks)
 - **Impact:** Critical for production operations
+- **Implementation:** `apilinker/core/monitoring.py`
 
 ---
 
