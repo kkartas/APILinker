@@ -11,7 +11,7 @@ import time
 from abc import ABC, abstractmethod
 from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any, Callable, Dict, List, Optional, Union
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
@@ -252,15 +252,15 @@ class ThresholdAlertRule(AlertRule):
             return False
 
         if self.operator == ">":
-            return value > self.threshold
+            return bool(value > self.threshold)
         elif self.operator == ">=":
-            return value >= self.threshold
+            return bool(value >= self.threshold)
         elif self.operator == "<":
-            return value < self.threshold
+            return bool(value < self.threshold)
         elif self.operator == "<=":
-            return value <= self.threshold
+            return bool(value <= self.threshold)
         elif self.operator == "==":
-            return value == self.threshold
+            return bool(value == self.threshold)
         return False
 
 
@@ -283,7 +283,7 @@ class StatusAlertRule(AlertRule):
         status = context.get(f"{self.component}_status")
         if status is None:
             return False
-        return status == self.target_status
+        return bool(status == self.target_status)
 
 
 class MonitoringManager:
@@ -295,7 +295,7 @@ class MonitoringManager:
         self.integrations: List[AlertIntegration] = []
         self.rules: List[AlertRule] = []
         self.alert_history: List[Alert] = []
-        self.health_checks: Dict[str, callable] = {}
+        self.health_checks: Dict[str, Callable[[], Union[bool, HealthCheckResult]]] = {}
 
     def add_integration(self, integration: AlertIntegration):
         """Add an alert integration."""
@@ -305,14 +305,16 @@ class MonitoringManager:
         """Add an alert rule."""
         self.rules.append(rule)
 
-    def register_health_check(self, component: str, check_func: callable):
+    def register_health_check(
+        self, component: str, check_func: Callable[[], Union[bool, HealthCheckResult]]
+    ) -> None:
         """Register a health check function for a component."""
         self.health_checks[component] = check_func
 
     def run_health_checks(self) -> Dict[str, HealthCheckResult]:
         """Run all registered health checks."""
-        results = {}
-        context = {}
+        results: Dict[str, HealthCheckResult] = {}
+        context: Dict[str, Any] = {}
 
         for component, check_func in self.health_checks.items():
             try:
@@ -323,18 +325,15 @@ class MonitoringManager:
                 if isinstance(result, bool):
                     status = HealthStatus.HEALTHY if result else HealthStatus.UNHEALTHY
                     message = "OK" if result else "Check failed"
-                    details = {}
-                elif isinstance(result, HealthCheckResult):
+                    details: Dict[str, Any] = {}
+                else:
+                    # result is HealthCheckResult
                     status = result.status
                     message = result.message
                     details = result.details
                     # Use the latency from the result if provided, or the measured one
                     if result.latency_ms > 0:
                         latency = result.latency_ms
-                else:
-                    status = HealthStatus.UNKNOWN
-                    message = f"Invalid result type: {type(result)}"
-                    details = {}
 
                 results[component] = HealthCheckResult(
                     status=status,
@@ -344,7 +343,7 @@ class MonitoringManager:
                     details=details,
                 )
                 context[f"{component}_status"] = status
-                context[f"{component}_latency"] = latency
+                context[f"{component}_latency_ms"] = latency
 
             except Exception as e:
                 logger.error(f"Health check failed for {component}: {e}")
