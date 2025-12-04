@@ -177,16 +177,16 @@ class EmailIntegration(AlertIntegration):
         msg["To"] = ", ".join(self.recipients)
         msg["Subject"] = f"[APILinker] {alert.severity.upper()}: {alert.rule_name}"
 
-        body = f"""
-        Alert: {alert.rule_name}
-        Severity: {alert.severity.value}
-        Status: {alert.status}
-        Time: {alert.timestamp}
-        Message: {alert.message}
-        
-        Details:
-        {alert.details}
-        """
+        body = (
+            f"Alert: {alert.rule_name}\n"
+            f"Severity: {alert.severity.value}\n"
+            f"Status: {alert.status}\n"
+            f"Time: {alert.timestamp}\n"
+            f"Message: {alert.message}\n"
+            f"\n"
+            f"Details:\n"
+            f"{alert.details}"
+        )
         msg.attach(MIMEText(body, "plain"))
 
         try:
