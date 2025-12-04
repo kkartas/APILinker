@@ -31,6 +31,7 @@ Base class for all API connectors.
         - __init__
         - fetch_data
         - send_data
+        - check_health
 
 ### FieldMapper
 
@@ -43,6 +44,21 @@ Data transformation and field mapping engine.
         - add_mapping
         - transform
         - register_transformer
+
+### Monitoring & Alerting
+
+System monitoring and health checks.
+
+::: apilinker.core.monitoring.MonitoringManager
+    options:
+      show_source: true
+      members:
+        - __init__
+        - register_health_check
+        - add_rule
+        - add_integration
+        - run_health_checks
+        - get_alert_history
 
 ## Research Connectors
 
