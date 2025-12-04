@@ -37,7 +37,7 @@ class GitHubConnector(ApiConnector):
         # Set up headers
         headers = {
             "Accept": "application/vnd.github+json",
-            "User-Agent": "ApiLinker/0.5.3",
+            "User-Agent": "ApiLinker/0.5.4",
             "X-GitHub-Api-Version": "2022-11-28",
         }
 
