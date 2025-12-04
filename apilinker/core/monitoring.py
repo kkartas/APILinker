@@ -127,7 +127,11 @@ class SlackIntegration(AlertIntegration):
                     "title": f"[{alert.severity.upper()}] {alert.rule_name}",
                     "text": alert.message,
                     "fields": [
-                        {"title": "Time", "value": alert.timestamp.isoformat(), "short": True},
+                        {
+                            "title": "Time",
+                            "value": alert.timestamp.isoformat(),
+                            "short": True,
+                        },
                         {"title": "Status", "value": alert.status, "short": True},
                     ],
                     "footer": "APILinker Monitoring",
@@ -148,8 +152,16 @@ class SlackIntegration(AlertIntegration):
 class EmailIntegration(AlertIntegration):
     """Integration with Email."""
 
-    def __init__(self, smtp_host: str, smtp_port: int, sender: str, recipients: List[str],
-                 username: Optional[str] = None, password: Optional[str] = None, use_tls: bool = True):
+    def __init__(
+        self,
+        smtp_host: str,
+        smtp_port: int,
+        sender: str,
+        recipients: List[str],
+        username: Optional[str] = None,
+        password: Optional[str] = None,
+        use_tls: bool = True,
+    ):
         self.smtp_host = smtp_host
         self.smtp_port = smtp_port
         self.sender = sender
@@ -205,7 +217,7 @@ class AlertRule(ABC):
             elapsed = (datetime.utcnow() - self.last_triggered).total_seconds()
             if elapsed < self.cooldown_seconds:
                 return False
-        
+
         should_alert = self.evaluate(context)
         if should_alert:
             self.last_triggered = datetime.utcnow()
@@ -220,8 +232,15 @@ class AlertRule(ABC):
 class ThresholdAlertRule(AlertRule):
     """Alert when a value exceeds a threshold."""
 
-    def __init__(self, name: str, metric: str, threshold: float, operator: str = ">",
-                 severity: AlertSeverity = AlertSeverity.WARNING, **kwargs):
+    def __init__(
+        self,
+        name: str,
+        metric: str,
+        threshold: float,
+        operator: str = ">",
+        severity: AlertSeverity = AlertSeverity.WARNING,
+        **kwargs,
+    ):
         super().__init__(name, severity, **kwargs)
         self.metric = metric
         self.threshold = threshold
@@ -231,7 +250,7 @@ class ThresholdAlertRule(AlertRule):
         value = context.get(self.metric)
         if value is None:
             return False
-        
+
         if self.operator == ">":
             return value > self.threshold
         elif self.operator == ">=":
@@ -248,8 +267,14 @@ class ThresholdAlertRule(AlertRule):
 class StatusAlertRule(AlertRule):
     """Alert when a component status is not healthy."""
 
-    def __init__(self, name: str, component: str, target_status: HealthStatus = HealthStatus.UNHEALTHY,
-                 severity: AlertSeverity = AlertSeverity.CRITICAL, **kwargs):
+    def __init__(
+        self,
+        name: str,
+        component: str,
+        target_status: HealthStatus = HealthStatus.UNHEALTHY,
+        severity: AlertSeverity = AlertSeverity.CRITICAL,
+        **kwargs,
+    ):
         super().__init__(name, severity, **kwargs)
         self.component = component
         self.target_status = target_status
@@ -294,7 +319,7 @@ class MonitoringManager:
                 start_time = time.time()
                 result = check_func()
                 latency = (time.time() - start_time) * 1000
-                
+
                 if isinstance(result, bool):
                     status = HealthStatus.HEALTHY if result else HealthStatus.UNHEALTHY
                     message = "OK" if result else "Check failed"
@@ -316,7 +341,7 @@ class MonitoringManager:
                     component=component,
                     message=message,
                     latency_ms=latency,
-                    details=details
+                    details=details,
                 )
                 context[f"{component}_status"] = status
                 context[f"{component}_latency"] = latency
@@ -327,7 +352,7 @@ class MonitoringManager:
                     status=HealthStatus.UNHEALTHY,
                     component=component,
                     message=str(e),
-                    latency_ms=0.0
+                    latency_ms=0.0,
                 )
                 context[f"{component}_status"] = HealthStatus.UNHEALTHY
 
@@ -345,7 +370,7 @@ class MonitoringManager:
                     rule_name=rule.name,
                     severity=rule.severity,
                     message=f"Alert rule '{rule.name}' triggered",
-                    details=context
+                    details=context,
                 )
                 self._trigger_alert(alert)
 
@@ -353,13 +378,15 @@ class MonitoringManager:
         """Trigger an alert across all integrations."""
         logger.warning(f"Triggering alert: {alert.rule_name} - {alert.message}")
         self.alert_history.append(alert)
-        
+
         # Deduplication check (simple version: check if same rule triggered recently)
         # Note: Real deduplication is complex, this is a basic implementation
-        
+
         for integration in self.integrations:
             integration.send_alert(alert)
 
     def get_alert_history(self, limit: int = 100) -> List[Alert]:
         """Get the history of triggered alerts."""
-        return sorted(self.alert_history, key=lambda x: x.timestamp, reverse=True)[:limit]
+        return sorted(self.alert_history, key=lambda x: x.timestamp, reverse=True)[
+            :limit
+        ]

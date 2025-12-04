@@ -741,31 +741,30 @@ class ApiConnector:
             # Try to hit the base URL or a specific health endpoint if we had one configured
             # For now, just check if we can connect to the base URL
             response = self.client.get("/", timeout=5.0)
-            
+
             latency = (time.time() - start_time) * 1000
-            
+
             status = HealthStatus.HEALTHY
             message = f"Connected to {self.base_url}"
-            
+
             # If we get a 5xx error, the server is definitely having issues
             if response.status_code >= 500:
                 status = HealthStatus.UNHEALTHY
                 message = f"Server returned {response.status_code}"
-            
+
             return HealthCheckResult(
                 status=status,
                 component=f"connector:{self.base_url}",
                 message=message,
                 latency_ms=latency,
-                details={"status_code": response.status_code}
+                details={"status_code": response.status_code},
             )
-            
+
         except Exception as e:
             latency = (time.time() - start_time) * 1000
             return HealthCheckResult(
                 status=HealthStatus.UNHEALTHY,
                 component=f"connector:{self.base_url}",
                 message=str(e),
-                latency_ms=latency
+                latency_ms=latency,
             )
-
