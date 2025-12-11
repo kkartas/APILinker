@@ -83,6 +83,7 @@ nav:
     - Secret Management: user-guide/secret-management.md
     - Scheduling: user-guide/scheduling.md
     - Monitoring: user-guide/monitoring.md
+    - Webhooks: user-guide/webhooks.md
     - Error Handling: user-guide/error-handling.md
     - Security: user-guide/security.md
     - Docker: user-guide/docker.md

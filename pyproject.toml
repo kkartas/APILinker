@@ -57,6 +57,12 @@ docs = [
     "mkdocs-minify-plugin>=0.7.0",
     "mkdocs-git-revision-date-localized-plugin>=1.2.0",
 ]
+webhooks = [
+    "fastapi>=0.100.0",
+    "uvicorn>=0.23.0",
+    "pyjwt>=2.8.0",
+]
+
 
 [project.scripts]
 apilinker = "apilinker.cli:app"
@@ -76,6 +82,7 @@ omit = [
     "apilinker/core/async_connector.py",
     "apilinker/core/secrets.py",  # Requires optional cloud SDK dependencies
     "apilinker/core/observability.py",  # Requires optional OpenTelemetry dependency
+    "apilinker/core/webhooks.py",  # Requires optional FastAPI/uvicorn dependencies
 ]
 
 [tool.coverage.report]

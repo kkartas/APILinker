@@ -13,4 +13,5 @@ __all__ = [
     "plugins",
     "logger",
     "monitoring",
+    "webhooks",
 ]

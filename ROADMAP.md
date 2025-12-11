@@ -86,20 +86,21 @@ This document tracks planned features, enhancements, and improvements for ApiLin
 
 ### High Priority
 
-#### Webhook Connectors ⭐
-- **Status:** Planned
+#### Webhook Connectors ⭐ ✅
+- **Status:** Implemented (v0.6.0)
 - **Priority:** High
 - **Description:** First-class support for receiving webhooks and triggering syncs
 - **Features:**
-  - HTTP webhook server/listener
-  - Webhook endpoint registration and management
-  - Event filtering and routing
-  - Signature verification (HMAC, JWT)
-  - Webhook replay and retry mechanisms
-  - Webhook-to-API mapping
-  - Configurable webhook endpoints
-- **Dependencies:** `fastapi` or `flask` (webhook server), `cryptography` (signatures)
+  - ✅ HTTP webhook server/listener (FastAPI-based)
+  - ✅ Webhook endpoint registration and management
+  - ✅ Event filtering and routing
+  - ✅ Signature verification (HMAC, JWT)
+  - ✅ Webhook replay and retry mechanisms
+  - ✅ Webhook-to-API mapping
+  - ✅ Configurable webhook endpoints
+- **Dependencies:** `fastapi`, `uvicorn` (webhook server), `pyjwt` (JWT verification)
 - **Impact:** Enables real-time, event-driven integrations
+- **Implementation:** `apilinker/core/webhooks.py`
 
 #### Message Queue Connectors ⭐
 - **Status:** Planned

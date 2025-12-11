@@ -61,3 +61,37 @@ except ImportError:  # pragma: no cover - optional connectors
     research_connectors_available = False
 
     __all__ = ["ApiLinker", "SyncResult", "ApiConnector", "FieldMapper", "Scheduler"]
+
+# Webhook connectors (requires fastapi)
+try:
+    from .core.webhooks import (  # noqa: F401
+        WebhookServer,
+        WebhookManager,
+        WebhookEndpoint,
+        WebhookEvent,
+        WebhookConfig,
+        WebhookEventFilter,
+        WebhookRouter,
+        SignatureType,
+        HMACVerifier,
+        JWTVerifier,
+    )
+
+    webhooks_available = True
+
+    __all__.extend(
+        [
+            "WebhookServer",
+            "WebhookManager",
+            "WebhookEndpoint",
+            "WebhookEvent",
+            "WebhookConfig",
+            "WebhookEventFilter",
+            "WebhookRouter",
+            "SignatureType",
+            "HMACVerifier",
+            "JWTVerifier",
+        ]
+    )
+except ImportError:  # pragma: no cover - optional webhook dependencies
+    webhooks_available = False
