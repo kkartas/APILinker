@@ -1,6 +1,6 @@
 # ApiLinker Technical Documentation
 
-**Version 0.6.0** | **For Python Developers** | **Internal Architecture Reference**
+**Version 0.6.1** | **For Python Developers** | **Internal Architecture Reference**
 
 This document provides comprehensive technical documentation for Python developers working with or contributing to ApiLinker. It covers internal architecture, extension points, design patterns, and implementation details.
 

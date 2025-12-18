@@ -34,7 +34,7 @@ class CrossRefConnector(ApiConnector):
         base_url = "https://api.crossref.org"
 
         # Set up headers for polite pool access
-        headers = {"User-Agent": f"ApiLinker/0.6.0 (mailto:{email})"}
+        headers = {"User-Agent": f"ApiLinker/0.6.1 (mailto:{email})"}
 
         # Define CrossRef endpoints
         endpoints = {
