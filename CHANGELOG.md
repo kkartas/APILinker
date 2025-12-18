@@ -66,7 +66,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 See [ROADMAP.md](ROADMAP.md) for planned features and version roadmap.
 
 ### Added
-- See ROADMAP.md for upcoming features
+- Message queue connector plugins (RabbitMQ, Redis Pub/Sub, AWS SQS, Kafka) and a dependency-free message routing/transformation pipeline
 
 ### Changed
 - See ROADMAP.md for planned changes

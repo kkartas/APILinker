@@ -8,6 +8,12 @@ in ApiLinker, including transformers, connectors, and authentication plugins.
 from typing import Any
 
 from apilinker.core.plugins import TransformerPlugin
+from apilinker.core.message_queue_connectors import (
+    KafkaConnectorPlugin,
+    RabbitMQConnectorPlugin,
+    RedisPubSubConnectorPlugin,
+    SQSPubSubConnectorPlugin,
+)
 
 
 class JsonPathTransformer(TransformerPlugin):
@@ -161,3 +167,14 @@ class ArrayOperationsTransformer(TransformerPlugin):
             return separator.join(str(x) for x in value if x is not None)
         else:
             return value
+
+
+__all__ = [
+    "JsonPathTransformer",
+    "TemplateTransformer",
+    "ArrayOperationsTransformer",
+    "RabbitMQConnectorPlugin",
+    "RedisPubSubConnectorPlugin",
+    "SQSPubSubConnectorPlugin",
+    "KafkaConnectorPlugin",
+]

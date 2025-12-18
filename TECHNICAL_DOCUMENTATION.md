@@ -112,6 +112,24 @@ apilinker/
 
 **Main orchestrator** that coordinates all system components.
 
+### 1.1 Message Queue Utilities (`core/message_queue.py`)
+
+Provides dependency-free message primitives for event-driven pipelines:
+
+- `MessageEnvelope`: normalized message wrapper with optional `ack`/`nack` hooks
+- `JsonMessageSerializer`: default (de)serializer
+- `MessageRouter`: predicate-based routing to destination topics/queues
+- `MessagePipeline`: helper to fetch → transform → route → send with DLQ integration
+
+### 1.2 Message Queue Connector Plugins (`core/message_queue_connectors.py`)
+
+Implements optional `ConnectorPlugin` connectors for:
+
+- RabbitMQ (`pika`)
+- Redis Pub/Sub (`redis`)
+- AWS SQS (`boto3`)
+- Apache Kafka (`kafka-python`)
+
 ```python
 class ApiLinker:
     """

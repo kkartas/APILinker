@@ -22,3 +22,8 @@ azure-keyvault-secrets>=4.7.0  # Azure Key Vault
 azure-identity>=1.14.0  # Azure authentication
 google-cloud-secret-manager>=2.16.0  # Google Secret Manager
 
+# Message Queues (optional, for event-driven pipelines)
+pika>=1.3.0  # RabbitMQ
+redis>=5.0.0  # Redis Pub/Sub
+boto3>=1.28.0  # AWS SQS
+kafka-python>=2.0.2  # Apache Kafka

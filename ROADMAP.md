@@ -103,19 +103,20 @@ This document tracks planned features, enhancements, and improvements for ApiLin
 - **Implementation:** `apilinker/core/webhooks.py`
 
 #### Message Queue Connectors ⭐
-- **Status:** Planned
+- **Status:** Implemented (v0.6.0)
 - **Priority:** High
 - **Description:** Support for event-driven pipelines via message queues
 - **Features:**
-  - RabbitMQ connector (consumer/producer)
-  - Redis Pub/Sub support
-  - AWS SQS integration
-  - Apache Kafka connector (basic)
-  - Message transformation and routing
-  - Dead letter queue integration
-  - Consumer group management
+  - ✅ RabbitMQ connector (consumer/producer)
+  - ✅ Redis Pub/Sub support
+  - ✅ AWS SQS integration
+  - ✅ Apache Kafka connector (basic)
+  - ✅ Message transformation and routing
+  - ✅ Dead letter queue integration
+  - ✅ Consumer group management (Kafka group id)
 - **Dependencies:** `pika` (RabbitMQ), `redis`, `boto3` (SQS), `kafka-python`
 - **Impact:** Enables scalable, event-driven architectures
+- **Implementation:** `apilinker/core/message_queue.py`, `apilinker/core/message_queue_connectors.py`
 
 ### Medium Priority
 
