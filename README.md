@@ -19,6 +19,44 @@ Full documentation is available at **[https://kkartas.github.io/APILinker/](http
 pip install apilinker
 ```
 
+## ⭐ Message Queue Connectors
+
+Message-queue connectors are optional.
+
+```bash
+pip install apilinker[mq]
+```
+
+Minimal example (worker loop):
+
+```python
+from apilinker.core.error_handling import DeadLetterQueue
+from apilinker.core.message_queue import MessagePipeline, MessageWorker
+from apilinker.core.message_queue_connectors import RabbitMQConnectorPlugin
+
+consumer = RabbitMQConnectorPlugin()
+producer = RabbitMQConnectorPlugin()
+
+consumer_conn = consumer.connect(host="localhost")
+producer_conn = producer.connect(host="localhost")
+
+pipeline = MessagePipeline(
+    consumer=consumer,
+    producer=producer,
+    dlq=DeadLetterQueue("./dlq"),
+)
+
+worker = MessageWorker(
+    pipeline,
+    consumer_connection=consumer_conn,
+    producer_connection=producer_conn,
+    source="input_queue",
+    default_destination="output_queue",
+)
+
+worker.run()
+```
+
 ## 🌟 Features
 
 - 🔄 **Universal Connectivity** - Connect any two REST APIs.

@@ -9,6 +9,9 @@ from __future__ import annotations
 
 import json
 import logging
+import random
+import threading
+import time
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import (
@@ -235,3 +238,239 @@ class MessagePipeline:
             "failed": failed,
             "failures": failures,
         }
+
+
+def _safe_close(obj: Any) -> None:
+    if obj is None:
+        return
+    if isinstance(obj, dict):
+        for v in obj.values():
+            _safe_close(v)
+        return
+    close_fn = getattr(obj, "close", None)
+    if callable(close_fn):
+        try:
+            close_fn()
+        except Exception:
+            pass
+    disconnect_fn = getattr(obj, "disconnect", None)
+    if callable(disconnect_fn):
+        try:
+            disconnect_fn()
+        except Exception:
+            pass
+
+
+@dataclass
+class RetryPolicy:
+    max_attempts: int = 3
+    initial_delay_seconds: float = 0.5
+    max_delay_seconds: float = 30.0
+    backoff_multiplier: float = 2.0
+    jitter_seconds: float = 0.1
+
+
+@dataclass
+class IdleBackoffPolicy:
+    initial_sleep_seconds: float = 0.1
+    max_sleep_seconds: float = 5.0
+    backoff_multiplier: float = 2.0
+
+
+class MessageWorker:
+    def __init__(
+        self,
+        pipeline: MessagePipeline,
+        *,
+        consumer_connection: Any,
+        producer_connection: Any,
+        source: str,
+        default_destination: Optional[str] = None,
+        fetch_kwargs: Optional[Dict[str, Any]] = None,
+        send_kwargs: Optional[Dict[str, Any]] = None,
+        max_messages_per_poll: int = 1,
+        retry_policy: Optional[RetryPolicy] = None,
+        idle_backoff: Optional[IdleBackoffPolicy] = None,
+        stop_event: Optional[threading.Event] = None,
+        operation_type: str = "message_worker",
+    ) -> None:
+        self.pipeline = pipeline
+        self.consumer_connection = consumer_connection
+        self.producer_connection = producer_connection
+        self.source = source
+        self.default_destination = default_destination
+        self.fetch_kwargs = fetch_kwargs or {}
+        self.send_kwargs = send_kwargs or {}
+        self.max_messages_per_poll = max(1, int(max_messages_per_poll))
+        self.retry_policy = retry_policy or RetryPolicy()
+        self.idle_backoff = idle_backoff or IdleBackoffPolicy()
+        self.stop_event = stop_event or threading.Event()
+        self.operation_type = operation_type
+
+    def stop(self) -> None:
+        self.stop_event.set()
+
+    def close(self) -> None:
+        _safe_close(self.consumer_connection)
+        _safe_close(self.producer_connection)
+
+    def run(self, *, max_loops: Optional[int] = None) -> Dict[str, Any]:
+        processed_total = 0
+        sent_total = 0
+        failed_total = 0
+        dlq_total = 0
+
+        idle_sleep = max(0.0, float(self.idle_backoff.initial_sleep_seconds))
+        loops = 0
+
+        try:
+            while not self.stop_event.is_set():
+                if max_loops is not None and loops >= max_loops:
+                    break
+                loops += 1
+
+                try:
+                    raw_result = self.pipeline.consumer.fetch(
+                        self.consumer_connection,
+                        self.source,
+                        **self.fetch_kwargs,
+                    )
+                except Exception as exc:
+                    logger.warning("Consumer fetch failed: %s", exc)
+                    time.sleep(idle_sleep)
+                    idle_sleep = min(
+                        float(self.idle_backoff.max_sleep_seconds),
+                        idle_sleep * float(self.idle_backoff.backoff_multiplier or 1.0),
+                    )
+                    continue
+
+                envelopes: List[MessageEnvelope] = []
+                if raw_result is None:
+                    envelopes = []
+                elif isinstance(raw_result, MessageEnvelope):
+                    envelopes = [raw_result]
+                elif isinstance(raw_result, list) and all(
+                    isinstance(x, MessageEnvelope) for x in raw_result
+                ):
+                    envelopes = list(raw_result)
+                else:
+                    envelopes = [MessageEnvelope(body=raw_result, source=self.source)]
+
+                if not envelopes:
+                    time.sleep(idle_sleep)
+                    idle_sleep = min(
+                        float(self.idle_backoff.max_sleep_seconds),
+                        idle_sleep * float(self.idle_backoff.backoff_multiplier or 1.0),
+                    )
+                    continue
+
+                idle_sleep = max(0.0, float(self.idle_backoff.initial_sleep_seconds))
+
+                for env in envelopes[: self.max_messages_per_poll]:
+                    processed_total += 1
+                    ok, dlq_written = self._handle_envelope(env)
+                    if ok:
+                        sent_total += 1
+                    else:
+                        failed_total += 1
+                    if dlq_written:
+                        dlq_total += 1
+
+        finally:
+            self.close()
+
+        return {
+            "processed": processed_total,
+            "sent": sent_total,
+            "failed": failed_total,
+            "dlq_written": dlq_total,
+            "loops": loops,
+        }
+
+    def _handle_envelope(self, env: MessageEnvelope) -> Tuple[bool, bool]:
+        attempts = 0
+        last_exc: Optional[Exception] = None
+
+        max_attempts = max(1, int(self.retry_policy.max_attempts))
+        delay = max(0.0, float(self.retry_policy.initial_delay_seconds))
+
+        while attempts < max_attempts and not self.stop_event.is_set():
+            attempts += 1
+            try:
+                payload = env.body
+                if self.pipeline.transformer is not None:
+                    payload = self.pipeline.transformer(payload, env)
+
+                destination = self.default_destination
+                if self.pipeline.router is not None:
+                    destination = self.pipeline.router.route(
+                        env,
+                        payload,
+                        default=self.default_destination,
+                    )
+                if destination is None:
+                    destination = self.source
+
+                self.pipeline.producer.send(
+                    self.producer_connection,
+                    destination,
+                    payload,
+                    **self.send_kwargs,
+                )
+                env.ack_message()
+                return True, False
+            except Exception as exc:
+                last_exc = exc
+                if attempts >= max_attempts:
+                    break
+
+                jitter = random.uniform(
+                    0.0,
+                    max(0.0, float(self.retry_policy.jitter_seconds)),
+                )
+                time.sleep(
+                    min(
+                        delay + jitter,
+                        float(self.retry_policy.max_delay_seconds),
+                    )
+                )
+                delay = min(
+                    float(self.retry_policy.max_delay_seconds),
+                    delay * float(self.retry_policy.backoff_multiplier or 1.0),
+                )
+
+        env.nack_message(requeue=False)
+
+        dlq_written = False
+        if self.pipeline.dlq is not None:
+            try:
+                err = ApiLinkerError(
+                    message=str(last_exc) if last_exc is not None else "unknown error",
+                    error_category=ErrorCategory.PLUGIN,
+                    additional_context={
+                        "source": self.source,
+                        "destination": self.default_destination,
+                        "message_id": env.message_id,
+                        "operation_type": self.operation_type,
+                        "attempts": attempts,
+                    },
+                )
+                self.pipeline.dlq.add_item(
+                    err,
+                    payload={
+                        "body": env.body,
+                        "headers": env.headers,
+                        "attributes": env.attributes,
+                        "source": env.source,
+                        "message_id": env.message_id,
+                    },
+                    metadata={
+                        "operation_type": self.operation_type,
+                        "attempts": attempts,
+                    },
+                )
+                dlq_written = True
+            except Exception as dlq_exc:
+                logger.warning("Failed to write message to DLQ: %s", dlq_exc)
+
+        return False, dlq_written

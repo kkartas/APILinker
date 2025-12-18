@@ -14,4 +14,5 @@ __all__ = [
     "logger",
     "monitoring",
     "webhooks",
+    "message_queue",
 ]

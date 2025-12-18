@@ -120,6 +120,16 @@ Provides dependency-free message primitives for event-driven pipelines:
 - `JsonMessageSerializer`: default (de)serializer
 - `MessageRouter`: predicate-based routing to destination topics/queues
 - `MessagePipeline`: helper to fetch → transform → route → send with DLQ integration
+- `MessageWorker`: production-grade worker loop (retry/backoff, idle backoff, graceful stop)
+
+#### Production worker semantics
+
+- The worker uses a `threading.Event` (`stop_event`) for graceful shutdown.
+- When no messages are available, it uses an exponential *idle backoff* sleep.
+- Per-message failures are retried with exponential backoff and jitter (configurable via `RetryPolicy`).
+- After retry exhaustion, the message is `nack`'d (if supported by the connector) and written to the APILinker DLQ (if configured).
+
+Operational note: for production deployments, prefer enabling broker-native DLQ/dead-lettering (RabbitMQ DLX, SQS redrive policy, Kafka retry/DLT topics) in addition to APILinker’s file-based DLQ.
 
 ### 1.2 Message Queue Connector Plugins (`core/message_queue_connectors.py`)
 
