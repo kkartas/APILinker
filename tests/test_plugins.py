@@ -54,7 +54,7 @@ class TestPluginBase:
             plugin_type = "minimal"
 
         info = BasicPlugin.get_plugin_info()
-        assert info["version"] == "0.6.1"
+        assert info["version"] == "0.7.0"
         assert info["author"] == "Unknown"
 
 

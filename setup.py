@@ -7,7 +7,7 @@ from pathlib import Path
 this_directory = Path(__file__).parent
 long_description = (this_directory / "README.md").read_text(encoding="utf-8")
 
-__version__ = "0.6.1"
+__version__ = "0.7.0"
 
 setup(
     name="apilinker",
