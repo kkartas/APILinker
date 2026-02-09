@@ -654,7 +654,9 @@ class ApiConnector:
                     json=request.get("json"),
                     timeout=read_timeout,
                 ) as response:
-                    self.rate_limit_manager.update_from_response(endpoint_name, response)
+                    self.rate_limit_manager.update_from_response(
+                        endpoint_name, response
+                    )
                     response.raise_for_status()
                     logger.info(
                         "Connected to SSE endpoint: %s (%s %s)",
@@ -666,7 +668,7 @@ class ApiConnector:
                     pending_lines: List[str] = []
 
                     def _dispatch_event(
-                        event: Dict[str, Any]
+                        event: Dict[str, Any],
                     ) -> Optional[Dict[str, Any]]:
                         nonlocal effective_reconnect_delay, last_event_id, received_events
 
@@ -832,8 +834,8 @@ class ApiConnector:
             flushed = False
 
             while buffer and (force or len(buffer) >= chunk_size):
-                current_chunk_size = chunk_size if len(buffer) >= chunk_size else len(
-                    buffer
+                current_chunk_size = (
+                    chunk_size if len(buffer) >= chunk_size else len(buffer)
                 )
                 chunk = [buffer.popleft() for _ in range(current_chunk_size)]
                 chunks_processed += 1
