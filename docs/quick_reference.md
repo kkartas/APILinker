@@ -168,6 +168,42 @@ linker.add_source(
 )
 ```
 
+## SSE Streaming
+
+```python
+from apilinker import SSEConnector
+
+connector = SSEConnector(
+    base_url="https://events.example.com",
+    endpoints={
+        "feed": {
+            "path": "/stream",
+            "method": "GET",
+            "sse": {
+                "reconnect": True,
+                "reconnect_delay": 1.0,
+                "max_reconnect_attempts": 10,
+                "chunk_size": 50,
+                "backpressure_buffer_size": 500,
+                "drop_policy": "block",  # or "drop_oldest"
+            },
+        }
+    },
+)
+
+# Event-by-event stream consumption
+for event in connector.stream_events(endpoint_name="feed", max_events=100):
+    print(event["event"], event["data"])
+
+# Chunked processing with explicit backpressure strategy
+summary = connector.consume_events(
+    endpoint_name="feed",
+    chunk_size=25,
+    processor=lambda chunk: [item["data"] for item in chunk],
+)
+print(summary["processed_events"], summary["dropped_events"])
+```
+
 ## Scheduling
 
 ```python

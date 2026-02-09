@@ -8,5 +8,6 @@ and data sources.
 
 from .github import GitHubConnector
 from .nasa import NASAConnector
+from .sse import SSEConnector
 
-__all__ = ["GitHubConnector", "NASAConnector"]
+__all__ = ["GitHubConnector", "NASAConnector", "SSEConnector"]

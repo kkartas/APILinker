@@ -36,6 +36,7 @@ try:
     # General research connectors
     from .connectors.general.github import GitHubConnector  # noqa: F401
     from .connectors.general.nasa import NASAConnector  # noqa: F401
+    from .connectors.general.sse import SSEConnector  # noqa: F401
 
     research_connectors_available = True
 
@@ -55,6 +56,8 @@ try:
         # General research APIs
         "GitHubConnector",
         "NASAConnector",
+        # Streaming connectors
+        "SSEConnector",
     ]
 except ImportError:  # pragma: no cover - optional connectors
     # Research connectors not available

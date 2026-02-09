@@ -62,6 +62,7 @@ worker.run()
 - 🔄 **Universal Connectivity** - Connect any two REST APIs.
 - 🗺️ **Powerful Mapping** - Transform data with ease.
 - ⭐ **Event-Driven Pipelines** - Optional message queue connectors (RabbitMQ, Redis Pub/Sub, AWS SQS, Kafka).
+- SSE Streaming - Built-in SSE connector with reconnection, chunked processing, and backpressure controls.
 - 🔒 **Secure** - Enterprise secret management (Vault, AWS, Azure, GCP).
 - 🧬 **Scientific Connectors** - Built-in support for NCBI, arXiv, and more.
 

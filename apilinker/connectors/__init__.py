@@ -18,6 +18,7 @@ from .scientific import (
 from .general import (
     GitHubConnector,
     NASAConnector,
+    SSEConnector,
 )
 
 __all__ = [
@@ -31,4 +32,5 @@ __all__ = [
     # General connectors
     "GitHubConnector",
     "NASAConnector",
+    "SSEConnector",
 ]

@@ -121,17 +121,18 @@ This document tracks planned features, enhancements, and improvements for ApiLin
 ### Medium Priority
 
 #### Server-Sent Events (SSE) Support
-- **Status:** Planned
+- **Status:** Implemented (post-v0.6.1)
 - **Priority:** Medium
 - **Description:** Real-time data processing via SSE
 - **Features:**
-  - SSE client connector
-  - Streaming response handling
-  - Chunked data processing
-  - Backpressure management
-  - Reconnection logic
-- **Dependencies:** `sseclient` or built-in implementation
+  - SSE client connector (`SSEConnector`)
+  - Streaming response handling (`ApiConnector.stream_sse`)
+  - Chunked data processing (`ApiConnector.consume_sse`)
+  - Backpressure management (`block` and `drop_oldest` policies)
+  - Reconnection logic (automatic reconnect + Last-Event-ID resume)
+- **Dependencies:** None (built-in `httpx` streaming implementation)
 - **Impact:** Enables real-time data streams
+- **Implementation:** `apilinker/core/connector.py`, `apilinker/connectors/general/sse.py`
 
 #### Streaming Response Handling
 - **Status:** Planned

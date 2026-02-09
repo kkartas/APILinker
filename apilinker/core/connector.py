@@ -2,9 +2,11 @@
 API Connector module for handling connections to different types of APIs.
 """
 
+import json
 import logging
 import time
-from typing import Any, Dict, List, Optional, Tuple, Union
+from collections import deque
+from typing import Any, Callable, Deque, Dict, Generator, List, Optional, Tuple, Union
 
 import httpx
 from pydantic import BaseModel, Field
@@ -37,6 +39,7 @@ class EndpointConfig(BaseModel):
     response_schema: Optional[Dict[str, Any]] = None
     request_schema: Optional[Dict[str, Any]] = None
     rate_limit: Optional[Dict[str, Any]] = None
+    sse: Optional[Dict[str, Any]] = None
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
@@ -448,6 +451,438 @@ class ApiConnector:
                 category = ErrorCategory.CLIENT
 
         return category, status_code
+
+    def _decode_sse_data(self, raw_data: str, decode_json: bool = True) -> Any:
+        """
+        Decode an SSE data field.
+
+        Args:
+            raw_data: Raw SSE data payload after line-join
+            decode_json: Whether to attempt JSON decoding
+
+        Returns:
+            Decoded object or raw string payload
+        """
+        if not decode_json:
+            return raw_data
+
+        if raw_data.strip() == "":
+            return raw_data
+
+        try:
+            return json.loads(raw_data)
+        except Exception:
+            return raw_data
+
+    def _parse_sse_event(
+        self, raw_lines: List[str], decode_json: bool = True
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Parse a single SSE event block (lines between blank separators).
+
+        Args:
+            raw_lines: Raw lines from the SSE stream
+            decode_json: Whether to decode JSON payloads automatically
+
+        Returns:
+            Parsed event dictionary, or None if event is ignorable.
+            Returned event includes a transient ``has_data`` flag used internally.
+        """
+        if not raw_lines:
+            return None
+
+        event_id: Optional[str] = None
+        event_name = "message"
+        data_lines: List[str] = []
+        retry_ms: Optional[int] = None
+
+        for line in raw_lines:
+            if line.startswith(":"):
+                # SSE comment/keepalive line
+                continue
+
+            if ":" in line:
+                field, value = line.split(":", 1)
+                if value.startswith(" "):
+                    value = value[1:]
+            else:
+                field, value = line, ""
+
+            if field == "event":
+                event_name = value or "message"
+            elif field == "data":
+                data_lines.append(value)
+            elif field == "id":
+                # Ignore invalid ids per SSE spec guidance
+                if "\x00" not in value:
+                    event_id = value
+            elif field == "retry":
+                try:
+                    parsed_retry = int(value)
+                    if parsed_retry >= 0:
+                        retry_ms = parsed_retry
+                except (TypeError, ValueError):
+                    logger.debug("Ignoring invalid SSE retry value: %s", value)
+
+        has_data = len(data_lines) > 0
+        if not has_data and retry_ms is None and event_id is None:
+            return None
+
+        raw_data = "\n".join(data_lines)
+        return {
+            "id": event_id,
+            "event": event_name,
+            "data": self._decode_sse_data(raw_data, decode_json) if has_data else None,
+            "retry": retry_ms,
+            "raw_data": raw_data,
+            "has_data": has_data,
+        }
+
+    def _build_sse_request(
+        self,
+        endpoint_name: str,
+        params: Optional[Dict[str, Any]] = None,
+        last_event_id: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """
+        Build a request dictionary for an SSE endpoint.
+
+        Adds SSE-friendly headers while preserving endpoint/default headers.
+        """
+        request = self._prepare_request(endpoint_name, params)
+        headers = dict(request.get("headers", {}))
+        headers.setdefault("Accept", "text/event-stream")
+        headers.setdefault("Cache-Control", "no-cache")
+        if last_event_id:
+            headers["Last-Event-ID"] = last_event_id
+        request["headers"] = headers
+        return request
+
+    def _raise_sse_error(
+        self, exc: Exception, endpoint_name: str, request: Dict[str, Any]
+    ) -> None:
+        """Raise an ``ApiLinkerError`` for SSE failures with rich context."""
+        error_category, status_code = self._categorize_error(exc)
+        response_body = None
+        if hasattr(exc, "response"):
+            try:
+                response_body = exc.response.text[:1000]
+            except Exception:
+                response_body = "<Unable to read response body>"
+
+        raise ApiLinkerError(
+            message=f"Failed to stream SSE from {endpoint_name}: {str(exc)}",
+            error_category=error_category,
+            status_code=status_code,
+            response_body=response_body,
+            request_url=str(request.get("url")),
+            request_method=request.get("method", "GET"),
+            additional_context={"endpoint": endpoint_name},
+        )
+
+    def stream_sse(
+        self,
+        endpoint_name: str,
+        params: Optional[Dict[str, Any]] = None,
+        max_events: Optional[int] = None,
+        reconnect: bool = True,
+        reconnect_delay: float = 1.0,
+        max_reconnect_attempts: Optional[int] = None,
+        read_timeout: Optional[float] = None,
+        decode_json: bool = True,
+    ) -> Generator[Dict[str, Any], None, None]:
+        """
+        Stream events from an SSE endpoint.
+
+        Supports automatic reconnection, Last-Event-ID resume, and optional
+        JSON decoding of event payloads.
+
+        Args:
+            endpoint_name: Endpoint key configured in ``self.endpoints``.
+            params: Query parameters.
+            max_events: Stop after this many dispatched events.
+            reconnect: Whether to reconnect on disconnect/error.
+            reconnect_delay: Base reconnect delay in seconds.
+            max_reconnect_attempts: Maximum reconnect attempts (None = unlimited).
+            read_timeout: Per-stream read timeout. Defaults to connector timeout.
+            decode_json: Whether to decode JSON payloads automatically.
+
+        Yields:
+            Parsed SSE events with keys: ``id``, ``event``, ``data``, ``retry``, ``raw_data``.
+        """
+        if endpoint_name not in self.endpoints:
+            raise ValueError(f"Endpoint '{endpoint_name}' not found in configuration")
+
+        endpoint = self.endpoints[endpoint_name]
+        sse_config = endpoint.sse or {}
+
+        if max_events is None and sse_config.get("max_events") is not None:
+            max_events = int(sse_config["max_events"])
+
+        reconnect = bool(sse_config.get("reconnect", reconnect))
+        reconnect_delay = float(sse_config.get("reconnect_delay", reconnect_delay))
+
+        if (
+            max_reconnect_attempts is None
+            and sse_config.get("max_reconnect_attempts") is not None
+        ):
+            max_reconnect_attempts = int(sse_config["max_reconnect_attempts"])
+
+        if read_timeout is None:
+            read_timeout = sse_config.get("read_timeout")
+        if read_timeout is None:
+            read_timeout = self.timeout
+
+        decode_json = bool(sse_config.get("decode_json", decode_json))
+
+        reconnect_attempts = 0
+        received_events = 0
+        last_event_id: Optional[str] = None
+        effective_reconnect_delay = max(0.0, reconnect_delay)
+
+        while True:
+            request = self._build_sse_request(endpoint_name, params, last_event_id)
+            try:
+                # Apply endpoint-level rate limiting before opening/renewing stream
+                self.rate_limit_manager.acquire(endpoint_name)
+
+                with self.client.stream(
+                    request["method"],
+                    request["url"],
+                    headers=request["headers"],
+                    params=request["params"],
+                    json=request.get("json"),
+                    timeout=read_timeout,
+                ) as response:
+                    self.rate_limit_manager.update_from_response(endpoint_name, response)
+                    response.raise_for_status()
+                    logger.info(
+                        "Connected to SSE endpoint: %s (%s %s)",
+                        endpoint_name,
+                        request["method"],
+                        request["url"],
+                    )
+
+                    pending_lines: List[str] = []
+
+                    def _dispatch_event(
+                        event: Dict[str, Any]
+                    ) -> Optional[Dict[str, Any]]:
+                        nonlocal effective_reconnect_delay, last_event_id, received_events
+
+                        retry_hint = event.get("retry")
+                        if isinstance(retry_hint, int):
+                            effective_reconnect_delay = max(
+                                0.0, float(retry_hint) / 1000.0
+                            )
+
+                        event_id = event.get("id")
+                        if event_id:
+                            last_event_id = str(event_id)
+
+                        if not event.get("has_data"):
+                            # Retry/id-only control blocks are not dispatched
+                            return None
+
+                        event.pop("has_data", None)
+                        received_events += 1
+                        return event
+
+                    for raw_line in response.iter_lines():
+                        if raw_line is None:
+                            continue
+
+                        line = raw_line.rstrip("\r")
+
+                        if line == "":
+                            parsed = self._parse_sse_event(
+                                pending_lines, decode_json=decode_json
+                            )
+                            pending_lines = []
+
+                            if parsed is None:
+                                continue
+
+                            event = _dispatch_event(parsed)
+                            if event is None:
+                                continue
+
+                            yield event
+                            if max_events is not None and received_events >= max_events:
+                                return
+                        else:
+                            pending_lines.append(line)
+
+                    # Flush trailing buffered event block on connection close
+                    if pending_lines:
+                        parsed = self._parse_sse_event(
+                            pending_lines, decode_json=decode_json
+                        )
+                        if parsed is not None:
+                            event = _dispatch_event(parsed)
+                            if event is not None:
+                                yield event
+                                if (
+                                    max_events is not None
+                                    and received_events >= max_events
+                                ):
+                                    return
+
+            except Exception as exc:
+                if not reconnect:
+                    self._raise_sse_error(exc, endpoint_name, request)
+
+                reconnect_attempts += 1
+                if (
+                    max_reconnect_attempts is not None
+                    and reconnect_attempts > max_reconnect_attempts
+                ):
+                    self._raise_sse_error(exc, endpoint_name, request)
+
+                logger.warning(
+                    "SSE stream error on endpoint '%s': %s. Reconnecting in %.2fs (attempt %d)",
+                    endpoint_name,
+                    str(exc),
+                    effective_reconnect_delay,
+                    reconnect_attempts,
+                )
+                time.sleep(effective_reconnect_delay)
+                continue
+
+            # Reconnect when stream closes naturally, unless disabled.
+            if not reconnect:
+                return
+
+            reconnect_attempts += 1
+            if (
+                max_reconnect_attempts is not None
+                and reconnect_attempts > max_reconnect_attempts
+            ):
+                return
+
+            logger.info(
+                "SSE stream closed for endpoint '%s'. Reconnecting in %.2fs (attempt %d)",
+                endpoint_name,
+                effective_reconnect_delay,
+                reconnect_attempts,
+            )
+            time.sleep(effective_reconnect_delay)
+
+    def consume_sse(
+        self,
+        endpoint_name: str,
+        params: Optional[Dict[str, Any]] = None,
+        processor: Optional[Callable[[List[Dict[str, Any]]], Any]] = None,
+        chunk_size: int = 50,
+        max_events: Optional[int] = None,
+        backpressure_buffer_size: int = 500,
+        drop_policy: str = "block",
+        **stream_kwargs: Any,
+    ) -> Dict[str, Any]:
+        """
+        Consume SSE events in chunks with bounded in-memory buffering.
+
+        This method adds chunked processing and explicit backpressure handling:
+        - ``drop_policy='block'``: flushes buffer chunks before accepting more data.
+        - ``drop_policy='drop_oldest'``: drops oldest buffered events when full.
+
+        Args:
+            endpoint_name: Endpoint key configured in ``self.endpoints``.
+            params: Query parameters.
+            processor: Optional callback invoked with each chunk.
+            chunk_size: Number of events per processing chunk.
+            max_events: Maximum number of events to consume.
+            backpressure_buffer_size: Max in-memory event buffer.
+            drop_policy: ``block`` or ``drop_oldest``.
+            **stream_kwargs: Extra kwargs forwarded to ``stream_sse``.
+
+        Returns:
+            Summary dictionary with processing metrics and chunk results.
+        """
+        if endpoint_name not in self.endpoints:
+            raise ValueError(f"Endpoint '{endpoint_name}' not found in configuration")
+
+        endpoint = self.endpoints[endpoint_name]
+        sse_config = endpoint.sse or {}
+
+        if max_events is None and sse_config.get("max_events") is not None:
+            max_events = int(sse_config["max_events"])
+
+        chunk_size = int(sse_config.get("chunk_size", chunk_size))
+        backpressure_buffer_size = int(
+            sse_config.get("backpressure_buffer_size", backpressure_buffer_size)
+        )
+        drop_policy = str(sse_config.get("drop_policy", drop_policy)).lower()
+
+        if chunk_size <= 0:
+            raise ValueError("chunk_size must be > 0")
+        if backpressure_buffer_size <= 0:
+            raise ValueError("backpressure_buffer_size must be > 0")
+        if drop_policy not in {"block", "drop_oldest"}:
+            raise ValueError("drop_policy must be either 'block' or 'drop_oldest'")
+
+        buffer: Deque[Dict[str, Any]] = deque(maxlen=backpressure_buffer_size)
+        dropped_events = 0
+        processed_events = 0
+        chunks_processed = 0
+        chunk_results: List[Any] = []
+
+        def _flush(force: bool = False) -> bool:
+            nonlocal processed_events, chunks_processed
+            flushed = False
+
+            while buffer and (force or len(buffer) >= chunk_size):
+                current_chunk_size = chunk_size if len(buffer) >= chunk_size else len(
+                    buffer
+                )
+                chunk = [buffer.popleft() for _ in range(current_chunk_size)]
+                chunks_processed += 1
+                processed_events += len(chunk)
+                flushed = True
+
+                if processor:
+                    chunk_results.append(processor(chunk))
+                else:
+                    chunk_results.append(chunk)
+
+                # In non-force mode we flush at most one chunk each step.
+                if not force:
+                    break
+
+            return flushed
+
+        for event in self.stream_sse(
+            endpoint_name=endpoint_name,
+            params=params,
+            max_events=max_events,
+            **stream_kwargs,
+        ):
+            while len(buffer) >= backpressure_buffer_size:
+                if drop_policy == "drop_oldest":
+                    buffer.popleft()
+                    dropped_events += 1
+                    break
+
+                # Block strategy: process buffered data before accepting more.
+                if not _flush(force=False):
+                    _flush(force=True)
+                    break
+
+            buffer.append(event)
+            _flush(force=False)
+
+        # Process any trailing events.
+        _flush(force=True)
+
+        return {
+            "success": True,
+            "processed_events": processed_events,
+            "chunks_processed": chunks_processed,
+            "dropped_events": dropped_events,
+            "chunk_size": chunk_size,
+            "buffer_max_size": backpressure_buffer_size,
+            "results": chunk_results,
+        }
 
     def fetch_data(
         self, endpoint_name: str, params: Optional[Dict[str, Any]] = None

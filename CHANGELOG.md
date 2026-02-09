@@ -67,6 +67,7 @@ See [ROADMAP.md](ROADMAP.md) for planned features and version roadmap.
 
 ### Added
 - Message queue connector plugins (RabbitMQ, Redis Pub/Sub, AWS SQS, Kafka) and a dependency-free message routing/transformation pipeline
+- Built-in SSE support with `ApiConnector.stream_sse`, chunked/backpressure consumption via `ApiConnector.consume_sse`, and a dedicated `SSEConnector`
 
 ### Changed
 - See ROADMAP.md for planned changes

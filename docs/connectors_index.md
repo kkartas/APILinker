@@ -23,6 +23,8 @@ This page lists built-in connectors with links to source files and basic usage.
   - Usage: `from apilinker import GitHubConnector`
 - NASA — `apilinker/connectors/general/nasa.py`
   - Usage: `from apilinker import NASAConnector`
+- SSE - `apilinker/connectors/general/sse.py`
+  - Usage: `from apilinker import SSEConnector`
 
 ### Notes
 
