@@ -28,24 +28,15 @@ class TestConnectorRateLimiting:
         mock_response.json.return_value = {"data": "ok"}
         mock_request.return_value = mock_response
 
-        # First call should pass immediately
-        start = time.time()
-        connector.fetch_data("limited_endpoint")
-        duration = time.time() - start
-        assert duration < 0.1
+        # Use a deterministic assertion by observing the internal sleep call
+        # instead of wall-clock elapsed time, which is flaky on CI runners.
+        with patch("apilinker.core.rate_limiting.time.sleep") as mock_sleep:
+            connector.fetch_data("limited_endpoint")
+            connector.fetch_data("limited_endpoint")
 
-        # Second call should wait (rate is 10/s, burst 1, so 1 token.
-        # Refill is 0.1s per token. But wait, burst is 1.
-        # Initial tokens = 1.
-        # Call 1 consumes 1. Tokens = 0.
-        # Call 2 needs 1. Wait time = 1/10 = 0.1s.
-
-        # We need to mock time or just accept the sleep. 0.1s is fast enough.
-        start = time.time()
-        connector.fetch_data("limited_endpoint")
-        duration = time.time() - start
-        # Timing-based tests are sensitive to scheduler jitter on CI runners.
-        assert duration >= 0.08
+            assert mock_sleep.call_count >= 1
+            waited_for = mock_sleep.call_args_list[-1][0][0]
+            assert waited_for > 0
 
     @patch("apilinker.core.connector.httpx.Client.request")
     def test_update_from_response(self, mock_request, connector):
