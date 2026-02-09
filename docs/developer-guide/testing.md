@@ -51,7 +51,7 @@ Coverage is tracked automatically in CI/CD. View the latest coverage report on [
 ApiLinker uses GitHub Actions for automated testing on every commit:
 
 - **Multi-platform**: Tests run on Ubuntu, Windows, and macOS
-- **Multi-version**: Python 3.9, 3.10, 3.11
+- **Multi-version**: Python 3.9, 3.10, 3.11, 3.12
 - **Quality checks**: Linting (flake8, black), type checking (mypy)
 - **Coverage enforcement**: Minimum 80% code coverage required
 
