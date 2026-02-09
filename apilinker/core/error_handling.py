@@ -633,7 +633,7 @@ class ErrorRecoveryManager:
                         return True, result, None
                     except Exception as e:
                         logger.warning(
-                            f"Retry {attempt+1}/{max_retries} failed: {str(e)}"
+                            f"Retry {attempt + 1}/{max_retries} failed: {str(e)}"
                         )
                         if attempt == max_retries - 1:
                             error = ApiLinkerError.from_exception(
@@ -650,7 +650,7 @@ class ErrorRecoveryManager:
                     try:
                         if attempt > 0:
                             logger.info(
-                                f"Waiting {current_delay:.2f}s before retry {attempt+1}/{max_retries}"
+                                f"Waiting {current_delay:.2f}s before retry {attempt + 1}/{max_retries}"
                             )
                             time.sleep(current_delay)
                             current_delay *= retry_backoff_factor
@@ -660,7 +660,7 @@ class ErrorRecoveryManager:
 
                     except Exception as e:
                         logger.warning(
-                            f"Retry {attempt+1}/{max_retries} failed: {str(e)}"
+                            f"Retry {attempt + 1}/{max_retries} failed: {str(e)}"
                         )
                         if attempt == max_retries - 1:
                             error = ApiLinkerError.from_exception(

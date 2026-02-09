@@ -342,7 +342,7 @@ class NASAConnector(ApiConnector):
 
         # For each location, get available earth imagery/data
         for i, location in enumerate(locations):
-            location_key = f"location_{i+1}"
+            location_key = f"location_{i + 1}"
 
             try:
                 # Get earth assets for this location
