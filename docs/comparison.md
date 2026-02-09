@@ -20,6 +20,7 @@ This guide compares ApiLinker with other popular API integration tools to help y
 | Field Mapping | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Data Transformations | ✅ (Built-in & Custom) | Limited | ✅ | ✅ | ✅ |
 | Scheduling | ✅ (Interval, Cron) | ✅ | ✅ | ✅ | ✅ |
+| SSE Streaming | ✅ | ❌ | Partial | ❌ | Partial |
 | Error Handling | ✅ (Basic Retries) | Limited | ✅ | ✅ | ✅ |
 | **Authentication** |
 | API Key | ✅ | ✅ | ✅ | ✅ | ✅ |

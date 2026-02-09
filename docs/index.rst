@@ -21,6 +21,7 @@ Features
 
 - **Connectors**: Connect to any REST API with support for various authentication methods
 - **Field Mapping**: Map fields between APIs with support for transformations and nested data
+- **SSE Streaming**: Built-in Server-Sent Events connector with reconnection and chunked processing
 - **Authentication**: Support for API keys, Bearer tokens, Basic auth, and OAuth2
 - **Scheduling**: Automatic data transfers on interval or cron schedules
 - **Error Handling**: Robust error recovery and retry mechanisms

@@ -31,6 +31,8 @@ Base class for all API connectors.
         - __init__
         - fetch_data
         - send_data
+        - stream_sse
+        - consume_sse
         - check_health
 
 ### FieldMapper
@@ -74,3 +76,4 @@ For research connector documentation, see [Research Connectors Guide](../user-gu
 - **ORCIDConnector**: Researcher profiles
 - **GitHubConnector**: Code repositories
 - **NASAConnector**: Earth/space data
+- **SSEConnector**: Real-time Server-Sent Events streams

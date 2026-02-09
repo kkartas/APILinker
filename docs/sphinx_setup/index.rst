@@ -28,6 +28,7 @@ Key Features
 
 * Universal Connectivity - Connect any two REST APIs with simple configuration
 * Powerful Mapping - Transform data between APIs with field mapping and path expressions
+* SSE Streaming - Built-in Server-Sent Events connector with reconnection and chunked processing
 * Data Transformation - Apply built-in or custom transformations to your data
 * Comprehensive Authentication - Support for API Key, Bearer Token, Basic Auth, and OAuth2
 * Flexible Configuration - Use YAML/JSON or configure programmatically in Python

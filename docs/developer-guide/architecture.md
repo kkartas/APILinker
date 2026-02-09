@@ -20,6 +20,8 @@ graph TD
 
 ### Core Design Patterns
 
+Real-time event ingestion is supported via webhooks, message queues, and Server-Sent Events (SSE).
+
 1. **Strategy Pattern**: Different connectors, authenticators, and transformers
 2. **Factory Pattern**: Plugin instantiation and connector creation
 3. **Observer Pattern**: Event handling and monitoring

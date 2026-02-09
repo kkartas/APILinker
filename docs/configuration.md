@@ -122,6 +122,28 @@ endpoints:
               name: { type: string }
 ```
 
+### SSE Streaming Endpoints
+
+For Server-Sent Events streams, add an optional `sse` block to an endpoint:
+
+```yaml
+endpoints:
+  events:
+    path: /stream
+    method: GET
+    sse:
+      reconnect: true
+      reconnect_delay: 1.0
+      max_reconnect_attempts: 10
+      read_timeout: 60
+      decode_json: true
+      chunk_size: 50
+      backpressure_buffer_size: 500
+      drop_policy: block  # block | drop_oldest
+```
+
+This endpoint can be consumed with `stream_sse(...)` (event-by-event) or `consume_sse(...)` (chunked/backpressure-aware).
+
 For endpoints that send data:
 
 ```yaml

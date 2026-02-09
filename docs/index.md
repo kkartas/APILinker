@@ -6,6 +6,8 @@ ApiLinker is an open-source Python package that simplifies API integration. It a
 
 ## Key Features
 
+- SSE **Real-Time Streaming**: Built-in SSE connector with reconnection, chunked processing, and backpressure controls.
+
 - 🔄 **Universal Connectivity**: Connect any two REST APIs.
 - 🗺️ **Powerful Mapping**: Transform data with field mapping and expressions.
 - 🔒 **Security**: Enterprise-grade secret management and auth support.

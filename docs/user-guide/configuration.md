@@ -46,3 +46,28 @@ You can enforce schema validation on requests and responses:
 validation:
   strict_mode: true
 ```
+
+## SSE Endpoint Configuration
+
+ApiLinker supports Server-Sent Events (SSE) with built-in reconnect and chunked consumption controls.
+
+```yaml
+source:
+  type: sse
+  base_url: https://events.example.com
+  endpoints:
+    feed:
+      path: /stream
+      method: GET
+      sse:
+        reconnect: true
+        reconnect_delay: 1.0
+        max_reconnect_attempts: 10
+        read_timeout: 60
+        decode_json: true
+        chunk_size: 50
+        backpressure_buffer_size: 500
+        drop_policy: block  # block | drop_oldest
+```
+
+Use `stream_sse(...)` for event-by-event processing and `consume_sse(...)` for chunked/backpressure-aware processing.

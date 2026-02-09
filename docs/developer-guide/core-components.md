@@ -27,6 +27,7 @@ The `ApiConnector` is the foundation for all API connectors.
 - **Consistent Interface**: Uniform methods for all API types.
 - **Error Handling**: Built-in retry logic and circuit breakers.
 - **Rate Limiting**: Respectful API usage with configurable limits.
+- **SSE Streaming**: `stream_sse(...)` and `consume_sse(...)` for real-time event streams.
 
 ## FieldMapper Class
 
