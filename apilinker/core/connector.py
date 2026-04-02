@@ -4,6 +4,7 @@ API Connector module for handling connections to different types of APIs.
 
 import json
 import logging
+import os
 import time
 from collections import deque
 from typing import Any, Callable, Deque, Dict, Generator, List, Optional, Tuple, Union
@@ -40,6 +41,7 @@ class EndpointConfig(BaseModel):
     request_schema: Optional[Dict[str, Any]] = None
     rate_limit: Optional[Dict[str, Any]] = None
     sse: Optional[Dict[str, Any]] = None
+    streaming: Optional[Dict[str, Any]] = None
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
@@ -558,6 +560,99 @@ class ApiConnector:
         request["headers"] = headers
         return request
 
+    def _build_stream_request(
+        self,
+        endpoint_name: str,
+        params: Optional[Dict[str, Any]] = None,
+        resume_from: int = 0,
+        extra_headers: Optional[Dict[str, str]] = None,
+    ) -> Dict[str, Any]:
+        """
+        Build a request dictionary for streamed HTTP responses.
+
+        Adds optional resume and caller-provided headers while preserving
+        endpoint/default headers.
+        """
+        request = self._prepare_request(endpoint_name, params)
+        headers = dict(request.get("headers", {}))
+        if resume_from > 0:
+            headers["Range"] = f"bytes={resume_from}-"
+        if extra_headers:
+            headers.update(extra_headers)
+        request["headers"] = headers
+        return request
+
+    def _extract_stream_total_bytes(
+        self, response: httpx.Response, resume_from: int = 0
+    ) -> Optional[int]:
+        """Infer the total payload size for a streamed response."""
+        content_range = response.headers.get("Content-Range")
+        if content_range and "/" in content_range:
+            total_part = content_range.rsplit("/", 1)[1].strip()
+            if total_part.isdigit():
+                return int(total_part)
+
+        content_length = response.headers.get("Content-Length")
+        if content_length and content_length.isdigit():
+            total = int(content_length)
+            if resume_from > 0 and response.status_code == 206:
+                return resume_from + total
+            return total
+
+        return None
+
+    def _build_stream_progress(
+        self,
+        endpoint_name: str,
+        bytes_processed: int,
+        bytes_streamed: int,
+        total_bytes: Optional[int],
+        chunk_index: int,
+        resumed: bool,
+        done: bool,
+    ) -> Dict[str, Any]:
+        """Create a normalized progress payload for streaming callbacks."""
+        percent_complete = None
+        if total_bytes and total_bytes > 0:
+            percent_complete = min(100.0, (bytes_processed / total_bytes) * 100.0)
+
+        return {
+            "endpoint": endpoint_name,
+            "bytes_processed": bytes_processed,
+            "bytes_streamed": bytes_streamed,
+            "total_bytes": total_bytes,
+            "percent_complete": percent_complete,
+            "chunk_index": chunk_index,
+            "resumed": resumed,
+            "done": done,
+        }
+
+    def _raise_stream_error(
+        self,
+        exc: Exception,
+        endpoint_name: str,
+        request: Dict[str, Any],
+        operation: str,
+    ) -> None:
+        """Raise an ``ApiLinkerError`` for generic streaming failures."""
+        error_category, status_code = self._categorize_error(exc)
+        response_body = None
+        if hasattr(exc, "response"):
+            try:
+                response_body = exc.response.text[:1000]
+            except Exception:
+                response_body = "<Unable to read response body>"
+
+        raise ApiLinkerError(
+            message=f"Failed to {operation} from {endpoint_name}: {str(exc)}",
+            error_category=error_category,
+            status_code=status_code,
+            response_body=response_body,
+            request_url=str(request.get("url")),
+            request_method=request.get("method", "GET"),
+            additional_context={"endpoint": endpoint_name, "operation": operation},
+        )
+
     def _raise_sse_error(
         self, exc: Exception, endpoint_name: str, request: Dict[str, Any]
     ) -> None:
@@ -885,6 +980,277 @@ class ApiConnector:
             "buffer_max_size": backpressure_buffer_size,
             "results": chunk_results,
         }
+
+    def stream_response(
+        self,
+        endpoint_name: str,
+        params: Optional[Dict[str, Any]] = None,
+        chunk_size: int = 65536,
+        read_timeout: Optional[float] = None,
+        progress_callback: Optional[Callable[[Dict[str, Any]], None]] = None,
+        resume_from: int = 0,
+        extra_headers: Optional[Dict[str, str]] = None,
+    ) -> Generator[bytes, None, None]:
+        """
+        Stream a generic HTTP response in bounded-size chunks.
+
+        This method supports memory-efficient chunk processing, optional
+        progress callbacks, and byte-range resume when the upstream API
+        supports ``Range`` requests.
+
+        Args:
+            endpoint_name: Endpoint key configured in ``self.endpoints``.
+            params: Optional query parameters.
+            chunk_size: Byte size for each yielded chunk.
+            read_timeout: Per-stream read timeout. Defaults to connector timeout.
+            progress_callback: Optional callback invoked with progress metadata.
+            resume_from: Byte offset to resume from using a ``Range`` request.
+            extra_headers: Extra request headers merged into the stream request.
+
+        Yields:
+            Raw byte chunks from the response body.
+        """
+        if endpoint_name not in self.endpoints:
+            raise ValueError(f"Endpoint '{endpoint_name}' not found in configuration")
+
+        endpoint = self.endpoints[endpoint_name]
+        streaming_config = endpoint.streaming or {}
+
+        chunk_size = int(streaming_config.get("chunk_size", chunk_size))
+        if chunk_size <= 0:
+            raise ValueError("chunk_size must be > 0")
+
+        resume_from = int(streaming_config.get("resume_from", resume_from))
+        if resume_from < 0:
+            raise ValueError("resume_from must be >= 0")
+
+        if read_timeout is None:
+            read_timeout = streaming_config.get("read_timeout")
+        if read_timeout is None:
+            read_timeout = self.timeout
+
+        configured_headers = streaming_config.get("headers", {})
+        merged_headers = {**configured_headers, **(extra_headers or {})}
+        request = self._build_stream_request(
+            endpoint_name=endpoint_name,
+            params=params,
+            resume_from=resume_from,
+            extra_headers=merged_headers,
+        )
+
+        try:
+            self.rate_limit_manager.acquire(endpoint_name)
+
+            with self.client.stream(
+                request["method"],
+                request["url"],
+                headers=request["headers"],
+                params=request["params"],
+                json=request.get("json"),
+                timeout=read_timeout,
+            ) as response:
+                self.rate_limit_manager.update_from_response(endpoint_name, response)
+                response.raise_for_status()
+
+                resumed = resume_from > 0 and response.status_code == 206
+                effective_resume_from = resume_from if resumed else 0
+                total_bytes = self._extract_stream_total_bytes(
+                    response, resume_from=effective_resume_from
+                )
+                bytes_streamed = 0
+                chunk_index = 0
+
+                if progress_callback:
+                    progress_callback(
+                        self._build_stream_progress(
+                            endpoint_name=endpoint_name,
+                            bytes_processed=effective_resume_from,
+                            bytes_streamed=0,
+                            total_bytes=total_bytes,
+                            chunk_index=0,
+                            resumed=resumed,
+                            done=False,
+                        )
+                    )
+
+                for chunk in response.iter_bytes(chunk_size=chunk_size):
+                    if not chunk:
+                        continue
+
+                    chunk_index += 1
+                    bytes_streamed += len(chunk)
+
+                    if progress_callback:
+                        progress_callback(
+                            self._build_stream_progress(
+                                endpoint_name=endpoint_name,
+                                bytes_processed=effective_resume_from + bytes_streamed,
+                                bytes_streamed=bytes_streamed,
+                                total_bytes=total_bytes,
+                                chunk_index=chunk_index,
+                                resumed=resumed,
+                                done=False,
+                            )
+                        )
+
+                    yield chunk
+
+                if progress_callback:
+                    progress_callback(
+                        self._build_stream_progress(
+                            endpoint_name=endpoint_name,
+                            bytes_processed=effective_resume_from + bytes_streamed,
+                            bytes_streamed=bytes_streamed,
+                            total_bytes=total_bytes,
+                            chunk_index=chunk_index,
+                            resumed=resumed,
+                            done=True,
+                        )
+                    )
+
+        except Exception as exc:
+            self._raise_stream_error(exc, endpoint_name, request, "stream response")
+
+    def download_stream(
+        self,
+        endpoint_name: str,
+        destination_path: str,
+        params: Optional[Dict[str, Any]] = None,
+        chunk_size: int = 65536,
+        resume: bool = True,
+        read_timeout: Optional[float] = None,
+        progress_callback: Optional[Callable[[Dict[str, Any]], None]] = None,
+        extra_headers: Optional[Dict[str, str]] = None,
+    ) -> Dict[str, Any]:
+        """
+        Download a streamed HTTP response directly to disk.
+
+        Downloads are written incrementally to keep memory usage bounded.
+        When ``resume`` is enabled and the destination file already exists,
+        ApiLinker will attempt a byte-range request and append only the
+        remaining bytes when the upstream API returns ``206 Partial Content``.
+        """
+        if endpoint_name not in self.endpoints:
+            raise ValueError(f"Endpoint '{endpoint_name}' not found in configuration")
+
+        endpoint = self.endpoints[endpoint_name]
+        streaming_config = endpoint.streaming or {}
+
+        chunk_size = int(streaming_config.get("chunk_size", chunk_size))
+        if chunk_size <= 0:
+            raise ValueError("chunk_size must be > 0")
+
+        resume = bool(streaming_config.get("resume", resume))
+
+        if read_timeout is None:
+            read_timeout = streaming_config.get("read_timeout")
+        if read_timeout is None:
+            read_timeout = self.timeout
+
+        configured_headers = streaming_config.get("headers", {})
+        merged_headers = {**configured_headers, **(extra_headers or {})}
+
+        destination_dir = os.path.dirname(os.path.abspath(destination_path))
+        if destination_dir:
+            os.makedirs(destination_dir, exist_ok=True)
+
+        requested_resume_from = (
+            os.path.getsize(destination_path)
+            if resume and os.path.exists(destination_path)
+            else 0
+        )
+
+        request = self._build_stream_request(
+            endpoint_name=endpoint_name,
+            params=params,
+            resume_from=requested_resume_from,
+            extra_headers=merged_headers,
+        )
+
+        try:
+            self.rate_limit_manager.acquire(endpoint_name)
+
+            with self.client.stream(
+                request["method"],
+                request["url"],
+                headers=request["headers"],
+                params=request["params"],
+                json=request.get("json"),
+                timeout=read_timeout,
+            ) as response:
+                self.rate_limit_manager.update_from_response(endpoint_name, response)
+                response.raise_for_status()
+
+                resumed = requested_resume_from > 0 and response.status_code == 206
+                effective_resume_from = requested_resume_from if resumed else 0
+                total_bytes = self._extract_stream_total_bytes(
+                    response, resume_from=effective_resume_from
+                )
+                file_mode = "ab" if resumed else "wb"
+                bytes_written = 0
+                chunk_index = 0
+
+                if progress_callback:
+                    progress_callback(
+                        self._build_stream_progress(
+                            endpoint_name=endpoint_name,
+                            bytes_processed=effective_resume_from,
+                            bytes_streamed=0,
+                            total_bytes=total_bytes,
+                            chunk_index=0,
+                            resumed=resumed,
+                            done=False,
+                        )
+                    )
+
+                with open(destination_path, file_mode) as output_file:
+                    for chunk in response.iter_bytes(chunk_size=chunk_size):
+                        if not chunk:
+                            continue
+
+                        output_file.write(chunk)
+                        bytes_written += len(chunk)
+                        chunk_index += 1
+
+                        if progress_callback:
+                            progress_callback(
+                                self._build_stream_progress(
+                                    endpoint_name=endpoint_name,
+                                    bytes_processed=effective_resume_from
+                                    + bytes_written,
+                                    bytes_streamed=bytes_written,
+                                    total_bytes=total_bytes,
+                                    chunk_index=chunk_index,
+                                    resumed=resumed,
+                                    done=False,
+                                )
+                            )
+
+                if progress_callback:
+                    progress_callback(
+                        self._build_stream_progress(
+                            endpoint_name=endpoint_name,
+                            bytes_processed=effective_resume_from + bytes_written,
+                            bytes_streamed=bytes_written,
+                            total_bytes=total_bytes,
+                            chunk_index=chunk_index,
+                            resumed=resumed,
+                            done=True,
+                        )
+                    )
+
+                return {
+                    "success": True,
+                    "path": destination_path,
+                    "bytes_written": bytes_written,
+                    "total_bytes": total_bytes,
+                    "resumed": resumed,
+                    "resume_from": effective_resume_from,
+                    "chunks_written": chunk_index,
+                }
+
+        except Exception as exc:
+            self._raise_stream_error(exc, endpoint_name, request, "download stream")
 
     def fetch_data(
         self, endpoint_name: str, params: Optional[Dict[str, Any]] = None

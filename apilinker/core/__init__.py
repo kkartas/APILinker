@@ -6,6 +6,7 @@ authentication, scheduling, and plugin management.
 """
 
 __all__ = [
+    "aggregation",
     "connector",
     "mapper",
     "scheduler",

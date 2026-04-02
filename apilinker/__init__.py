@@ -16,6 +16,14 @@ __version__ = "0.7.0"
 from apilinker.core.connector import ApiConnector
 from apilinker.core.mapper import FieldMapper
 from apilinker.core.scheduler import Scheduler
+from apilinker.core.aggregation import (
+    MultiSourceAggregator,
+    MultiSourceAggregationConfig,
+    AggregationSourceConfig,
+    JoinType,
+    MergeStrategy,
+    ConflictResolution,
+)
 
 # Main class
 from .api_linker import ApiLinker, SyncResult
@@ -46,6 +54,12 @@ try:
         "ApiConnector",
         "FieldMapper",
         "Scheduler",
+        "MultiSourceAggregator",
+        "MultiSourceAggregationConfig",
+        "AggregationSourceConfig",
+        "JoinType",
+        "MergeStrategy",
+        "ConflictResolution",
         # Scientific APIs
         "NCBIConnector",
         "ArXivConnector",
@@ -63,7 +77,19 @@ except ImportError:  # pragma: no cover - optional connectors
     # Research connectors not available
     research_connectors_available = False
 
-    __all__ = ["ApiLinker", "SyncResult", "ApiConnector", "FieldMapper", "Scheduler"]
+    __all__ = [
+        "ApiLinker",
+        "SyncResult",
+        "ApiConnector",
+        "FieldMapper",
+        "Scheduler",
+        "MultiSourceAggregator",
+        "MultiSourceAggregationConfig",
+        "AggregationSourceConfig",
+        "JoinType",
+        "MergeStrategy",
+        "ConflictResolution",
+    ]
 
 # Webhook connectors (requires fastapi)
 try:

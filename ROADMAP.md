@@ -3,13 +3,13 @@
 This document tracks planned features, enhancements, and improvements for ApiLinker. Features are organized by version and priority.
 
 **Current Version:** 0.7.0
-**Last Updated:** 2025-11-27
+**Last Updated:** 2026-02-09
 
 ## Version Strategy
 
-- **Patch releases (0.4.x)**: Bug fixes, minor improvements, documentation updates
-- **Minor releases (0.5.x, 0.6.x)**: New features, enhancements, backward-compatible changes
-- **Major release (1.0.0)**: API stability, breaking changes (if needed), production-ready milestone
+- **Patch releases (0.7.x)**: Stability, CI/build correctness, runtime reliability, documentation consistency
+- **Minor releases (0.8.x, 0.9.x, 1.1.x)**: New capabilities, readiness hardening, scientific workflow expansion
+- **Major releases (1.0.0, 2.0.0)**: Production guarantees, compatibility policy, and long-term architecture evolution
 
 ---
 
@@ -125,17 +125,17 @@ This document tracks planned features, enhancements, and improvements for ApiLin
 - **Priority:** Medium
 - **Description:** Real-time data processing via SSE
 - **Features:**
-  - SSE client connector (`SSEConnector`)
-  - Streaming response handling (`ApiConnector.stream_sse`)
-  - Chunked data processing (`ApiConnector.consume_sse`)
-  - Backpressure management (`block` and `drop_oldest` policies)
-  - Reconnection logic (automatic reconnect + Last-Event-ID resume)
+  - ✅  SSE client connector (`SSEConnector`)
+  - ✅  Streaming response handling (`ApiConnector.stream_sse`)
+  - ✅  Chunked data processing (`ApiConnector.consume_sse`)
+  - ✅  Backpressure management (`block` and `drop_oldest` policies)
+  - ✅  Reconnection logic (automatic reconnect + Last-Event-ID resume)
 - **Dependencies:** None (built-in `httpx` streaming implementation)
 - **Impact:** Enables real-time data streams
 - **Implementation:** `apilinker/core/connector.py`, `apilinker/connectors/general/sse.py`
 
 #### Streaming Response Handling
-- **Status:** Planned
+- **Status:** Implemented (v0.6.0)
 - **Priority:** Medium
 - **Description:** Handle large streaming responses efficiently
 - **Features:**
@@ -145,6 +145,7 @@ This document tracks planned features, enhancements, and improvements for ApiLin
   - Resume interrupted streams
 - **Dependencies:** None (httpx supports streaming)
 - **Impact:** Improves memory efficiency for large datasets
+- **Implementation:** `apilinker/core/connector.py`, `apilinker/api_linker.py`
 
 ---
 
@@ -154,7 +155,7 @@ This document tracks planned features, enhancements, and improvements for ApiLin
 ### High Priority
 
 #### Multi-Source Aggregation
-- **Status:** Planned
+- **Status:** Implemented (v0.7.0)
 - **Priority:** High
 - **Description:** Combine data from multiple sources
 - **Features:**
@@ -165,6 +166,7 @@ This document tracks planned features, enhancements, and improvements for ApiLin
   - Parallel source fetching
 - **Dependencies:** None (built-in)
 - **Impact:** Enables complex data integration scenarios
+- **Implementation:** `apilinker/core/aggregation.py`, `apilinker/api_linker.py`
 
 #### Enhanced Incremental Sync
 - **Status:** Planned
@@ -208,8 +210,112 @@ This document tracks planned features, enhancements, and improvements for ApiLin
 
 ---
 
+## Version 0.7.1 - Build, Packaging, and CI Stabilization
+**Focus:** Deterministic CI and install correctness across supported Python versions
+
+### High Priority
+
+#### Packaging Source-of-Truth Consolidation
+- **Status:** Planned
+- **Priority:** High
+- **Description:** Eliminate metadata/dependency drift between packaging files
+- **Features:**
+  - Make `pyproject.toml` the authoritative dependency source
+  - Minimize or remove duplicate dependency definitions in `setup.py`
+  - Ensure `pip install .` and `pip install -e ".[dev]"` resolve consistently
+  - Add packaging smoke tests for sdist/wheel install in CI
+- **Dependencies:** None (packaging/tooling refactor)
+- **Impact:** Prevents install failures and version skew
+
+#### CI Determinism and Flake Reduction
+- **Status:** Planned
+- **Priority:** High
+- **Description:** Remove timing-sensitive and environment-sensitive failures
+- **Features:**
+  - Replace wall-clock timing assertions with deterministic mocks where possible
+  - Run a repeat/failure-detection lane for flaky tests
+  - Lock formatter/linter behavior across OS matrix
+  - Add explicit failure triage labels for flaky vs regression failures
+- **Dependencies:** None (CI workflow updates)
+- **Impact:** Increases trust in CI signal and reduces release risk
+
+---
+
+## Version 0.7.2 - Runtime Reliability Hardening
+**Focus:** Safer networking, clearer failures, and graceful runtime behavior
+
+### High Priority
+
+#### Explicit Timeout and HTTP Client Policy
+- **Status:** Planned
+- **Priority:** High
+- **Description:** Ensure all outbound HTTP calls have bounded latency
+- **Features:**
+  - Enforce explicit timeouts for all direct `httpx` calls
+  - Standardize client lifecycle and reuse/injection patterns
+  - Add timeout-related integration tests for auth/monitoring/webhooks flows
+- **Dependencies:** None (runtime hardening)
+- **Impact:** Prevents hangs and improves production reliability
+
+#### Error Semantics and Recovery Completion
+- **Status:** Planned
+- **Priority:** High
+- **Description:** Make error handling explicit, observable, and complete
+- **Features:**
+  - Replace broad exception catch blocks with narrower categories where possible
+  - Add structured logging context for swallowed/non-fatal exceptions
+  - Implement fallback recovery strategy behavior in error handling
+  - Complete `Retry-After` HTTP-date parsing in adaptive rate limiting
+- **Dependencies:** None (core reliability refactor)
+- **Impact:** Improves incident debugging and recovery behavior
+
+### Medium Priority
+
+#### Graceful Shutdown Responsiveness
+- **Status:** Planned
+- **Priority:** Medium
+- **Description:** Improve stop latency for worker/scheduler loops
+- **Features:**
+  - Use interruptible sleep loops in long-running workers
+  - Add shutdown-path tests for schedulers and message workers
+  - Document operational stop semantics
+- **Dependencies:** None (runtime loop improvements)
+- **Impact:** Safer deployments and cleaner restarts
+
+---
+
+## Version 0.7.3 - Documentation and Metadata Integrity
+**Focus:** Accurate docs, coherent tooling, and version consistency
+
+### High Priority
+
+#### Documentation Stack Unification
+- **Status:** Planned
+- **Priority:** High
+- **Description:** Remove split-brain docs architecture and stale pages
+- **Features:**
+  - Choose a single canonical docs toolchain for published docs
+  - Align docs URLs across README, project metadata, and guides
+  - Remove or archive duplicate/stale doc trees
+  - Add doc-link and snippet validation checks in CI
+- **Dependencies:** None (docs/tooling consolidation)
+- **Impact:** Reduces user confusion and onboarding errors
+
+#### Version and Content Consistency Sweep
+- **Status:** Planned
+- **Priority:** High
+- **Description:** Ensure examples, paper, and docs match current release state
+- **Features:**
+  - Update stale version strings and historical placeholder values
+  - Fix encoding/mojibake artifacts in markdown docs
+  - Validate research docs against actual connector behavior
+- **Dependencies:** None (docs quality updates)
+- **Impact:** Improves credibility and scientific usability
+
+---
+
 ## Version 0.8.0 - GraphQL & Additional Protocols
-**Focus:** Protocol expansion and API versioning
+**Focus:** Protocol expansion, API versioning, and connector contract hardening
 
 ### High Priority
 
@@ -239,6 +345,28 @@ This document tracks planned features, enhancements, and improvements for ApiLin
 - **Dependencies:** None (built-in)
 - **Impact:** Improves long-term maintainability
 
+#### Unified Connector Contract
+- **Status:** Planned
+- **Priority:** High
+- **Description:** Standardize behavioral guarantees across connectors
+- **Features:**
+  - Common semantics for retries, pagination, rate limit handling, and errors
+  - Connector compliance test suite with reusable fixtures
+  - Contract tests for sync and async connector parity
+- **Dependencies:** None (built-in)
+- **Impact:** Predictable integration behavior at scale
+
+#### Scientific Connector Completion Pass
+- **Status:** Planned
+- **Priority:** High
+- **Description:** Convert partial/conceptual behaviors into explicit capabilities
+- **Features:**
+  - Replace conceptual placeholder returns with production endpoints or explicit experimental flags
+  - Define supported capability matrix per scientific connector
+  - Add robust fallback modes that preserve provenance of partial results
+- **Dependencies:** None (extends existing scientific connectors)
+- **Impact:** Higher trust for research use cases
+
 ### Medium Priority
 
 #### SOAP Support (Basic)
@@ -255,7 +383,7 @@ This document tracks planned features, enhancements, and improvements for ApiLin
 ---
 
 ## Version 0.9.0 - Developer Experience & Tooling
-**Focus:** Testing, templates, and developer productivity
+**Focus:** Testing, templates, developer productivity, and scientific reproducibility
 
 ### High Priority
 
@@ -284,6 +412,28 @@ This document tracks planned features, enhancements, and improvements for ApiLin
   - Template versioning
 - **Dependencies:** None (built-in)
 - **Impact:** Accelerates onboarding
+
+#### Reproducible Research Execution Model
+- **Status:** Planned
+- **Priority:** High
+- **Description:** Make runs reproducible and auditable across environments
+- **Features:**
+  - Capture query fingerprints, connector version, and run metadata in provenance
+  - Export reproducibility manifests with deterministic ordering/hashes
+  - Add replay utilities for representative benchmark/research scenarios
+- **Dependencies:** None (extends provenance and benchmark modules)
+- **Impact:** Enables stronger scientific reproducibility claims
+
+#### Data Quality and Validation Framework
+- **Status:** Planned
+- **Priority:** High
+- **Description:** Move from basic schema checks to scientific data quality controls
+- **Features:**
+  - Connector-specific quality checks (identifier completeness, field consistency)
+  - Configurable quality thresholds and fail/allow policies
+  - Quality summaries in sync results and benchmark outputs
+- **Dependencies:** None (extends validation and connector layers)
+- **Impact:** Improves reliability of downstream scientific analysis
 
 ### Medium Priority
 
@@ -314,7 +464,7 @@ This document tracks planned features, enhancements, and improvements for ApiLin
 ---
 
 ## Version 1.0.0 - Production Ready
-**Focus:** Stability, performance, and enterprise features
+**Focus:** Stability, performance, enterprise features, and production guarantees
 
 ### High Priority
 
@@ -356,6 +506,29 @@ This document tracks planned features, enhancements, and improvements for ApiLin
   - Error handling in workflows
 - **Dependencies:** None (built-in)
 - **Impact:** Enables complex integration scenarios
+
+#### Stability and Compatibility Policy
+- **Status:** Planned
+- **Priority:** High
+- **Description:** Define what is stable and how changes are managed
+- **Features:**
+  - Public API compatibility contract and deprecation policy
+  - Migration guide from pre-1.0 releases
+  - SemVer enforcement in release process and changelog rules
+- **Dependencies:** None (process and policy)
+- **Impact:** Safe adoption for long-lived production systems
+
+#### Security and Supply Chain Baseline
+- **Status:** Planned
+- **Priority:** High
+- **Description:** Establish minimum security posture for production deployments
+- **Features:**
+  - Dependency vulnerability scanning and reporting in CI
+  - Secret redaction policy for logs/error paths
+  - Signed release artifacts and provenance metadata
+  - Hardened verification paths for webhook/JWT/auth flows
+- **Dependencies:** `pip-audit`/security tooling (CI)
+- **Impact:** Reduces operational and compliance risk
 
 ### Medium Priority
 
@@ -407,9 +580,57 @@ This document tracks planned features, enhancements, and improvements for ApiLin
 - **Dependencies:** `pandas`, `pyarrow`, `sqlalchemy`
 - **Impact:** Expands use cases
 
+#### Coverage and Reliability Gate Raise
+- **Status:** Planned
+- **Priority:** Medium
+- **Description:** Increase confidence in previously under-tested modules
+- **Features:**
+  - Expand tests for optional modules through extras-enabled CI lanes
+  - Reduce coverage omit list for core production code
+  - Add long-run soak tests for streaming and queue workers
+- **Dependencies:** None (test/CI infrastructure)
+- **Impact:** Stronger production confidence before GA
+
 ---
 
-## Future Considerations (Post-1.0)
+## Version 1.1.0 - Scientific Interoperability
+**Focus:** Scientific ecosystem integration beyond baseline reproducibility
+
+### Medium Priority
+
+#### Interoperable Scientific Export
+- **Status:** Planned
+- **Priority:** Medium
+- **Description:** Improve portability into research toolchains
+- **Features:**
+  - Structured exports for citation and metadata pipelines
+  - Improved schema mapping templates for literature/compound/researcher data
+  - End-to-end examples for reproducible multi-database studies
+- **Dependencies:** None (extends existing export/mapping capabilities)
+- **Impact:** Better adoption in real research workflows
+
+---
+
+## Version 2.0.0 - Architecture Simplification
+**Focus:** Breaking cleanup for long-term maintainability and scale
+
+### High Priority
+
+#### API and Module Simplification
+- **Status:** Planned
+- **Priority:** High
+- **Description:** Remove legacy surfaces and normalize extension points
+- **Features:**
+  - Remove deprecated APIs accumulated through 0.x/1.x
+  - Unify sync/async connector abstractions where they diverge
+  - Stabilize plugin lifecycle contracts and versioned plugin API
+  - Rework internal module boundaries for lower coupling
+- **Dependencies:** None (core refactor)
+- **Impact:** Lower maintenance cost and clearer long-term evolution
+
+---
+
+## Future Considerations (Beyond 2.0)
 
 ### Web Dashboard/UI
 - **Status:** Future
@@ -459,9 +680,14 @@ If you'd like to contribute to any of these features, please:
 - **0.5.0** - Observability & Enterprise Security
 - **0.6.0** - Event-Driven Architecture
 - **0.7.0** - Advanced Data Processing
+- **0.7.1** - Build, Packaging, and CI Stabilization
+- **0.7.2** - Runtime Reliability Hardening
+- **0.7.3** - Documentation and Metadata Integrity
 - **0.8.0** - GraphQL & Additional Protocols
 - **0.9.0** - Developer Experience & Tooling
 - **1.0.0** - Production Ready
+- **1.1.0** - Scientific Interoperability
+- **2.0.0** - Architecture Simplification
 
 ---
 

@@ -2,6 +2,7 @@
 Main ApiLinker class that orchestrates the connection, mapping, and data transfer between APIs.
 """
 
+from concurrent.futures import ThreadPoolExecutor, as_completed
 import logging
 import os
 import time
@@ -13,6 +14,7 @@ import yaml
 from pydantic import BaseModel, Field
 
 from apilinker.core.auth import AuthManager
+from apilinker.core.aggregation import MultiSourceAggregator
 from apilinker.core.connector import ApiConnector
 from apilinker.core.error_handling import (
     ApiLinkerError,
@@ -139,7 +141,9 @@ class ApiLinker:
         # Initialize components
         self.source: Optional[ApiConnector] = None
         self.target: Optional[ApiConnector] = None
+        self.sources: Dict[str, ApiConnector] = {}
         self.mapper = FieldMapper()
+        self.multi_source_aggregator = MultiSourceAggregator(self.mapper)
         self.scheduler = Scheduler()
         self.validation_config = validation_config or {"strict_mode": False}
         self.provenance = ProvenanceRecorder()
@@ -203,6 +207,17 @@ class ApiLinker:
         # Set up components from config
         if "source" in config:
             self.add_source(**config["source"])
+
+        if "sources" in config:
+            sources_config = config["sources"]
+            if isinstance(sources_config, dict):
+                for source_name, source_config in sources_config.items():
+                    self.add_named_source(source_name, **source_config)
+            else:
+                for source_config in sources_config:
+                    named_source_config = dict(source_config)
+                    source_name = named_source_config.pop("name")
+                    self.add_named_source(source_name, **named_source_config)
 
         if "target" in config:
             self.add_target(**config["target"])
@@ -271,6 +286,29 @@ class ApiLinker:
                     path, default_last_sync=default_last_sync
                 )
 
+    def _create_connector(
+        self,
+        type: str,
+        base_url: str,
+        auth: Optional[Dict[str, Any]] = None,
+        endpoints: Optional[Dict[str, Any]] = None,
+        **kwargs: Any,
+    ) -> ApiConnector:
+        """Create a connector while resolving auth secrets consistently."""
+        if auth:
+            auth = self._resolve_auth_secrets(auth)
+            auth_config = self.auth_manager.configure_auth(auth)
+        else:
+            auth_config = None
+
+        return ApiConnector(
+            connector_type=type,
+            base_url=base_url,
+            auth_config=auth_config,
+            endpoints=endpoints or {},
+            **kwargs,
+        )
+
     def add_source(
         self,
         type: str,
@@ -290,22 +328,35 @@ class ApiLinker:
             **kwargs: Additional configuration parameters
         """
         self.logger.info(f"Adding source connector: {type} for {base_url}")
+        self.source = self._create_connector(type, base_url, auth, endpoints, **kwargs)
+        self.sources["source"] = self.source
 
-        # Resolve secrets in authentication configuration
-        if auth:
-            auth = self._resolve_auth_secrets(auth)
-            auth_config = self.auth_manager.configure_auth(auth)
-        else:
-            auth_config = None
+    def add_named_source(
+        self,
+        name: str,
+        type: str,
+        base_url: str,
+        auth: Optional[Dict[str, Any]] = None,
+        endpoints: Optional[Dict[str, Any]] = None,
+        **kwargs: Any,
+    ) -> None:
+        """
+        Register an additional named source connector for aggregation workflows.
 
-        # Create source connector
-        self.source = ApiConnector(
-            connector_type=type,
-            base_url=base_url,
-            auth_config=auth_config,
-            endpoints=endpoints or {},
-            **kwargs,
-        )
+        Args:
+            name: Logical source name used in aggregation requests
+            type: Type of API connector (rest, graphql, etc.)
+            base_url: Base URL of the API
+            auth: Authentication configuration
+            endpoints: Configured endpoints
+            **kwargs: Additional connector configuration
+        """
+        self.logger.info(f"Adding named source connector '{name}': {type} for {base_url}")
+        connector = self._create_connector(type, base_url, auth, endpoints, **kwargs)
+        self.sources[name] = connector
+
+        if name == "source":
+            self.source = connector
 
     def add_target(
         self,
@@ -326,22 +377,7 @@ class ApiLinker:
             **kwargs: Additional configuration parameters
         """
         self.logger.info(f"Adding target connector: {type} for {base_url}")
-
-        # Resolve secrets in authentication configuration
-        if auth:
-            auth = self._resolve_auth_secrets(auth)
-            auth_config = self.auth_manager.configure_auth(auth)
-        else:
-            auth_config = None
-
-        # Create target connector
-        self.target = ApiConnector(
-            connector_type=type,
-            base_url=base_url,
-            auth_config=auth_config,
-            endpoints=endpoints or {},
-            **kwargs,
-        )
+        self.target = self._create_connector(type, base_url, auth, endpoints, **kwargs)
 
     def add_mapping(
         self, source: str, target: str, fields: List[Dict[str, Any]]
@@ -853,6 +889,52 @@ class ApiLinker:
             raise ValueError("Source connector is not configured")
         return self.source.fetch_data(endpoint, params)
 
+    def stream(
+        self,
+        endpoint: str,
+        params: Optional[Dict[str, Any]] = None,
+        **kwargs: Any,
+    ) -> Any:
+        """
+        Convenience wrapper to stream a response from the configured source.
+
+        Args:
+            endpoint: Source endpoint name to stream from
+            params: Optional query parameters
+            **kwargs: Additional arguments forwarded to ``ApiConnector.stream_response``
+
+        Returns:
+            A generator yielding byte chunks from the source response.
+        """
+        if not self.source:
+            raise ValueError("Source connector is not configured")
+        return self.source.stream_response(endpoint, params, **kwargs)
+
+    def download(
+        self,
+        endpoint: str,
+        destination_path: str,
+        params: Optional[Dict[str, Any]] = None,
+        **kwargs: Any,
+    ) -> Dict[str, Any]:
+        """
+        Convenience wrapper to download a streamed response from the source.
+
+        Args:
+            endpoint: Source endpoint name to download from
+            destination_path: Destination file path
+            params: Optional query parameters
+            **kwargs: Additional arguments forwarded to ``ApiConnector.download_stream``
+
+        Returns:
+            Download result metadata.
+        """
+        if not self.source:
+            raise ValueError("Source connector is not configured")
+        return self.source.download_stream(
+            endpoint, destination_path, params=params, **kwargs
+        )
+
     def send(
         self,
         endpoint: str,
@@ -872,6 +954,83 @@ class ApiLinker:
         if not self.target:
             raise ValueError("Target connector is not configured")
         return self.target.send_data(endpoint, data, **kwargs)
+
+    def _resolve_source_connector(self, name: str) -> ApiConnector:
+        """Resolve a source connector by logical name."""
+        connector = self.sources.get(name)
+        if connector:
+            return connector
+
+        if name == "source" and self.source:
+            return self.source
+
+        raise ValueError(f"Source connector '{name}' is not registered")
+
+    def aggregate_source_data(
+        self,
+        source_data: Dict[str, Any],
+        aggregation_config: Dict[str, Any],
+    ) -> List[Dict[str, Any]]:
+        """
+        Aggregate pre-fetched source payloads using the configured mapper rules.
+
+        Args:
+            source_data: Mapping of source name to payload
+            aggregation_config: Aggregation config consumed by ``MultiSourceAggregator``
+
+        Returns:
+            Aggregated record list.
+        """
+        return self.multi_source_aggregator.aggregate(source_data, aggregation_config)
+
+    def aggregate_sources(
+        self,
+        source_requests: Dict[str, Dict[str, Any]],
+        aggregation_config: Dict[str, Any],
+        parallel: bool = True,
+    ) -> List[Dict[str, Any]]:
+        """
+        Fetch multiple sources and aggregate them into a single dataset.
+
+        Args:
+            source_requests: Mapping of source alias to request config.
+                Each request supports ``connector``, ``endpoint``, and optional ``params``.
+            aggregation_config: Multi-source aggregation config.
+            parallel: Whether to fetch sources concurrently.
+
+        Returns:
+            Aggregated record list.
+        """
+        if not source_requests:
+            return []
+
+        def _fetch_source(
+            alias: str, request_config: Dict[str, Any]
+        ) -> Tuple[str, Any]:
+            connector_name = request_config.get("connector", alias)
+            endpoint = request_config["endpoint"]
+            params = request_config.get("params")
+            connector = self._resolve_source_connector(connector_name)
+            return alias, connector.fetch_data(endpoint, params)
+
+        source_payloads: Dict[str, Any] = {}
+
+        if parallel and len(source_requests) > 1:
+            max_workers = min(8, len(source_requests))
+            with ThreadPoolExecutor(max_workers=max_workers) as executor:
+                future_map = {
+                    executor.submit(_fetch_source, alias, request_config): alias
+                    for alias, request_config in source_requests.items()
+                }
+                for future in as_completed(future_map):
+                    alias, payload = future.result()
+                    source_payloads[alias] = payload
+        else:
+            for alias, request_config in source_requests.items():
+                resolved_alias, payload = _fetch_source(alias, request_config)
+                source_payloads[resolved_alias] = payload
+
+        return self.aggregate_source_data(source_payloads, aggregation_config)
 
     def sync(
         self,

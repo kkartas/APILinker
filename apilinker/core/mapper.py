@@ -343,6 +343,18 @@ class FieldMapper:
         Returns:
             Mapped data item
         """
+        return self.map_fields(item, fields)
+
+    def map_fields(
+        self, item: Dict[str, Any], fields: List[Dict[str, Any]]
+    ) -> Dict[str, Any]:
+        """
+        Apply a list of field mappings to a single item.
+
+        This is the item-level counterpart to ``map_data`` and reuses the
+        same field mapping semantics for callers that need projection without
+        registering a source/target mapping pair first.
+        """
         result: Dict[str, Any] = {}
 
         for field in fields:
