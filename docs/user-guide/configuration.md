@@ -71,3 +71,33 @@ source:
 ```
 
 Use `stream_sse(...)` for event-by-event processing and `consume_sse(...)` for chunked/backpressure-aware processing.
+
+## HTTP byte streaming
+
+For large file or binary downloads (not SSE), configure optional `streaming` on a REST endpoint:
+
+```yaml
+source:
+  endpoints:
+    export_dump:
+      path: /exports/latest
+      method: GET
+      streaming:
+        chunk_size: 65536
+        resume: true
+        read_timeout: 120
+        headers:
+          Accept: application/octet-stream
+```
+
+In Python:
+
+```python
+summary = connector.download_stream(
+    "export_dump",
+    destination_path="./data/export.bin",
+    progress_callback=lambda p: print(p["percent_complete"]),
+)
+```
+
+`stream_response(...)` yields byte chunks when you need custom handling instead of writing to a file. When `resume` is enabled and the destination file exists, ApiLinker sends a `Range` header and appends on `206 Partial Content` responses.

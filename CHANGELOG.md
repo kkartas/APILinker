@@ -1,5 +1,42 @@
 # Changelog
 
+## [0.7.1] - 2026-05-27
+
+### Added
+- Multi-source aggregation via `MultiSourceAggregator` with inner, left, right, and outer joins.
+- Merge strategies (`flat`, `namespace`) and conflict resolution (`prefer_first`, `prefer_last`, `error`).
+- `ApiLinker.aggregate_sources()`, `aggregate_source_data()`, and `register_source()` for parallel multi-connector fetch and join workflows.
+- HTTP byte streaming on `ApiConnector`: `stream_response()` and `download_stream()` with Range resume, progress callbacks, and optional per-endpoint `streaming` configuration.
+- User guide: [Multi-Source Aggregation](docs/user-guide/multi-source-aggregation.md) and example `examples/multi_source_aggregation.py`.
+
+### Changed
+- Public exports in `apilinker` for aggregation types and enums.
+
+### Fixed
+- Release alignment: the `v0.7.0` tag did not include aggregation or byte-streaming code; both ship in v0.7.1.
+
+### Notes
+- Multi-source aggregation is **library/API only** in this release (YAML/CLI configuration is planned for v0.7.2).
+
+## [0.7.0] - 2026-02-09
+
+### Added
+- Version bump and release packaging for the 0.7.x advanced data processing milestone.
+
+## [0.6.0] - 2025-12-01
+
+### Added
+- Webhook server and routing (`apilinker[webhooks]`).
+- Message queue connector plugins and worker pipeline (`apilinker[mq]`): RabbitMQ, Redis Pub/Sub, AWS SQS, Kafka.
+- Server-Sent Events (SSE) streaming with reconnection and backpressure policies.
+
+## [0.5.0] - 2025-10-01
+
+### Added
+- Enterprise secret management (Vault, AWS Secrets Manager, Azure Key Vault, Google Secret Manager).
+- OpenTelemetry observability integration.
+- Advanced rate limiting and production monitoring/alerting.
+
 ## [0.4.0] - 2025-07-16
 
 ### Added
@@ -64,13 +101,3 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 See [ROADMAP.md](ROADMAP.md) for planned features and version roadmap.
-
-### Added
-- Message queue connector plugins (RabbitMQ, Redis Pub/Sub, AWS SQS, Kafka) and a dependency-free message routing/transformation pipeline
-- Built-in SSE support with `ApiConnector.stream_sse`, chunked/backpressure consumption via `ApiConnector.consume_sse`, and a dedicated `SSEConnector`
-
-### Changed
-- See ROADMAP.md for planned changes
-
-### Fixed
-- Bug fixes will be documented here as they are addressed

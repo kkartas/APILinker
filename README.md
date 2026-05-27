@@ -61,10 +61,39 @@ worker.run()
 
 - 🔄 **Universal Connectivity** - Connect any two REST APIs.
 - 🗺️ **Powerful Mapping** - Transform data with ease.
+- 🔗 **Multi-Source Aggregation** (v0.7.1) - Join data from multiple APIs (inner/left/right/outer joins) via the Python API.
+- 📥 **Large Download Streaming** (v0.7.1) - Stream HTTP responses to disk with resume and progress callbacks.
 - ⭐ **Event-Driven Pipelines** - Optional message queue connectors (RabbitMQ, Redis Pub/Sub, AWS SQS, Kafka).
-- SSE Streaming - Built-in SSE connector with reconnection, chunked processing, and backpressure controls.
+- **SSE Streaming** - Built-in SSE connector with reconnection, chunked processing, and backpressure controls.
 - 🔒 **Secure** - Enterprise secret management (Vault, AWS, Azure, GCP).
 - 🧬 **Scientific Connectors** - Built-in support for NCBI, arXiv, and more.
+
+### Multi-source aggregation (v0.7.1)
+
+```python
+from apilinker import ApiLinker
+
+linker = ApiLinker()
+linker.register_source("crm", crm_connector)
+linker.register_source("billing", billing_connector)
+
+rows = linker.aggregate_sources(
+    source_requests={
+        "crm": {"connector": "crm", "endpoint": "list_users"},
+        "billing": {"connector": "billing", "endpoint": "list_plans"},
+    },
+    aggregation_config={
+        "join_type": "inner",
+        "merge_strategy": "flat",
+        "sources": [
+            {"name": "crm", "join_key": "id", "fields": [...]},
+            {"name": "billing", "join_key": "customer_id", "fields": [...]},
+        ],
+    },
+)
+```
+
+See [Multi-Source Aggregation](docs/user-guide/multi-source-aggregation.md) and `examples/multi_source_aggregation.py`.
 
 ## 🤝 Contributing
 

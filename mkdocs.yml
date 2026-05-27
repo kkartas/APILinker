@@ -78,6 +78,7 @@ nav:
     - Configuration: user-guide/configuration.md
     - Authentication: user-guide/authentication.md
     - Mapping & Transformation: user-guide/mapping.md
+    - Multi-Source Aggregation: user-guide/multi-source-aggregation.md
     - Connectors: user-guide/connectors.md
     - Research Connectors: user-guide/research-connectors.md
     - Secret Management: user-guide/secret-management.md

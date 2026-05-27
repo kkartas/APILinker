@@ -28,6 +28,13 @@ The `ApiConnector` is the foundation for all API connectors.
 - **Error Handling**: Built-in retry logic and circuit breakers.
 - **Rate Limiting**: Respectful API usage with configurable limits.
 - **SSE Streaming**: `stream_sse(...)` and `consume_sse(...)` for real-time event streams.
+- **HTTP Byte Streaming** (v0.7.1): `stream_response(...)` yields chunks; `download_stream(...)` writes to disk with optional Range resume and progress callbacks.
+
+## MultiSourceAggregator (v0.7.1)
+
+`MultiSourceAggregator` joins already-fetched payloads. `ApiLinker.aggregate_sources()` fetches from named connectors (optionally in parallel) and runs the join.
+
+See [Multi-Source Aggregation](../user-guide/multi-source-aggregation.md).
 
 ## FieldMapper Class
 
