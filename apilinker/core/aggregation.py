@@ -268,7 +268,10 @@ class MultiSourceAggregator:
             if value is None or existing_value == value:
                 continue
 
-            if existing_value is None or conflict_resolution == ConflictResolution.PREFER_LAST:
+            if (
+                existing_value is None
+                or conflict_resolution == ConflictResolution.PREFER_LAST
+            ):
                 current[key] = deepcopy(value)
                 continue
 

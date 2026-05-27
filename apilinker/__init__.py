@@ -6,11 +6,12 @@ This package provides tools for connecting to REST APIs, mapping data fields
 between them, scheduling automatic data transfers, and extending functionality
 through plugins.
 
-New in version 1.1: Scientific API connectors for research workflows including
-NCBI (PubMed, GenBank) and arXiv connectors.
+Scientific API connectors for research workflows (NCBI, arXiv, CrossRef, and more)
+are available in the connectors package. Multi-source aggregation and HTTP byte
+streaming were added in v0.7.1.
 """
 
-__version__ = "0.7.0"
+__version__ = "0.7.1"
 
 # Core components
 from apilinker.core.connector import ApiConnector

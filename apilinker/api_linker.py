@@ -351,7 +351,9 @@ class ApiLinker:
             endpoints: Configured endpoints
             **kwargs: Additional connector configuration
         """
-        self.logger.info(f"Adding named source connector '{name}': {type} for {base_url}")
+        self.logger.info(
+            f"Adding named source connector '{name}': {type} for {base_url}"
+        )
         connector = self._create_connector(type, base_url, auth, endpoints, **kwargs)
         self.sources[name] = connector
 

@@ -2,8 +2,8 @@
 
 This document tracks planned features, enhancements, and improvements for ApiLinker. Features are organized by version and priority.
 
-**Current Version:** 0.7.0
-**Last Updated:** 2026-02-09
+**Current Version:** 0.7.1
+**Last Updated:** 2026-05-27
 
 ## Version Strategy
 
@@ -155,7 +155,7 @@ This document tracks planned features, enhancements, and improvements for ApiLin
 ### High Priority
 
 #### Multi-Source Aggregation
-- **Status:** Implemented (v0.7.0)
+- **Status:** Implemented (v0.7.1; library API)
 - **Priority:** High
 - **Description:** Combine data from multiple sources
 - **Features:**
@@ -679,8 +679,9 @@ If you'd like to contribute to any of these features, please:
 
 - **0.5.0** - Observability & Enterprise Security
 - **0.6.0** - Event-Driven Architecture
-- **0.7.0** - Advanced Data Processing
-- **0.7.1** - Build, Packaging, and CI Stabilization
+- **0.7.0** - Advanced Data Processing (version tag; aggregation shipped in 0.7.1)
+- **0.7.1** - Multi-source aggregation and HTTP byte streaming (released)
+- **0.7.2** - Build, Packaging, and CI Stabilization (planned)
 - **0.7.2** - Runtime Reliability Hardening
 - **0.7.3** - Documentation and Metadata Integrity
 - **0.8.0** - GraphQL & Additional Protocols

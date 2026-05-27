@@ -19,6 +19,19 @@ Main orchestrator class for API integration workflows.
         - sync
         - fetch
         - send
+        - register_source
+        - aggregate_sources
+        - aggregate_source_data
+
+### MultiSourceAggregator
+
+Join records from multiple sources (v0.7.1).
+
+::: apilinker.core.aggregation.MultiSourceAggregator
+    options:
+      show_source: true
+      members:
+        - aggregate
 
 ### ApiConnector
 
@@ -33,6 +46,8 @@ Base class for all API connectors.
         - send_data
         - stream_sse
         - consume_sse
+        - stream_response
+        - download_stream
         - check_health
 
 ### FieldMapper
