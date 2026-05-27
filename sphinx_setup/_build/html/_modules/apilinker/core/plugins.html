@@ -1,0 +1,912 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>apilinker.core.plugins &mdash; ApiLinker 0.4.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=6c02275b"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            ApiLinker
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api_reference/index.html">API Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../api_reference/core/index.html">Core API</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../api_reference/core/api_linker.html">ApiLinker</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../api_reference/core/api_linker.html#apilinker.api_linker.ErrorDetail"><code class="docutils literal notranslate"><span class="pre">ErrorDetail</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api_reference/core/api_linker.html#apilinker.api_linker.SyncResult"><code class="docutils literal notranslate"><span class="pre">SyncResult</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api_reference/core/api_linker.html#apilinker.api_linker.ApiLinker"><code class="docutils literal notranslate"><span class="pre">ApiLinker</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../api_reference/core/plugins.html">Plugins Module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../api_reference/core/plugins.html#apilinker.core.plugins.PluginError"><code class="docutils literal notranslate"><span class="pre">PluginError</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api_reference/core/plugins.html#apilinker.core.plugins.PluginNotFoundError"><code class="docutils literal notranslate"><span class="pre">PluginNotFoundError</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api_reference/core/plugins.html#apilinker.core.plugins.PluginValidationError"><code class="docutils literal notranslate"><span class="pre">PluginValidationError</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api_reference/core/plugins.html#apilinker.core.plugins.PluginInitializationError"><code class="docutils literal notranslate"><span class="pre">PluginInitializationError</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api_reference/core/plugins.html#apilinker.core.plugins.PluginBase"><code class="docutils literal notranslate"><span class="pre">PluginBase</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api_reference/core/plugins.html#apilinker.core.plugins.TransformerPlugin"><code class="docutils literal notranslate"><span class="pre">TransformerPlugin</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api_reference/core/plugins.html#apilinker.core.plugins.ConnectorPlugin"><code class="docutils literal notranslate"><span class="pre">ConnectorPlugin</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api_reference/core/plugins.html#apilinker.core.plugins.AuthPlugin"><code class="docutils literal notranslate"><span class="pre">AuthPlugin</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api_reference/core/plugins.html#apilinker.core.plugins.PluginManager"><code class="docutils literal notranslate"><span class="pre">PluginManager</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api_reference/core/plugins.html#plugin-base-classes">Plugin Base Classes</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api_reference/core/plugins.html#plugin-management">Plugin Management</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api_reference/core/plugins.html#exceptions">Exceptions</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../api_reference/core/mapper.html">Mapper</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../api_reference/core/mapper.html#apilinker.core.mapper.FieldMapper"><code class="docutils literal notranslate"><span class="pre">FieldMapper</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../api_reference/core/connector.html">Connector</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../api_reference/core/connector.html#apilinker.core.connector.EndpointConfig"><code class="docutils literal notranslate"><span class="pre">EndpointConfig</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api_reference/core/connector.html#apilinker.core.connector.ApiConnector"><code class="docutils literal notranslate"><span class="pre">ApiConnector</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../api_reference/core/auth.html">Authentication</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../api_reference/core/auth.html#apilinker.core.auth.AuthConfig"><code class="docutils literal notranslate"><span class="pre">AuthConfig</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api_reference/core/auth.html#apilinker.core.auth.ApiKeyAuth"><code class="docutils literal notranslate"><span class="pre">ApiKeyAuth</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api_reference/core/auth.html#apilinker.core.auth.BearerAuth"><code class="docutils literal notranslate"><span class="pre">BearerAuth</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api_reference/core/auth.html#apilinker.core.auth.BasicAuth"><code class="docutils literal notranslate"><span class="pre">BasicAuth</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api_reference/core/auth.html#apilinker.core.auth.OAuth2ClientCredentials"><code class="docutils literal notranslate"><span class="pre">OAuth2ClientCredentials</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api_reference/core/auth.html#apilinker.core.auth.OAuth2PKCE"><code class="docutils literal notranslate"><span class="pre">OAuth2PKCE</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api_reference/core/auth.html#apilinker.core.auth.OAuth2DeviceFlow"><code class="docutils literal notranslate"><span class="pre">OAuth2DeviceFlow</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api_reference/core/auth.html#apilinker.core.auth.AuthManager"><code class="docutils literal notranslate"><span class="pre">AuthManager</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../api_reference/core/scheduler.html">Scheduler</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../api_reference/core/scheduler.html#apilinker.core.scheduler.Scheduler"><code class="docutils literal notranslate"><span class="pre">Scheduler</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../api_reference/core/config.html">Configuration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../api_reference/core/exceptions.html">Exceptions</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../api_reference/core/exceptions.html#apilinker.core.error_handling.CircuitBreakerState"><code class="docutils literal notranslate"><span class="pre">CircuitBreakerState</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api_reference/core/exceptions.html#apilinker.core.error_handling.ErrorCategory"><code class="docutils literal notranslate"><span class="pre">ErrorCategory</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api_reference/core/exceptions.html#apilinker.core.error_handling.RecoveryStrategy"><code class="docutils literal notranslate"><span class="pre">RecoveryStrategy</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api_reference/core/exceptions.html#apilinker.core.error_handling.ApiLinkerError"><code class="docutils literal notranslate"><span class="pre">ApiLinkerError</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api_reference/core/exceptions.html#apilinker.core.error_handling.DeadLetterQueue"><code class="docutils literal notranslate"><span class="pre">DeadLetterQueue</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api_reference/core/exceptions.html#apilinker.core.error_handling.CircuitBreaker"><code class="docutils literal notranslate"><span class="pre">CircuitBreaker</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api_reference/core/exceptions.html#apilinker.core.error_handling.ErrorRecoveryManager"><code class="docutils literal notranslate"><span class="pre">ErrorRecoveryManager</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api_reference/core/exceptions.html#apilinker.core.error_handling.ErrorAnalytics"><code class="docutils literal notranslate"><span class="pre">ErrorAnalytics</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api_reference/core/exceptions.html#apilinker.core.error_handling.create_error_handler"><code class="docutils literal notranslate"><span class="pre">create_error_handler()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">ApiLinker</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">apilinker.core.plugins</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for apilinker.core.plugins</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Plugin system for extending ApiLinker functionality.</span>
+
+<span class="sd">This module provides the foundation for ApiLinker&#39;s extensibility through</span>
+<span class="sd">a plugin architecture. It includes base classes for different plugin types</span>
+<span class="sd">(transformers, connectors, and authentication) and a plugin manager for</span>
+<span class="sd">discovery and loading of plugins.</span>
+
+<span class="sd">Example:</span>
+<span class="sd">    &gt;&gt;&gt; from apilinker.core.plugins import PluginManager</span>
+<span class="sd">    &gt;&gt;&gt; manager = PluginManager()</span>
+<span class="sd">    &gt;&gt;&gt; manager.discover_plugins()</span>
+<span class="sd">    &gt;&gt;&gt; transformer = manager.get_transformer(&#39;my_transformer&#39;)</span>
+<span class="sd">    &gt;&gt;&gt; result = transformer(&#39;input value&#39;)</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">importlib</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">inspect</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">traceback</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Set</span><span class="p">,</span> <span class="n">Type</span>
+
+<span class="c1"># Set up module logger</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="PluginError">
+<a class="viewcode-back" href="../../../api_reference/core/plugins.html#apilinker.core.plugins.PluginError">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">PluginError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Base exception for all plugin-related errors.&quot;&quot;&quot;</span></div>
+
+
+
+<div class="viewcode-block" id="PluginNotFoundError">
+<a class="viewcode-back" href="../../../api_reference/core/plugins.html#apilinker.core.plugins.PluginNotFoundError">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">PluginNotFoundError</span><span class="p">(</span><span class="n">PluginError</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Raised when a requested plugin cannot be found.&quot;&quot;&quot;</span></div>
+
+
+
+<div class="viewcode-block" id="PluginValidationError">
+<a class="viewcode-back" href="../../../api_reference/core/plugins.html#apilinker.core.plugins.PluginValidationError">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">PluginValidationError</span><span class="p">(</span><span class="n">PluginError</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Raised when a plugin fails validation checks.&quot;&quot;&quot;</span></div>
+
+
+
+<div class="viewcode-block" id="PluginInitializationError">
+<a class="viewcode-back" href="../../../api_reference/core/plugins.html#apilinker.core.plugins.PluginInitializationError">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">PluginInitializationError</span><span class="p">(</span><span class="n">PluginError</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Raised when a plugin cannot be initialized.&quot;&quot;&quot;</span></div>
+
+
+
+<div class="viewcode-block" id="PluginBase">
+<a class="viewcode-back" href="../../../api_reference/core/plugins.html#apilinker.core.plugins.PluginBase">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">PluginBase</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Base class for all ApiLinker plugins.</span>
+
+<span class="sd">    All plugins must inherit from this class or one of its subclasses</span>
+<span class="sd">    and provide required implementation details.</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        plugin_type (str): Type of the plugin (e.g., transformer, connector, auth)</span>
+<span class="sd">        plugin_name (str): Unique name of the plugin</span>
+<span class="sd">        config (dict): Configuration parameters passed during initialization</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">plugin_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;base&quot;</span>
+    <span class="n">plugin_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;base&quot;</span>
+
+<div class="viewcode-block" id="PluginBase.__init__">
+<a class="viewcode-back" href="../../../api_reference/core/plugins.html#apilinker.core.plugins.PluginBase.__init__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize the plugin with the provided configuration.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            **kwargs: Configuration parameters for the plugin</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Initialized </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">plugin_type</span><span class="si">}</span><span class="s2"> plugin: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">plugin_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="PluginBase.get_plugin_info">
+<a class="viewcode-back" href="../../../api_reference/core/plugins.html#apilinker.core.plugins.PluginBase.get_plugin_info">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_plugin_info</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get metadata about this plugin.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Dictionary containing plugin metadata (type, name, description)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="bp">cls</span><span class="o">.</span><span class="n">plugin_type</span><span class="p">,</span>
+            <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="bp">cls</span><span class="o">.</span><span class="n">plugin_name</span><span class="p">,</span>
+            <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="bp">cls</span><span class="o">.</span><span class="vm">__doc__</span><span class="p">,</span>
+            <span class="s2">&quot;version&quot;</span><span class="p">:</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="s2">&quot;version&quot;</span><span class="p">,</span> <span class="s2">&quot;0.4.0&quot;</span><span class="p">),</span>
+            <span class="s2">&quot;author&quot;</span><span class="p">:</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="s2">&quot;author&quot;</span><span class="p">,</span> <span class="s2">&quot;Unknown&quot;</span><span class="p">),</span>
+        <span class="p">}</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="TransformerPlugin">
+<a class="viewcode-back" href="../../../api_reference/core/plugins.html#apilinker.core.plugins.TransformerPlugin">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">TransformerPlugin</span><span class="p">(</span><span class="n">PluginBase</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Base class for data transformation plugins.</span>
+
+<span class="sd">    Transformer plugins are used to convert, format, or validate data</span>
+<span class="sd">    during the mapping process between source and target APIs.</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        .. code-block:: python</span>
+
+<span class="sd">            class LowercaseTransformer(TransformerPlugin):</span>
+<span class="sd">                plugin_name = &quot;lowercase&quot;</span>
+
+<span class="sd">                def transform(self, value: str, **kwargs) -&gt; str:</span>
+<span class="sd">                    return value.lower() if isinstance(value, str) else value</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">plugin_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;transformer&quot;</span>
+
+<div class="viewcode-block" id="TransformerPlugin.transform">
+<a class="viewcode-back" href="../../../api_reference/core/plugins.html#apilinker.core.plugins.TransformerPlugin.transform">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Transform a value according to the plugin&#39;s logic.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            value: Input value to transform</span>
+<span class="sd">            **kwargs: Additional parameters for customizing the transformation</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Transformed value</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            NotImplementedError: If the subclass does not implement this method</span>
+<span class="sd">            ValueError: If the input value is not valid for this transformer</span>
+<span class="sd">            TypeError: If the input value is of an incompatible type</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span>
+            <span class="s2">&quot;Transformer plugins must implement the transform method&quot;</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="TransformerPlugin.validate_input">
+<a class="viewcode-back" href="../../../api_reference/core/plugins.html#apilinker.core.plugins.TransformerPlugin.validate_input">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">validate_input</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Validate that the input value is appropriate for this transformer.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            value: Input value to validate</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            True if valid, False otherwise</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="kc">True</span>  <span class="c1"># Default implementation accepts any input</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="ConnectorPlugin">
+<a class="viewcode-back" href="../../../api_reference/core/plugins.html#apilinker.core.plugins.ConnectorPlugin">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ConnectorPlugin</span><span class="p">(</span><span class="n">PluginBase</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Base class for API connector plugins.</span>
+
+<span class="sd">    Connector plugins handle the communication with external APIs,</span>
+<span class="sd">    including connection management, data fetching, and sending.</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        .. code-block:: python</span>
+
+<span class="sd">            class RestConnector(ConnectorPlugin):</span>
+<span class="sd">                plugin_name = &quot;rest&quot;</span>
+
+<span class="sd">                def connect(self, base_url: str, **kwargs) -&gt; dict:</span>
+<span class="sd">                    session = requests.Session()</span>
+<span class="sd">                    return {&quot;session&quot;: session, &quot;base_url&quot;: base_url}</span>
+
+<span class="sd">                def fetch(self, connection: dict, endpoint: str, **kwargs) -&gt; dict:</span>
+<span class="sd">                    url = f&quot;{connection[&#39;base_url&#39;]}/{endpoint}&quot;</span>
+<span class="sd">                    response = connection[&#39;session&#39;].get(url, **kwargs)</span>
+<span class="sd">                    response.raise_for_status()</span>
+<span class="sd">                    return response.json()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">plugin_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;connector&quot;</span>
+
+<div class="viewcode-block" id="ConnectorPlugin.connect">
+<a class="viewcode-back" href="../../../api_reference/core/plugins.html#apilinker.core.plugins.ConnectorPlugin.connect">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">connect</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Create a connection to the API.</span>
+
+<span class="sd">        This method should establish a connection or create a client</span>
+<span class="sd">        that can be used for subsequent API operations.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            **kwargs: Connection parameters like base_url, timeout, etc.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Connection object that will be passed to fetch and send methods</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            NotImplementedError: If the subclass does not implement this method</span>
+<span class="sd">            ConnectionError: If the connection cannot be established</span>
+<span class="sd">            ValueError: If required parameters are missing or invalid</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Connector plugins must implement the connect method&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ConnectorPlugin.fetch">
+<a class="viewcode-back" href="../../../api_reference/core/plugins.html#apilinker.core.plugins.ConnectorPlugin.fetch">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">fetch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">connection</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">endpoint</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Fetch data from the API.</span>
+
+<span class="sd">        This method should retrieve data from the specified API endpoint</span>
+<span class="sd">        using the previously established connection.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            connection: Connection object from connect()</span>
+<span class="sd">            endpoint: Endpoint path or identifier to fetch from</span>
+<span class="sd">            **kwargs: Additional parameters like query params, headers, etc.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Fetched data, typically parsed from JSON response</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            NotImplementedError: If the subclass does not implement this method</span>
+<span class="sd">            ConnectionError: If the request fails due to network issues</span>
+<span class="sd">            ValueError: If the endpoint or parameters are invalid</span>
+<span class="sd">            Exception: Other API-specific errors that might occur</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Connector plugins must implement the fetch method&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ConnectorPlugin.send">
+<a class="viewcode-back" href="../../../api_reference/core/plugins.html#apilinker.core.plugins.ConnectorPlugin.send">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">send</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">connection</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">endpoint</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Send data to the API.</span>
+
+<span class="sd">        This method should send data to the specified API endpoint</span>
+<span class="sd">        using the previously established connection.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            connection: Connection object from connect()</span>
+<span class="sd">            endpoint: Endpoint path or identifier to send to</span>
+<span class="sd">            data: Data to send (typically a dict that will be serialized to JSON)</span>
+<span class="sd">            **kwargs: Additional parameters like headers, query params, etc.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            API response, typically parsed from JSON response</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            NotImplementedError: If the subclass does not implement this method</span>
+<span class="sd">            ConnectionError: If the request fails due to network issues</span>
+<span class="sd">            ValueError: If the endpoint, data, or parameters are invalid</span>
+<span class="sd">            Exception: Other API-specific errors that might occur</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Connector plugins must implement the send method&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ConnectorPlugin.validate_connection">
+<a class="viewcode-back" href="../../../api_reference/core/plugins.html#apilinker.core.plugins.ConnectorPlugin.validate_connection">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">validate_connection</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">connection</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Validate that a connection object is properly formed.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            connection: Connection object to validate</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            True if valid, False otherwise</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">connection</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="AuthPlugin">
+<a class="viewcode-back" href="../../../api_reference/core/plugins.html#apilinker.core.plugins.AuthPlugin">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">AuthPlugin</span><span class="p">(</span><span class="n">PluginBase</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Base class for authentication plugins.</span>
+
+<span class="sd">    Authentication plugins handle different methods of API authentication,</span>
+<span class="sd">    such as API keys, OAuth2, JWT tokens, etc.</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        .. code-block:: python</span>
+
+<span class="sd">            class BearerTokenAuth(AuthPlugin):</span>
+<span class="sd">                plugin_name = &quot;bearer&quot;</span>
+
+<span class="sd">                def authenticate(self, token: str, **kwargs) -&gt; Dict[str, Any]:</span>
+<span class="sd">                    if not token:</span>
+<span class="sd">                        raise ValueError(&quot;Bearer token cannot be empty&quot;)</span>
+<span class="sd">                    return {&quot;type&quot;: &quot;bearer&quot;, &quot;headers&quot;: {&quot;Authorization&quot;: f&quot;Bearer {token}&quot;}}</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">plugin_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;auth&quot;</span>
+
+<div class="viewcode-block" id="AuthPlugin.authenticate">
+<a class="viewcode-back" href="../../../api_reference/core/plugins.html#apilinker.core.plugins.AuthPlugin.authenticate">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">authenticate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Perform authentication and return credentials.</span>
+
+<span class="sd">        This method should implement the authentication logic and</span>
+<span class="sd">        return credentials in a format that can be used by connectors.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            **kwargs: Authentication parameters (tokens, keys, etc.)</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Dictionary containing authentication result with at least:</span>
+<span class="sd">                - headers: Dict of HTTP headers to include in requests</span>
+<span class="sd">                - params: Dict of URL parameters to include (optional)</span>
+<span class="sd">                - auth: Auth object for requests library (optional)</span>
+<span class="sd">                - type: String identifier of the auth type</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            NotImplementedError: If the subclass does not implement this method</span>
+<span class="sd">            ValueError: If required parameters are missing or invalid</span>
+<span class="sd">            AuthenticationError: If authentication fails</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Auth plugins must implement the authenticate method&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="AuthPlugin.validate_credentials">
+<a class="viewcode-back" href="../../../api_reference/core/plugins.html#apilinker.core.plugins.AuthPlugin.validate_credentials">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">validate_credentials</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">credentials</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Validate that the credentials dictionary has the required fields.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            credentials: Credentials dictionary to validate</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            True if valid, False otherwise</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">credentials</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span> <span class="ow">and</span> <span class="s2">&quot;type&quot;</span> <span class="ow">in</span> <span class="n">credentials</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="PluginManager">
+<a class="viewcode-back" href="../../../api_reference/core/plugins.html#apilinker.core.plugins.PluginManager">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">PluginManager</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Manager for loading and using plugins.</span>
+
+<span class="sd">    This class handles the discovery, loading, and management of plugins</span>
+<span class="sd">    for extending ApiLinker functionality.</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        .. code-block:: python</span>
+
+<span class="sd">            # Initialize the manager</span>
+<span class="sd">            manager = PluginManager()</span>
+
+<span class="sd">            # Discover available plugins</span>
+<span class="sd">            discovered = manager.discover_plugins()</span>
+<span class="sd">            print(f&quot;Found {len(discovered)} plugins&quot;)</span>
+
+<span class="sd">            # Register a custom plugin class</span>
+<span class="sd">            manager.register_plugin(MyCustomTransformer)</span>
+
+<span class="sd">            # Get a transformer instance</span>
+<span class="sd">            transformer = manager.instantiate_plugin(&quot;transformer&quot;, &quot;my_custom&quot;)</span>
+<span class="sd">            result = transformer.transform(&quot;input data&quot;)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="PluginManager.__init__">
+<a class="viewcode-back" href="../../../api_reference/core/plugins.html#apilinker.core.plugins.PluginManager.__init__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize the plugin manager with empty plugin registries.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">plugins</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Type</span><span class="p">[</span><span class="n">PluginBase</span><span class="p">]]]</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;transformer&quot;</span><span class="p">:</span> <span class="p">{},</span>
+            <span class="s2">&quot;connector&quot;</span><span class="p">:</span> <span class="p">{},</span>
+            <span class="s2">&quot;auth&quot;</span><span class="p">:</span> <span class="p">{},</span>
+        <span class="p">}</span>
+        <span class="c1"># Track loaded modules to avoid duplicates</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_loaded_modules</span><span class="p">:</span> <span class="n">Set</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Initialized PluginManager&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="PluginManager.discover_plugins">
+<a class="viewcode-back" href="../../../api_reference/core/plugins.html#apilinker.core.plugins.PluginManager.discover_plugins">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">discover_plugins</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">plugin_dir</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Discover available plugins from built-in and custom directories.</span>
+
+<span class="sd">        This method searches for Python modules containing plugin classes</span>
+<span class="sd">        in the built-in plugins directory and optional custom directories.</span>
+<span class="sd">        Discovered plugins are automatically registered with the manager.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            plugin_dir: Optional custom directory to search for plugins.</span>
+<span class="sd">                        If None, default locations will be searched.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            List of dictionaries containing information about discovered plugins</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            PermissionError: If a plugin directory exists but cannot be read</span>
+<span class="sd">            ImportError: If a plugin module exists but cannot be imported</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">discovered</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="c1"># Check built-in plugins</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="kn">from</span><span class="w"> </span><span class="nn">apilinker.plugins</span><span class="w"> </span><span class="kn">import</span> <span class="n">builtin</span>
+
+            <span class="n">module_plugins</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_plugins_from_module</span><span class="p">(</span><span class="n">builtin</span><span class="p">)</span>
+            <span class="n">discovered</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">module_plugins</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Loaded </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">module_plugins</span><span class="p">)</span><span class="si">}</span><span class="s2"> built-in plugins&quot;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">ImportError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Could not load built-in plugins: </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Check user plugins directory</span>
+        <span class="k">if</span> <span class="n">plugin_dir</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># Check default locations</span>
+            <span class="n">plugin_paths</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="n">Path</span><span class="o">.</span><span class="n">home</span><span class="p">()</span> <span class="o">/</span> <span class="s2">&quot;.apilinker&quot;</span> <span class="o">/</span> <span class="s2">&quot;plugins&quot;</span><span class="p">,</span>  <span class="c1"># User plugins</span>
+                <span class="n">Path</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">parent</span> <span class="o">/</span> <span class="s2">&quot;plugins&quot;</span><span class="p">,</span>  <span class="c1"># Package plugins</span>
+            <span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">plugin_paths</span> <span class="o">=</span> <span class="p">[</span><span class="n">Path</span><span class="p">(</span><span class="n">plugin_dir</span><span class="p">)]</span>
+
+        <span class="c1"># Load plugins from directories</span>
+        <span class="k">for</span> <span class="n">plugin_path</span> <span class="ow">in</span> <span class="n">plugin_paths</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">plugin_path</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">plugin_path</span><span class="o">.</span><span class="n">is_dir</span><span class="p">():</span>
+                <span class="k">continue</span>
+
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Searching for plugins in </span><span class="si">{</span><span class="n">plugin_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+            <span class="c1"># Temporarily add to path for importing</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">plugin_path</span><span class="p">))</span>
+
+            <span class="k">for</span> <span class="n">filename</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">plugin_path</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">filename</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;.py&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">filename</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">):</span>
+                    <span class="n">module_name</span> <span class="o">=</span> <span class="n">filename</span><span class="p">[:</span><span class="o">-</span><span class="mi">3</span><span class="p">]</span>
+
+                    <span class="c1"># Skip already loaded modules</span>
+                    <span class="n">module_path</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">plugin_path</span> <span class="o">/</span> <span class="n">filename</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">module_path</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_loaded_modules</span><span class="p">:</span>
+                        <span class="k">continue</span>
+
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="n">module</span> <span class="o">=</span> <span class="n">importlib</span><span class="o">.</span><span class="n">import_module</span><span class="p">(</span><span class="n">module_name</span><span class="p">)</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_loaded_modules</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">module_path</span><span class="p">)</span>
+                        <span class="n">module_plugins</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_plugins_from_module</span><span class="p">(</span><span class="n">module</span><span class="p">)</span>
+                        <span class="n">discovered</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">module_plugins</span><span class="p">)</span>
+                        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+                            <span class="sa">f</span><span class="s2">&quot;Loaded </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">module_plugins</span><span class="p">)</span><span class="si">}</span><span class="s2"> plugins from </span><span class="si">{</span><span class="n">module_name</span><span class="si">}</span><span class="s2">&quot;</span>
+                        <span class="p">)</span>
+                    <span class="k">except</span> <span class="ne">ImportError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Failed to import plugin </span><span class="si">{</span><span class="n">module_name</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Import error details: </span><span class="si">{</span><span class="n">traceback</span><span class="o">.</span><span class="n">format_exc</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+            <span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">discovered</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_get_plugins_from_module</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">module</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Extract plugin classes from a module and register them.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            module: Python module object to extract plugins from</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            List of plugin information dictionaries for discovered plugins</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            PluginValidationError: If a plugin class is invalid</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">plugins</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="c1"># Find all classes derived from PluginBase</span>
+        <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">obj</span> <span class="ow">in</span> <span class="n">inspect</span><span class="o">.</span><span class="n">getmembers</span><span class="p">(</span><span class="n">module</span><span class="p">):</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">inspect</span><span class="o">.</span><span class="n">isclass</span><span class="p">(</span><span class="n">obj</span><span class="p">):</span>
+                <span class="k">continue</span>
+
+            <span class="c1"># Check if it&#39;s a valid plugin class</span>
+            <span class="k">if</span> <span class="p">(</span>
+                <span class="nb">issubclass</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">PluginBase</span><span class="p">)</span>
+                <span class="ow">and</span> <span class="n">obj</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">PluginBase</span>
+                <span class="ow">and</span> <span class="n">obj</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">TransformerPlugin</span>
+                <span class="ow">and</span> <span class="n">obj</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">ConnectorPlugin</span>
+                <span class="ow">and</span> <span class="n">obj</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">AuthPlugin</span>
+            <span class="p">):</span>
+
+                <span class="c1"># Validate plugin has required attributes</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="s2">&quot;plugin_type&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="s2">&quot;plugin_name&quot;</span><span class="p">):</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">&quot;Skipping invalid plugin class </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">: missing type or name&quot;</span>
+                    <span class="p">)</span>
+                    <span class="k">continue</span>
+
+                <span class="k">if</span> <span class="n">obj</span><span class="o">.</span><span class="n">plugin_name</span> <span class="o">==</span> <span class="s2">&quot;base&quot;</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">obj</span><span class="o">.</span><span class="n">plugin_name</span><span class="p">:</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Skipping plugin class </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">: invalid plugin_name&quot;</span><span class="p">)</span>
+                    <span class="k">continue</span>
+
+                <span class="c1"># Register the plugin</span>
+                <span class="n">plugin_info</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">get_plugin_info</span><span class="p">()</span>
+                <span class="n">plugins</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">plugin_info</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">register_plugin</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">plugins</span>
+
+<div class="viewcode-block" id="PluginManager.register_plugin">
+<a class="viewcode-back" href="../../../api_reference/core/plugins.html#apilinker.core.plugins.PluginManager.register_plugin">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">register_plugin</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">plugin_class</span><span class="p">:</span> <span class="n">Type</span><span class="p">[</span><span class="n">PluginBase</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Register a plugin class with the manager.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            plugin_class: Plugin class to register, must be a subclass of PluginBase</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            PluginValidationError: If the plugin class is invalid</span>
+<span class="sd">            TypeError: If the provided class is not a PluginBase subclass</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">inspect</span><span class="o">.</span><span class="n">isclass</span><span class="p">(</span><span class="n">plugin_class</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="nb">issubclass</span><span class="p">(</span>
+            <span class="n">plugin_class</span><span class="p">,</span> <span class="n">PluginBase</span>
+        <span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Plugin must be a subclass of PluginBase: </span><span class="si">{</span><span class="n">plugin_class</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="n">plugin_type</span> <span class="o">=</span> <span class="n">plugin_class</span><span class="o">.</span><span class="n">plugin_type</span>
+        <span class="n">plugin_name</span> <span class="o">=</span> <span class="n">plugin_class</span><span class="o">.</span><span class="n">plugin_name</span>
+
+        <span class="c1"># Validate plugin type and name</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">plugin_type</span> <span class="ow">or</span> <span class="n">plugin_type</span> <span class="o">==</span> <span class="s2">&quot;base&quot;</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">PluginValidationError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Invalid plugin_type: </span><span class="si">{</span><span class="n">plugin_type</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">plugin_name</span> <span class="ow">or</span> <span class="n">plugin_name</span> <span class="o">==</span> <span class="s2">&quot;base&quot;</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">PluginValidationError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Invalid plugin_name: </span><span class="si">{</span><span class="n">plugin_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Create new category if needed</span>
+        <span class="k">if</span> <span class="n">plugin_type</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">plugins</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">plugins</span><span class="p">[</span><span class="n">plugin_type</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="c1"># Log if we&#39;re overwriting an existing plugin</span>
+        <span class="k">if</span> <span class="n">plugin_name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">plugins</span><span class="p">[</span><span class="n">plugin_type</span><span class="p">]:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Overwriting existing plugin: </span><span class="si">{</span><span class="n">plugin_type</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">plugin_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">plugins</span><span class="p">[</span><span class="n">plugin_type</span><span class="p">][</span><span class="n">plugin_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">plugin_class</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Registered plugin: </span><span class="si">{</span><span class="n">plugin_type</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">plugin_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="PluginManager.get_plugin">
+<a class="viewcode-back" href="../../../api_reference/core/plugins.html#apilinker.core.plugins.PluginManager.get_plugin">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_plugin</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">plugin_type</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">plugin_name</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Type</span><span class="p">[</span><span class="n">PluginBase</span><span class="p">]]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get a plugin class by type and name.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            plugin_type: Type of plugin (transformer, connector, auth, etc.)</span>
+<span class="sd">            plugin_name: Name of the specific plugin</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Plugin class if found, None otherwise</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            TypeError: If plugin_type or plugin_name are not strings</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">plugin_type</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">plugin_name</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Plugin type and name must be strings&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">plugin_type</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">plugin_name</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Empty plugin type or name provided&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="k">if</span> <span class="n">plugin_type</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">plugins</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Plugin type not found: </span><span class="si">{</span><span class="n">plugin_type</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="k">if</span> <span class="n">plugin_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">plugins</span><span class="p">[</span><span class="n">plugin_type</span><span class="p">]:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Plugin </span><span class="si">{</span><span class="n">plugin_name</span><span class="si">}</span><span class="s2"> not found in type </span><span class="si">{</span><span class="n">plugin_type</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">plugins</span><span class="p">[</span><span class="n">plugin_type</span><span class="p">][</span><span class="n">plugin_name</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="PluginManager.instantiate_plugin">
+<a class="viewcode-back" href="../../../api_reference/core/plugins.html#apilinker.core.plugins.PluginManager.instantiate_plugin">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">instantiate_plugin</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">plugin_type</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">plugin_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">PluginBase</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Create an instance of a plugin with the given parameters.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            plugin_type: Type of plugin to instantiate</span>
+<span class="sd">            plugin_name: Name of plugin to instantiate</span>
+<span class="sd">            **kwargs: Parameters to pass to the plugin constructor</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Instantiated plugin object if successful, None otherwise</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            PluginNotFoundError: If the plugin cannot be found</span>
+<span class="sd">            PluginInitializationError: If the plugin cannot be initialized</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">plugin_class</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_plugin</span><span class="p">(</span><span class="n">plugin_type</span><span class="p">,</span> <span class="n">plugin_name</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">plugin_class</span><span class="p">:</span>
+            <span class="n">error_msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Plugin not found: </span><span class="si">{</span><span class="n">plugin_type</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">plugin_name</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="n">error_msg</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="n">PluginNotFoundError</span><span class="p">(</span><span class="n">error_msg</span><span class="p">)</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">plugin_class</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">error_msg</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Error instantiating plugin </span><span class="si">{</span><span class="n">plugin_type</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">plugin_name</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">error_msg</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Plugin initialization error details: </span><span class="si">{</span><span class="n">traceback</span><span class="o">.</span><span class="n">format_exc</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+            <span class="k">raise</span> <span class="n">PluginInitializationError</span><span class="p">(</span><span class="n">error_msg</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span></div>
+
+
+<div class="viewcode-block" id="PluginManager.get_transformer">
+<a class="viewcode-back" href="../../../api_reference/core/plugins.html#apilinker.core.plugins.PluginManager.get_transformer">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_transformer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">[[</span><span class="n">Any</span><span class="p">],</span> <span class="n">Any</span><span class="p">]]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get a transformer function from a plugin.</span>
+
+<span class="sd">        This is a convenience method that returns a callable function</span>
+<span class="sd">        wrapping the transform method of a TransformerPlugin instance.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            name: Name of the transformer plugin</span>
+<span class="sd">            **kwargs: Plugin initialization parameters</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Callable function that accepts a value and parameters and returns transformed value</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            PluginNotFoundError: If the transformer plugin cannot be found</span>
+<span class="sd">            PluginInitializationError: If the plugin cannot be initialized</span>
+<span class="sd">            TypeError: If the plugin is not a TransformerPlugin</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">plugin</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">instantiate_plugin</span><span class="p">(</span><span class="s2">&quot;transformer&quot;</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">plugin</span><span class="p">,</span> <span class="n">TransformerPlugin</span><span class="p">):</span>
+                <span class="n">error_msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Plugin </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2"> is not a transformer plugin&quot;</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">error_msg</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="n">error_msg</span><span class="p">)</span>
+
+            <span class="c1"># Return a function that wraps the plugin&#39;s transform method</span>
+            <span class="k">return</span> <span class="k">lambda</span> <span class="n">value</span><span class="p">,</span> <span class="o">**</span><span class="n">params</span><span class="p">:</span> <span class="n">plugin</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="o">**</span><span class="n">params</span><span class="p">)</span>
+
+        <span class="k">except</span> <span class="p">(</span><span class="n">PluginNotFoundError</span><span class="p">,</span> <span class="n">PluginInitializationError</span><span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Could not get transformer </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">None</span></div>
+
+
+<div class="viewcode-block" id="PluginManager.get_connector">
+<a class="viewcode-back" href="../../../api_reference/core/plugins.html#apilinker.core.plugins.PluginManager.get_connector">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_connector</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">ConnectorPlugin</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get a connector plugin instance.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            name: Name of the connector plugin</span>
+<span class="sd">            **kwargs: Plugin initialization parameters</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Connector plugin instance or None if not found</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            PluginNotFoundError: If the connector plugin cannot be found</span>
+<span class="sd">            PluginInitializationError: If the plugin cannot be initialized</span>
+<span class="sd">            TypeError: If the plugin is not a ConnectorPlugin</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">plugin</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">instantiate_plugin</span><span class="p">(</span><span class="s2">&quot;connector&quot;</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">plugin</span><span class="p">,</span> <span class="n">ConnectorPlugin</span><span class="p">):</span>
+                <span class="n">error_msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Plugin </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2"> is not a connector plugin&quot;</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">error_msg</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="n">error_msg</span><span class="p">)</span>
+
+            <span class="k">return</span> <span class="n">plugin</span>
+
+        <span class="k">except</span> <span class="p">(</span><span class="n">PluginNotFoundError</span><span class="p">,</span> <span class="n">PluginInitializationError</span><span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Could not get connector </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">None</span></div>
+
+
+<div class="viewcode-block" id="PluginManager.get_auth_plugin">
+<a class="viewcode-back" href="../../../api_reference/core/plugins.html#apilinker.core.plugins.PluginManager.get_auth_plugin">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_auth_plugin</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">AuthPlugin</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get an authentication plugin instance.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            name: Name of the authentication plugin</span>
+<span class="sd">            **kwargs: Plugin initialization parameters</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Auth plugin instance or None if not found</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            PluginNotFoundError: If the auth plugin cannot be found</span>
+<span class="sd">            PluginInitializationError: If the plugin cannot be initialized</span>
+<span class="sd">            TypeError: If the plugin is not an AuthPlugin</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">plugin</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">instantiate_plugin</span><span class="p">(</span><span class="s2">&quot;auth&quot;</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">plugin</span><span class="p">,</span> <span class="n">AuthPlugin</span><span class="p">):</span>
+                <span class="n">error_msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Plugin </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2"> is not an auth plugin&quot;</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">error_msg</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="n">error_msg</span><span class="p">)</span>
+
+            <span class="k">return</span> <span class="n">plugin</span>
+
+        <span class="k">except</span> <span class="p">(</span><span class="n">PluginNotFoundError</span><span class="p">,</span> <span class="n">PluginInitializationError</span><span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Could not get auth plugin </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">None</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Kyriakos Kartas.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

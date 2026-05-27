@@ -1,0 +1,232 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Search &mdash; ApiLinker 0.4.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
+  
+    
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=6c02275b"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <script src="_static/searchtools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="#" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            ApiLinker
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="#" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="api_reference/index.html">API Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="api_reference/api_linker.html">ApiLinker</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api_reference/api_linker.html#apilinker.api_linker.ErrorDetail"><code class="docutils literal notranslate"><span class="pre">ErrorDetail</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api_reference/api_linker.html#apilinker.api_linker.ErrorDetail.message"><code class="docutils literal notranslate"><span class="pre">ErrorDetail.message</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api_reference/api_linker.html#apilinker.api_linker.ErrorDetail.status_code"><code class="docutils literal notranslate"><span class="pre">ErrorDetail.status_code</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api_reference/api_linker.html#apilinker.api_linker.ErrorDetail.response_body"><code class="docutils literal notranslate"><span class="pre">ErrorDetail.response_body</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api_reference/api_linker.html#apilinker.api_linker.ErrorDetail.request_url"><code class="docutils literal notranslate"><span class="pre">ErrorDetail.request_url</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api_reference/api_linker.html#apilinker.api_linker.ErrorDetail.request_method"><code class="docutils literal notranslate"><span class="pre">ErrorDetail.request_method</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api_reference/api_linker.html#apilinker.api_linker.ErrorDetail.timestamp"><code class="docutils literal notranslate"><span class="pre">ErrorDetail.timestamp</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api_reference/api_linker.html#apilinker.api_linker.ErrorDetail.error_type"><code class="docutils literal notranslate"><span class="pre">ErrorDetail.error_type</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api_reference/api_linker.html#apilinker.api_linker.ErrorDetail.from_apilinker_error"><code class="docutils literal notranslate"><span class="pre">ErrorDetail.from_apilinker_error()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api_reference/api_linker.html#apilinker.api_linker.ErrorDetail.model_config"><code class="docutils literal notranslate"><span class="pre">ErrorDetail.model_config</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api_reference/api_linker.html#apilinker.api_linker.SyncResult"><code class="docutils literal notranslate"><span class="pre">SyncResult</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api_reference/api_linker.html#apilinker.api_linker.SyncResult.count"><code class="docutils literal notranslate"><span class="pre">SyncResult.count</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api_reference/api_linker.html#apilinker.api_linker.SyncResult.success"><code class="docutils literal notranslate"><span class="pre">SyncResult.success</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api_reference/api_linker.html#apilinker.api_linker.SyncResult.errors"><code class="docutils literal notranslate"><span class="pre">SyncResult.errors</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api_reference/api_linker.html#apilinker.api_linker.SyncResult.details"><code class="docutils literal notranslate"><span class="pre">SyncResult.details</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api_reference/api_linker.html#apilinker.api_linker.SyncResult.correlation_id"><code class="docutils literal notranslate"><span class="pre">SyncResult.correlation_id</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api_reference/api_linker.html#apilinker.api_linker.SyncResult.source_response"><code class="docutils literal notranslate"><span class="pre">SyncResult.source_response</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api_reference/api_linker.html#apilinker.api_linker.SyncResult.target_response"><code class="docutils literal notranslate"><span class="pre">SyncResult.target_response</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api_reference/api_linker.html#apilinker.api_linker.SyncResult.duration_ms"><code class="docutils literal notranslate"><span class="pre">SyncResult.duration_ms</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api_reference/api_linker.html#apilinker.api_linker.SyncResult.model_config"><code class="docutils literal notranslate"><span class="pre">SyncResult.model_config</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api_reference/api_linker.html#apilinker.api_linker.ApiLinker"><code class="docutils literal notranslate"><span class="pre">ApiLinker</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api_reference/api_linker.html#apilinker.api_linker.ApiLinker.__init__"><code class="docutils literal notranslate"><span class="pre">ApiLinker.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api_reference/api_linker.html#apilinker.api_linker.ApiLinker.load_config"><code class="docutils literal notranslate"><span class="pre">ApiLinker.load_config()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api_reference/api_linker.html#apilinker.api_linker.ApiLinker.add_source"><code class="docutils literal notranslate"><span class="pre">ApiLinker.add_source()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api_reference/api_linker.html#apilinker.api_linker.ApiLinker.add_target"><code class="docutils literal notranslate"><span class="pre">ApiLinker.add_target()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api_reference/api_linker.html#apilinker.api_linker.ApiLinker.add_mapping"><code class="docutils literal notranslate"><span class="pre">ApiLinker.add_mapping()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api_reference/api_linker.html#apilinker.api_linker.ApiLinker.add_schedule"><code class="docutils literal notranslate"><span class="pre">ApiLinker.add_schedule()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api_reference/api_linker.html#apilinker.api_linker.ApiLinker.get_error_analytics"><code class="docutils literal notranslate"><span class="pre">ApiLinker.get_error_analytics()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api_reference/api_linker.html#apilinker.api_linker.ApiLinker.add_user"><code class="docutils literal notranslate"><span class="pre">ApiLinker.add_user()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api_reference/api_linker.html#apilinker.api_linker.ApiLinker.list_users"><code class="docutils literal notranslate"><span class="pre">ApiLinker.list_users()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api_reference/api_linker.html#apilinker.api_linker.ApiLinker.store_credential"><code class="docutils literal notranslate"><span class="pre">ApiLinker.store_credential()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api_reference/api_linker.html#apilinker.api_linker.ApiLinker.get_credential"><code class="docutils literal notranslate"><span class="pre">ApiLinker.get_credential()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api_reference/api_linker.html#apilinker.api_linker.ApiLinker.list_credentials"><code class="docutils literal notranslate"><span class="pre">ApiLinker.list_credentials()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api_reference/api_linker.html#apilinker.api_linker.ApiLinker.process_dlq"><code class="docutils literal notranslate"><span class="pre">ApiLinker.process_dlq()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api_reference/api_linker.html#apilinker.api_linker.ApiLinker.fetch"><code class="docutils literal notranslate"><span class="pre">ApiLinker.fetch()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api_reference/api_linker.html#apilinker.api_linker.ApiLinker.send"><code class="docutils literal notranslate"><span class="pre">ApiLinker.send()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api_reference/api_linker.html#apilinker.api_linker.ApiLinker.sync"><code class="docutils literal notranslate"><span class="pre">ApiLinker.sync()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api_reference/api_linker.html#apilinker.api_linker.ApiLinker.start_scheduled_sync"><code class="docutils literal notranslate"><span class="pre">ApiLinker.start_scheduled_sync()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api_reference/api_linker.html#apilinker.api_linker.ApiLinker.stop_scheduled_sync"><code class="docutils literal notranslate"><span class="pre">ApiLinker.stop_scheduled_sync()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api_reference/core/index.html">Core API</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api_reference/core/api_linker.html">ApiLinker</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api_reference/core/api_linker.html#apilinker.api_linker.ErrorDetail"><code class="docutils literal notranslate"><span class="pre">ErrorDetail</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api_reference/core/api_linker.html#apilinker.api_linker.SyncResult"><code class="docutils literal notranslate"><span class="pre">SyncResult</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api_reference/core/api_linker.html#apilinker.api_linker.ApiLinker"><code class="docutils literal notranslate"><span class="pre">ApiLinker</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api_reference/core/plugins.html">Plugins Module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api_reference/core/plugins.html#plugin-base-classes">Plugin Base Classes</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api_reference/core/plugins.html#plugin-management">Plugin Management</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api_reference/core/plugins.html#exceptions">Exceptions</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api_reference/core/mapper.html">Mapper</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api_reference/core/mapper.html#apilinker.core.mapper.FieldMapper"><code class="docutils literal notranslate"><span class="pre">FieldMapper</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api_reference/core/connector.html">Connector</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api_reference/core/connector.html#apilinker.core.connector.EndpointConfig"><code class="docutils literal notranslate"><span class="pre">EndpointConfig</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api_reference/core/connector.html#apilinker.core.connector.ApiConnector"><code class="docutils literal notranslate"><span class="pre">ApiConnector</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api_reference/core/auth.html">Authentication</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api_reference/core/auth.html#apilinker.core.auth.AuthConfig"><code class="docutils literal notranslate"><span class="pre">AuthConfig</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api_reference/core/auth.html#apilinker.core.auth.ApiKeyAuth"><code class="docutils literal notranslate"><span class="pre">ApiKeyAuth</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api_reference/core/auth.html#apilinker.core.auth.BearerAuth"><code class="docutils literal notranslate"><span class="pre">BearerAuth</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api_reference/core/auth.html#apilinker.core.auth.BasicAuth"><code class="docutils literal notranslate"><span class="pre">BasicAuth</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api_reference/core/auth.html#apilinker.core.auth.OAuth2ClientCredentials"><code class="docutils literal notranslate"><span class="pre">OAuth2ClientCredentials</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api_reference/core/auth.html#apilinker.core.auth.OAuth2PKCE"><code class="docutils literal notranslate"><span class="pre">OAuth2PKCE</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api_reference/core/auth.html#apilinker.core.auth.OAuth2DeviceFlow"><code class="docutils literal notranslate"><span class="pre">OAuth2DeviceFlow</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api_reference/core/auth.html#apilinker.core.auth.AuthManager"><code class="docutils literal notranslate"><span class="pre">AuthManager</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api_reference/core/scheduler.html">Scheduler</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api_reference/core/scheduler.html#apilinker.core.scheduler.Scheduler"><code class="docutils literal notranslate"><span class="pre">Scheduler</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api_reference/core/config.html">Configuration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api_reference/core/exceptions.html">Exceptions</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api_reference/core/exceptions.html#apilinker.core.error_handling.CircuitBreakerState"><code class="docutils literal notranslate"><span class="pre">CircuitBreakerState</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api_reference/core/exceptions.html#apilinker.core.error_handling.ErrorCategory"><code class="docutils literal notranslate"><span class="pre">ErrorCategory</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api_reference/core/exceptions.html#apilinker.core.error_handling.RecoveryStrategy"><code class="docutils literal notranslate"><span class="pre">RecoveryStrategy</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api_reference/core/exceptions.html#apilinker.core.error_handling.ApiLinkerError"><code class="docutils literal notranslate"><span class="pre">ApiLinkerError</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api_reference/core/exceptions.html#apilinker.core.error_handling.DeadLetterQueue"><code class="docutils literal notranslate"><span class="pre">DeadLetterQueue</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api_reference/core/exceptions.html#apilinker.core.error_handling.CircuitBreaker"><code class="docutils literal notranslate"><span class="pre">CircuitBreaker</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api_reference/core/exceptions.html#apilinker.core.error_handling.ErrorRecoveryManager"><code class="docutils literal notranslate"><span class="pre">ErrorRecoveryManager</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api_reference/core/exceptions.html#apilinker.core.error_handling.ErrorAnalytics"><code class="docutils literal notranslate"><span class="pre">ErrorAnalytics</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api_reference/core/exceptions.html#apilinker.core.error_handling.create_error_handler"><code class="docutils literal notranslate"><span class="pre">create_error_handler()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api_reference/plugins/index.html">Plugins</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api_reference/core/plugins.html">Plugins Module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api_reference/core/plugins.html#plugin-base-classes">Plugin Base Classes</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api_reference/core/plugins.html#plugin-management">Plugin Management</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api_reference/core/plugins.html#exceptions">Exceptions</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api_reference/utils/index.html">Utilities</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">ApiLinker</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Search</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <noscript>
+  <div id="fallback" class="admonition warning">
+    <p class="last">
+      Please activate JavaScript to enable the search functionality.
+    </p>
+  </div>
+  </noscript>
+
+  
+  <div id="search-results">
+  
+  </div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Kyriakos Kartas.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+  <script>
+    jQuery(function() { Search.loadIndex("searchindex.js"); });
+  </script>
+  
+  <script id="searchindexloader"></script>
+   
+
+
+</body>
+</html>
